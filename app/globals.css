@@ -71,7 +71,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: #8157D9;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -138,5 +138,22 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-open-sans), sans-serif;
+  }
+  h1, .heading-primary {
+    font-family: var(--font-roboto), sans-serif;
+    font-weight: 700;
+  }
+  h2, h3, .heading-secondary {
+    font-family: var(--font-open-sans), sans-serif;
+    font-weight: 600;
   }
 }
+
+/* Class2Class Brand Colors */
+.c2c-purple { color: #8157D9; }
+.c2c-purple-bg { background-color: #8157D9; }
+.c2c-dark-gray { color: #333333; }
+.c2c-dark-gray-bg { background-color: #333333; }
+.c2c-light-gray { color: #F4F5F6; }
+.c2c-light-gray-bg { background-color: #F4F5F6; }
