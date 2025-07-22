@@ -17,7 +17,7 @@ export default function Home() {
           </div>
           <div className="flex gap-4">
             <Button variant="outline" asChild>
-              <Link href="/auth/login">Sign In</Link>
+              <Link href="/dashboard">Sign In</Link>
             </Button>
             <Button className="c2c-purple-bg hover:opacity-90" asChild>
               <Link href="/partner/onboarding">Become a Partner</Link>

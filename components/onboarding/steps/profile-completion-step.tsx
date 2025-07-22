@@ -105,7 +105,10 @@ export function ProfileCompletionStep({
               Preview Profile
             </Button>
             <Button
-              onClick={onStartCollaborating}
+              onClick={() => {
+                // Auto-login and redirect to dashboard
+                window.location.href = '/dashboard';
+              }}
               size="lg"
               className="c2c-purple-bg hover:opacity-90"
             >
