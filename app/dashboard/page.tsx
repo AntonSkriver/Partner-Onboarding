@@ -130,173 +130,68 @@ export default function PartnerDashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50">
-      {/* Enhanced Header with Role Display */}
-      <header className="bg-white border-b border-purple-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-                <Globe className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">Class2Class Partners</h1>
-                <p className="text-xs text-gray-500">{partnerData.organization}</p>
-              </div>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar Navigation */}
+      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-8">
+            <div className="w-8 h-8 c2c-purple-bg rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-bold">C2C</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm">
-                <MessageCircle className="h-4 w-4" />
-                <span className="ml-1 text-xs">Messages</span>
-              </Button>
-              <Button variant="ghost" size="sm">
-                <Bell className="h-4 w-4" />
-                <span className="ml-1 text-xs">3</span>
-              </Button>
-              <Button variant="ghost" size="sm">
-                <HelpCircle className="h-4 w-4" />
-              </Button>
-              <div className="flex items-center space-x-3 border-l pl-4">
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{partnerData.name}</p>
-                  <p className="text-xs text-gray-500">{partnerData.role}</p>
-                </div>
-                <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">
-                    {partnerData.name.split(' ').map(n => n[0]).join('')}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section with Enhanced Metrics */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                Hi, {partnerData.name}
-              </h2>
-              <p className="text-gray-600 flex items-center">
-                Welcome to your {partnerData.organizationType} partner dashboard
-                <Badge variant="secondary" className="ml-2">{partnerData.role}</Badge>
-              </p>
-            </div>
-            <div className="flex space-x-3">
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export Report
-              </Button>
-              <Button className="bg-purple-600 hover:bg-purple-700">
-                <Plus className="h-4 w-4 mr-2" />
-                New Project
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Compact KPI Metrics - Single Line */}
-        <div className="mb-8">
-          <div className="flex space-x-2 max-w-2xl">
-            {/* All metrics in a single compact row */}
-            <Card className="border-purple-200 hover:shadow-md hover:border-purple-300 transition-all cursor-pointer group flex-1" onClick={() => setActiveTab("analytics")}>
-              <CardContent className="p-2">
-                <div className="text-center">
-                  <School className="h-4 w-4 text-purple-600 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-                  <p className="text-xs font-medium text-purple-600">Schools</p>
-                  <p className="text-lg font-bold text-gray-900">{partnerData.metrics.schools}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-purple-200 hover:shadow-md hover:border-purple-300 transition-all cursor-pointer group flex-1" onClick={() => setActiveTab("analytics")}>
-              <CardContent className="p-2">
-                <div className="text-center">
-                  <GraduationCap className="h-4 w-4 text-purple-600 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-                  <p className="text-xs font-medium text-purple-600">Teachers</p>
-                  <p className="text-lg font-bold text-gray-900">{partnerData.metrics.teachers}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-purple-200 hover:shadow-md hover:border-purple-300 transition-all cursor-pointer group flex-1" onClick={() => setActiveTab("analytics")}>
-              <CardContent className="p-2">
-                <div className="text-center">
-                  <Users className="h-4 w-4 text-purple-600 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-                  <p className="text-xs font-medium text-purple-600">Students</p>
-                  <p className="text-lg font-bold text-gray-900">{partnerData.metrics.students > 999 ? `${Math.floor(partnerData.metrics.students/1000)}k` : partnerData.metrics.students}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-purple-200 hover:shadow-md hover:border-purple-300 transition-all cursor-pointer group flex-1" onClick={() => setActiveTab("analytics")}>
-              <CardContent className="p-2">
-                <div className="text-center">
-                  <Globe className="h-4 w-4 text-purple-600 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-                  <p className="text-xs font-medium text-purple-600">Countries</p>
-                  <p className="text-lg font-bold text-gray-900">{partnerData.metrics.countries}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-purple-200 hover:shadow-md hover:border-purple-300 transition-all cursor-pointer group flex-1" onClick={() => setActiveTab("analytics")}>
-              <CardContent className="p-2">
-                <div className="text-center">
-                  <Star className="h-4 w-4 text-purple-600 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-                  <p className="text-xs font-medium text-purple-600">NPS</p>
-                  <p className="text-lg font-bold text-gray-900">{partnerData.metrics.npsScore}</p>
-                </div>
-              </CardContent>
-            </Card>
+            <span className="font-semibold text-gray-800">Partner Dashboard</span>
           </div>
           
-          <p className="text-xs text-gray-500 mt-2">Click any metric to view detailed analytics</p>
+          {/* Navigation Items */}
+          <nav className="space-y-2">
+            <button
+              onClick={() => setActiveTab("overview")}
+              className={`w-full text-left px-4 py-3 rounded-lg border border-gray-200 diagonal-stripes ${
+                activeTab === "overview"
+                  ? "bg-gray-100 text-gray-800 font-medium"
+                  : "text-gray-500"
+              }`}
+            >
+              <span className="text-sm">Overview</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("projects")}
+              className={`w-full text-left px-4 py-3 rounded-lg border border-gray-200 diagonal-stripes ${
+                activeTab === "projects"
+                  ? "bg-gray-100 text-gray-800 font-medium"
+                  : "text-gray-500"
+              }`}
+            >
+              <span className="text-sm">Projects</span>
+            </button>
+          </nav>
         </div>
+      </div>
 
-        {/* Sidebar Layout with Overview and Projects */}
-        <div className="flex gap-6">
-          {/* Sidebar Navigation */}
-          <div className="w-48 flex-shrink-0">
-            <div className="space-y-2">
-              <button
-                onClick={() => setActiveTab("overview")}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                  activeTab === "overview"
-                    ? "bg-purple-100 text-purple-900 border-l-4 border-purple-600"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <Globe className="h-4 w-4 text-purple-600" />
-                  </div>
-                  <span className="font-medium">Overview</span>
-                </div>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Header Section - More Prominent */}
+        <div className="bg-white border-b-2 border-gray-200 px-6 py-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="heading-primary text-2xl font-bold text-gray-800 mb-1">Hi, {partnerData.name}</h1>
+              <p className="text-base text-c2c-purple font-semibold">{partnerData.role}</p>
+              <p className="text-sm text-gray-600 mt-2">Welcome to your {partnerData.organizationType} partner dashboard</p>
+            </div>
+            <div className="flex gap-3">
+              <button className="px-5 py-2.5 border border-purple-200 rounded-lg text-sm font-medium hover:bg-purple-50 text-purple-700 shadow-sm">
+                Export report
               </button>
-              
-              <button
-                onClick={() => setActiveTab("projects")}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                  activeTab === "projects"
-                    ? "bg-purple-100 text-purple-900 border-l-4 border-purple-600"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <FolderOpen className="h-4 w-4 text-purple-600" />
-                  </div>
-                  <span className="font-medium">Projects</span>
-                </div>
+              <button className="px-5 py-2.5 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 shadow-sm">
+                + New project
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Main Content Area */}
-          <div className="flex-1">
+
+        {/* Main Dashboard Content */}
+        <div className="flex-1 p-6 bg-gray-50">
+          <div className="bg-white rounded-xl border-2 border-purple-200 p-6 shadow-lg">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
 
           {/* Overview Tab */}
@@ -400,6 +295,33 @@ export default function PartnerDashboard() {
 
           {/* Projects Tab */}
           <TabsContent value="projects" className="space-y-6">
+            {/* Key Metrics - Only shown in Projects */}
+            <div className="mb-8">
+              <h2 className="text-sm font-medium text-gray-600 mb-4 uppercase tracking-wide">Key Metrics</h2>
+              <div className="grid grid-cols-5 gap-4 mb-6">
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center diagonal-stripes hover:shadow-md transition-shadow cursor-pointer">
+                  <div className="font-medium text-gray-800 mb-1 text-sm">Schools</div>
+                  <div className="text-xl font-bold text-gray-900">{partnerData.metrics.schools}</div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center diagonal-stripes hover:shadow-md transition-shadow cursor-pointer">
+                  <div className="font-medium text-gray-800 mb-1 text-sm">Teachers</div>
+                  <div className="text-xl font-bold text-gray-900">{partnerData.metrics.teachers}</div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center diagonal-stripes hover:shadow-md transition-shadow cursor-pointer">
+                  <div className="font-medium text-gray-800 mb-1 text-sm">Students</div>
+                  <div className="text-xl font-bold text-gray-900">{partnerData.metrics.students.toLocaleString()}</div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center diagonal-stripes hover:shadow-md transition-shadow cursor-pointer">
+                  <div className="font-medium text-gray-800 mb-1 text-sm">Countries</div>
+                  <div className="text-xl font-bold text-gray-900">{partnerData.metrics.countries}</div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center diagonal-stripes hover:shadow-md transition-shadow cursor-pointer">
+                  <div className="font-medium text-gray-800 mb-1 text-sm">NPS</div>
+                  <div className="text-xl font-bold text-gray-900">{partnerData.metrics.npsScore}</div>
+                </div>
+              </div>
+            </div>
+
             <div className="flex justify-between items-center">
               <h3 className="text-xl font-semibold text-gray-900">Project Management</h3>
               <Button className="bg-purple-600 hover:bg-purple-700">
