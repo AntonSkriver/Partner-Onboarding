@@ -5,14 +5,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { 
-  Bell, HelpCircle, Settings, Link, FolderOpen, Users, Zap, BookOpen, FileText,
-  Plus, MessageCircle, TrendingUp, Globe, Target, Award, Video, Edit3,
-  Mail, Share2, BarChart3, Filter, Download, Calendar, Clock,
-  UserCheck, School, GraduationCap, Heart, Star, ArrowUpRight,
-  Megaphone, PenTool, Lightbulb, PlayCircle, Shield
+  Plus, Target, Edit3, Clock, UserCheck, School, Megaphone, PenTool
 } from 'lucide-react'
+import Link from 'next/link'
 
 export default function PartnerDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
@@ -178,12 +175,12 @@ export default function PartnerDashboard() {
               <p className="text-sm text-gray-600 mt-2">Welcome to your {partnerData.organizationType} partner dashboard</p>
             </div>
             <div className="flex gap-3">
-              <a 
+              <Link 
                 href="/"
                 className="px-5 py-2.5 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 text-gray-700 shadow-sm"
               >
                 ← Back to Home
-              </a>
+              </Link>
               <button className="px-5 py-2.5 border border-purple-200 rounded-lg text-sm font-medium hover:bg-purple-50 text-purple-700 shadow-sm">
                 Export report
               </button>

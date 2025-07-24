@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function DashboardPage() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -7,11 +9,11 @@ export default function DashboardPage() {
         </div>
         <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '1rem' }}>Dashboard</h1>
         <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
-          Welcome to your dashboard! This is where you'll manage your partnerships and collaborations.
+          Welcome to your dashboard! This is where you&apos;ll manage your partnerships and collaborations.
         </p>
         
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <a href="/" style={{ 
+          <Link href="/" style={{ 
             padding: '0.75rem 1.5rem', 
             backgroundColor: 'white', 
             border: '1px solid #d1d5db', 
@@ -21,8 +23,8 @@ export default function DashboardPage() {
             fontSize: '1rem'
           }}>
             ← Back to Home
-          </a>
-          <a href="/sign-in" style={{ 
+          </Link>
+          <Link href="/sign-in" style={{ 
             padding: '0.75rem 1.5rem', 
             backgroundColor: '#8b5cf6', 
             color: 'white', 
@@ -31,7 +33,7 @@ export default function DashboardPage() {
             fontSize: '1rem'
           }}>
             Sign In
-          </a>
+          </Link>
         </div>
       </div>
     </div>

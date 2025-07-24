@@ -124,9 +124,7 @@ export default function PartnerOnboardingPage() {
       case 7:
         return (
           <ProfileCompletionStep
-            onViewProfile={() => {}}
             onEnhanceProfile={() => {}}
-            onStartCollaborating={() => {}}
             organizationName={onboardingData.organizationName || ''}
             organizationType={onboardingData.organizationType || ''}
           />

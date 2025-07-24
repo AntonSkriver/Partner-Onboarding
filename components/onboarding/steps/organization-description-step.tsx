@@ -58,7 +58,7 @@ export function OrganizationDescriptionStep({
           Tell us about your organization
         </h2>
         <p className="text-gray-600 text-xs">
-          Provide a brief description of your organization's work and focus areas.
+          Provide a brief description of your organization&apos;s work and focus areas.
         </p>
       </div>
 

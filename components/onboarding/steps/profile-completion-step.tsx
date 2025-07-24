@@ -16,17 +16,13 @@ import {
 } from 'lucide-react';
 
 interface ProfileCompletionStepProps {
-  onViewProfile: () => void;
   onEnhanceProfile: () => void;
-  onStartCollaborating: () => void;
   organizationName: string;
   organizationType: string;
 }
 
 export function ProfileCompletionStep({ 
-  onViewProfile,
   onEnhanceProfile,
-  onStartCollaborating,
   organizationName,
   organizationType
 }: ProfileCompletionStepProps) {
