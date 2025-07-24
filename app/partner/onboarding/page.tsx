@@ -100,6 +100,7 @@ export default function PartnerOnboardingPage() {
             onNext={handleMissionNext}
             onBack={handleBack}
             initialValue={onboardingData.mission}
+            organizationName={onboardingData.organizationName}
           />
         );
       case 5:

@@ -17,17 +17,28 @@ interface MissionStatementStepProps {
   onNext: (mission: string) => void;
   onBack: () => void;
   initialValue?: string;
+  organizationName?: string;
 }
 
 export function MissionStatementStep({ 
   onNext, 
   onBack, 
-  initialValue = '' 
+  initialValue = '',
+  organizationName
 }: MissionStatementStepProps) {
+  // Pre-populate with UNICEF mission if organization name contains "unicef"
+  const getDefaultMission = () => {
+    if (initialValue) return initialValue;
+    if (organizationName?.toLowerCase().includes('unicef')) {
+      return "To advocate for the protection of children's rights, to help meet their basic needs and to expand opportunities for them to reach their full potential. We are guided by the Convention on the Rights of the Child and strive to establish children's rights as enduring ethical principles and international standards of behaviour towards children.";
+    }
+    return '';
+  };
+
   const form = useForm<MissionData>({
     resolver: zodResolver(missionSchema),
     defaultValues: {
-      mission: initialValue,
+      mission: getDefaultMission(),
     },
   });
 
