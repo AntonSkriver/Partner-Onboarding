@@ -17,7 +17,7 @@ export default function Home() {
           </div>
           <div className="flex gap-4">
             <Button variant="outline" asChild>
-              <Link href="/dashboard">Sign In</Link>
+              <Link href="/sign-in">Sign In</Link>
             </Button>
             <Button className="c2c-purple-bg hover:opacity-90" asChild>
               <Link href="/partner/onboarding">Become a Partner</Link>
@@ -27,12 +27,12 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <main className="container mx-auto px-4 py-16">
-        <div className="text-center max-w-4xl mx-auto mb-16">
+      <main className="container mx-auto px-6 py-20">
+        <div className="text-center max-w-4xl mx-auto mb-20">
           <h1 className="heading-primary text-5xl mb-6 c2c-dark-gray">
             Empowering Global Educational Partnerships
           </h1>
-          <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+          <p className="text-xl text-gray-600 mb-10 leading-relaxed">
             Join Class2Class as a partner organization and connect with schools worldwide 
             to create meaningful collaborative learning experiences that advance the UN 
             Sustainable Development Goals.
@@ -51,7 +51,7 @@ export default function Home() {
         </div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20 max-w-5xl mx-auto">
           <Card className="border-2 hover:border-purple-200 transition-colors">
             <CardHeader className="text-center">
               <div className="w-12 h-12 c2c-purple-bg rounded-lg flex items-center justify-center mx-auto mb-4">
@@ -61,8 +61,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription className="text-center">
-                Connect with schools, teachers, and students across the globe to create 
-                impactful collaborative projects that transcend geographical boundaries.
+                Connect with schools and students globally to create impactful collaborative projects.
               </CardDescription>
             </CardContent>
           </Card>
@@ -76,8 +75,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription className="text-center">
-                Align your projects with the UN Sustainable Development Goals and 
-                track your organization&apos;s impact on global education and development.
+                Align projects with UN Sustainable Development Goals and track your impact.
               </CardDescription>
             </CardContent>
           </Card>
@@ -91,24 +89,23 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription className="text-center">
-                Create and manage multiple educational projects with built-in tools 
-                for collaboration, progress tracking, and impact measurement.
+                Create and manage educational projects with collaboration and tracking tools.
               </CardDescription>
             </CardContent>
           </Card>
         </div>
 
         {/* Partner Types */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 mb-16">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-10 mb-20 max-w-4xl mx-auto">
           <h2 className="heading-secondary text-3xl text-center mb-8 c2c-dark-gray">
             Who Can Become a Partner?
           </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               {
                 title: "NGOs",
                 description: "Organizations like UNICEF working on global citizenship and rights",
-                icon: "🏛️"
+                icon: "🤝"
               },
               {
                 title: "Government",
@@ -126,7 +123,7 @@ export default function Home() {
                 icon: "🏢"
               }
             ].map((type, index) => (
-              <div key={index} className="text-center p-4">
+              <div key={index} className="text-center p-3">
                 <div className="text-4xl mb-3">{type.icon}</div>
                 <h3 className="heading-secondary text-lg mb-2">{type.title}</h3>
                 <p className="text-gray-600 text-sm">{type.description}</p>
@@ -136,7 +133,7 @@ export default function Home() {
         </div>
 
         {/* CTA Section */}
-        <div className="text-center bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl p-12 text-white">
+        <div className="text-center bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl p-12 text-white max-w-5xl mx-auto">
           <Award className="w-16 h-16 mx-auto mb-6 opacity-90" />
           <h2 className="heading-primary text-3xl mb-4">Ready to Make a Global Impact?</h2>
           <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">

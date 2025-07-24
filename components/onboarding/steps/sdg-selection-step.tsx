@@ -56,28 +56,26 @@ export function SDGSelectionStep({
   const canProceed = selectedSDGs.length > 0;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 c2c-purple-bg rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl text-white">🌍</span>
+    <div className="w-full max-w-full mx-auto">
+      <div className="text-center mb-3">
+        <div className="w-12 h-12 c2c-purple-bg rounded-full flex items-center justify-center mx-auto mb-2">
+          <span className="text-lg text-white">🌍</span>
         </div>
-        <h2 className="heading-primary text-2xl mb-3 c2c-dark-gray">
-          Which UN Sustainable Development Goals do you focus on?
+        <h2 className="heading-primary text-lg mb-2 c2c-dark-gray">
+          Which UN SDGs do you focus on?
         </h2>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-          Select the SDGs that align with your organization&apos;s work and projects. 
-          This helps schools understand your impact focus.
+        <p className="text-gray-600 text-sm max-w-2xl mx-auto mb-2">
+          Select SDGs that align with your work. This helps schools understand your focus.
         </p>
-      </div>
-
-      <div className="mb-6">
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-xs text-gray-600">
           Selected: {selectedSDGs.length} {selectedSDGs.length === 1 ? 'goal' : 'goals'} 
           {selectedSDGs.length === 0 && ' (minimum 1 required)'}
         </p>
-        
-        {selectedSDGs.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-6">
+      </div>
+
+      {selectedSDGs.length > 0 && (
+        <div className="mb-3">
+          <div className="flex flex-wrap gap-1 mb-3">
             {selectedSDGs.map((sdgId) => {
               const sdg = sdgOptions.find(s => s.id === sdgId);
               return sdg ? (
@@ -96,45 +94,45 @@ export function SDGSelectionStep({
               ) : null;
             })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-2">
         {sdgOptions.map((sdg) => (
           <Card
             key={sdg.id}
-            className={`p-4 cursor-pointer transition-all border-2 hover:border-purple-200 ${
+            className={`p-2 cursor-pointer transition-all border hover:border-purple-200 ${
               selectedSDGs.includes(sdg.id)
                 ? 'border-purple-500 bg-purple-50'
                 : 'border-gray-200'
             }`}
             onClick={() => handleSDGToggle(sdg.id)}
           >
-            <div className="flex items-start gap-3">
-              <div className={`w-4 h-4 rounded ${sdg.color} flex-shrink-0 mt-0.5`}></div>
-              <div className="flex-1">
+            <div className="flex items-start gap-2">
+              <div className={`w-3 h-3 rounded ${sdg.color} flex-shrink-0 mt-0.5`}></div>
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <div className="font-medium text-sm">SDG {sdg.id}</div>
+                  <div className="font-medium text-xs">SDG {sdg.id}</div>
                   <div
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                    className={`w-3 h-3 rounded-full border flex items-center justify-center flex-shrink-0 ${
                       selectedSDGs.includes(sdg.id)
                         ? 'border-purple-500 bg-purple-500'
                         : 'border-gray-300'
                     }`}
                   >
                     {selectedSDGs.includes(sdg.id) && (
-                      <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                      <div className="w-1 h-1 bg-white rounded-full"></div>
                     )}
                   </div>
                 </div>
-                <div className="text-sm text-gray-600 mt-1">{sdg.title}</div>
+                <div className="text-xs text-gray-600 mt-0.5 leading-tight">{sdg.title}</div>
               </div>
             </div>
           </Card>
         ))}
       </div>
 
-      <div className="flex gap-4 justify-center">
+      <div className="flex gap-4 justify-center mt-2 pt-2 border-t border-gray-200">
         <Button
           type="button"
           variant="outline"
@@ -152,19 +150,6 @@ export function SDGSelectionStep({
         >
           Next →
         </Button>
-      </div>
-
-      <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <span className="text-green-600 text-lg">🎯</span>
-          <div>
-            <h4 className="font-medium text-green-900 mb-1">Global Impact</h4>
-            <p className="text-sm text-green-800">
-              Aligning with the UN SDGs helps schools understand how participating in your projects 
-              contributes to global positive change and sustainable development.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -2,7 +2,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { OrganizationTypeStep } from '@/components/onboarding/steps/organization-type-step';
 import { OrganizationNameStep } from '@/components/onboarding/steps/organization-name-step';
 import { OrganizationDescriptionStep } from '@/components/onboarding/steps/organization-description-step';
@@ -25,7 +24,6 @@ interface OnboardingData {
 export default function PartnerOnboardingPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({});
-  const router = useRouter();
 
   const handleOrganizationTypeNext = (organizationType: string) => {
     setOnboardingData(prev => ({ ...prev, organizationType }));
@@ -68,20 +66,6 @@ export default function PartnerOnboardingPage() {
     }
   };
 
-  const handleViewProfile = () => {
-    // Navigate to profile preview (we'll implement this next)
-    router.push('/partner/profile/preview');
-  };
-
-  const handleEnhanceProfile = () => {
-    // Navigate to profile enhancement (we'll implement this next)
-    router.push('/partner/profile/enhance');
-  };
-
-  const handleStartCollaborating = () => {
-    // Navigate to partner dashboard (we'll implement this next)
-    router.push('/partner/dashboard');
-  };
 
   const getStepContent = () => {
     switch (currentStep) {
@@ -107,6 +91,7 @@ export default function PartnerOnboardingPage() {
             onNext={handleDescriptionNext}
             onBack={handleBack}
             initialValue={onboardingData.description}
+            organizationName={onboardingData.organizationName}
           />
         );
       case 4:
@@ -124,6 +109,7 @@ export default function PartnerOnboardingPage() {
             onSkip={handleWebsiteSkip}
             onBack={handleBack}
             initialValue={onboardingData.website}
+            organizationName={onboardingData.organizationName}
           />
         );
       case 6:
@@ -137,9 +123,9 @@ export default function PartnerOnboardingPage() {
       case 7:
         return (
           <ProfileCompletionStep
-            onViewProfile={handleViewProfile}
-            onEnhanceProfile={handleEnhanceProfile}
-            onStartCollaborating={handleStartCollaborating}
+            onViewProfile={() => {}}
+            onEnhanceProfile={() => {}}
+            onStartCollaborating={() => {}}
             organizationName={onboardingData.organizationName || ''}
             organizationType={onboardingData.organizationType || ''}
           />
@@ -150,66 +136,32 @@ export default function PartnerOnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar Navigation */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-6">
-          <div className="flex items-center gap-2 mb-8">
-            <div className="w-8 h-8 c2c-purple-bg rounded-full flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 relative overflow-hidden">
+      {/* World Map Background */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="world-map-bg"></div>
+      </div>
+      
+      {/* Compact Header */}
+      <div className="relative z-10">
+        <div className="flex items-center justify-start p-4 max-w-6xl mx-auto">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-purple-700 rounded-full flex items-center justify-center border border-white border-opacity-30">
               <span className="text-white text-sm font-bold">C2C</span>
             </div>
-            <span className="font-semibold text-gray-800">Partner Setup</span>
+            <span className="font-semibold text-white text-lg">Partner Setup</span>
           </div>
-          
-          {/* Navigation Items */}
-          <nav className="space-y-2">
-            <div className="px-4 py-3 bg-gray-100 rounded-lg border border-gray-200">
-              <span className="text-sm font-medium text-gray-700">Overview</span>
-            </div>
-            <div className="px-4 py-3 rounded-lg">
-              <span className="text-sm text-gray-500">Projects</span>
-            </div>
-          </nav>
         </div>
       </div>
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="heading-primary text-xl font-semibold text-gray-800">Hi, Partner</h1>
-              <p className="text-sm text-c2c-purple font-medium">Project Coordinator</p>
-              <p className="text-sm text-gray-600 mt-1">Welcome to your NGO Partner dashboard</p>
-            </div>
-            <div className="flex gap-3">
-              <button className="px-4 py-2 border border-purple-200 rounded-lg text-sm font-medium hover:bg-purple-50 text-purple-700">
-                Export report
-              </button>
-              <button className="px-4 py-2 bg-purple-100 rounded-lg text-sm font-medium hover:bg-purple-200 text-purple-800">
-                + New project
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Dashboard Content */}
-        <div className="flex-1 p-6">
-          {/* Category Cards Row */}
-          <div className="grid grid-cols-5 gap-4 mb-6">
-            {['Schools', 'Teachers', 'Students', 'Countries', 'NPS'].map((category) => (
-              <div key={category} className="bg-white p-6 rounded-lg border border-gray-200 text-center diagonal-stripes">
-                <span className="font-medium text-gray-800">{category}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Setup Section */}
-          <div className="bg-white rounded-xl border-2 border-purple-200 p-6">
-            <div className="mb-4">
-              <h2 className="heading-secondary text-lg font-semibold text-gray-800 mb-1">Complete your setup</h2>
-              <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
+      
+      {/* Compact Main Content */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-start px-4 py-6">
+        <div className={`w-full ${currentStep === 6 ? 'max-w-5xl' : 'max-w-3xl'}`}>
+          {/* Compact Setup Card */}
+          <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl border border-white border-opacity-30 p-6 shadow-2xl" style={{ height: 'calc(100vh - 120px)', maxHeight: '760px' }}>
+            <div className="mb-4 pb-3 border-b border-gray-100">
+              <h2 className="heading-secondary text-base font-semibold text-gray-800 mb-2 text-center">Complete your setup</h2>
+              <div className="flex items-center justify-center text-xs text-gray-600 mb-2">
                 <span>Step {currentStep} of {TOTAL_STEPS}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -220,8 +172,8 @@ export default function PartnerOnboardingPage() {
               </div>
             </div>
             
-            {/* Step Content */}
-            <div className="mt-6">
+            {/* Step Content - Scrollable for final step */}
+            <div className={`flex-1 ${currentStep === 7 ? 'overflow-y-auto' : 'flex flex-col justify-center'}`} style={{ height: 'calc(100% - 80px)' }}>
               {getStepContent()}
             </div>
           </div>

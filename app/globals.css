@@ -168,3 +168,13 @@
     rgba(129, 87, 217, 0.05) 20px
   );
 }
+
+/* World Map Background */
+.world-map-bg {
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1000 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M200 150L250 120L300 140L350 130L400 145L450 135L500 150L550 140L600 155L650 145L700 160L750 150L800 165L200 150Z M150 200L200 180L250 190L300 185L350 195L400 190L450 200L500 195L550 205L600 200L650 210L700 205L750 215L800 210L850 220L150 200Z M100 250L150 230L200 240L250 235L300 245L350 240L400 250L450 245L500 255L550 250L600 260L650 255L700 265L750 260L800 270L850 265L900 275L100 250Z M80 300L130 280L180 290L230 285L280 295L330 290L380 300L430 295L480 305L530 300L580 310L630 305L680 315L730 310L780 320L830 315L880 325L930 320L80 300Z M120 350L170 330L220 340L270 335L320 345L370 340L420 350L470 345L520 355L570 350L620 360L670 355L720 365L770 360L820 370L870 365L920 375L120 350Z' fill='white' fill-opacity='0.6'/%3E%3Ccircle cx='180' cy='200' r='3' fill='white' fill-opacity='0.8'/%3E%3Ccircle cx='320' cy='180' r='2' fill='white' fill-opacity='0.7'/%3E%3Ccircle cx='450' cy='220' r='2.5' fill='white' fill-opacity='0.8'/%3E%3Ccircle cx='580' cy='190' r='2' fill='white' fill-opacity='0.7'/%3E%3Ccircle cx='720' cy='240' r='3' fill='white' fill-opacity='0.8'/%3E%3Ccircle cx='850' cy='210' r='2' fill='white' fill-opacity='0.7'/%3E%3C/svg%3E");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}

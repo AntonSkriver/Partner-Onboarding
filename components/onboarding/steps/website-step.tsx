@@ -18,18 +18,28 @@ interface WebsiteStepProps {
   onBack: () => void;
   onSkip: () => void;
   initialValue?: string;
+  organizationName?: string;
 }
 
 export function WebsiteStep({ 
   onNext, 
   onBack, 
   onSkip,
-  initialValue = '' 
+  initialValue = '',
+  organizationName
 }: WebsiteStepProps) {
+  // Pre-populate with UNICEF website if organization name contains "unicef"
+  const getDefaultWebsite = () => {
+    if (initialValue) return initialValue;
+    if (organizationName?.toLowerCase().includes('unicef')) {
+      return "https://www.unicef.org";
+    }
+    return '';
+  };
   const form = useForm<WebsiteData>({
     resolver: zodResolver(websiteSchema),
     defaultValues: {
-      website: initialValue,
+      website: getDefaultWebsite(),
     },
   });
 
@@ -42,27 +52,27 @@ export function WebsiteStep({
   };
 
   const watchWebsite = form.watch('website');
-  const isValidUrl = watchWebsite && websiteSchema.safeParse({ website: watchWebsite }).success;
+  const isValidUrl = watchWebsite ? websiteSchema.safeParse({ website: watchWebsite }).success : false;
 
   return (
     <div className="max-w-lg mx-auto">
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 c2c-purple-bg rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl text-white">🌐</span>
+      <div className="text-center mb-4">
+        <div className="w-10 h-10 c2c-purple-bg rounded-full flex items-center justify-center mx-auto mb-2">
+          <span className="text-sm text-white">🌐</span>
         </div>
-        <h2 className="heading-primary text-2xl mb-3 c2c-dark-gray">
+        <h2 className="heading-primary text-base mb-1 c2c-dark-gray">
           What&apos;s your website?
         </h2>
-        <p className="text-gray-600 text-lg">
+        <p className="text-gray-600 text-xs">
           Share your organization&apos;s website so schools can learn more about your work.
         </p>
-        <p className="text-sm text-gray-500 mt-2">
+        <p className="text-xs text-gray-500 mt-1">
           This step is optional - you can skip it if you don&apos;t have a website.
         </p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
           <FormField
             control={form.control}
             name="website"
@@ -74,7 +84,7 @@ export function WebsiteStep({
                 <FormControl>
                   <Input
                     placeholder="https://www.yourorganization.org"
-                    className="text-lg py-6 text-center"
+                    className="text-sm py-3 text-center"
                     autoFocus
                     {...field}
                   />
@@ -84,12 +94,12 @@ export function WebsiteStep({
             )}
           />
 
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-2 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={onBack}
-              size="lg"
+              size="default"
               className="flex-1"
             >
               ← Go back
@@ -98,16 +108,16 @@ export function WebsiteStep({
               type="button"
               variant="outline"
               onClick={handleSkip}
-              size="lg"
+              size="default"
               className="flex-1"
             >
               Skip
             </Button>
             <Button
               type="submit"
-              size="lg"
+              size="default"
               className="flex-1 c2c-purple-bg hover:opacity-90"
-              disabled={watchWebsite && !isValidUrl}
+              disabled={!!watchWebsite && !isValidUrl}
             >
               Next →
             </Button>
@@ -115,12 +125,12 @@ export function WebsiteStep({
         </form>
       </Form>
 
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <span className="text-blue-600 text-lg">🔗</span>
+      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="flex items-start gap-2">
+          <span className="text-blue-600 text-sm">🔗</span>
           <div>
-            <h4 className="font-medium text-blue-900 mb-1">Build trust</h4>
-            <p className="text-sm text-blue-800">
+            <h4 className="font-medium text-blue-900 mb-1 text-sm">Build trust</h4>
+            <p className="text-xs text-blue-800">
               Including your website helps schools learn more about your organization 
               and builds trust for potential collaborations.
             </p>

@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -70,20 +69,20 @@ export function OrganizationNameStep({
 
   return (
     <div className="max-w-lg mx-auto">
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 c2c-purple-bg rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl text-white">✏️</span>
+      <div className="text-center mb-4">
+        <div className="w-12 h-12 c2c-purple-bg rounded-full flex items-center justify-center mx-auto mb-2">
+          <span className="text-lg text-white">✏️</span>
         </div>
-        <h2 className="heading-primary text-2xl mb-3 c2c-dark-gray">
+        <h2 className="heading-primary text-lg mb-2 c2c-dark-gray">
           What is your organization&apos;s name?
         </h2>
-        <p className="text-gray-600 text-lg">
-          Enter the full official name of your {getTypeLabel().toLowerCase()}.
+        <p className="text-gray-600 text-sm">
+          Enter the official name of your {getTypeLabel().toLowerCase()}.
         </p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
           <FormField
             control={form.control}
             name="organizationName"
@@ -95,7 +94,7 @@ export function OrganizationNameStep({
                 <FormControl>
                   <Input
                     placeholder={getPlaceholder()}
-                    className="text-lg py-6 text-center"
+                    className="text-base py-4 text-center"
                     autoFocus
                     {...field}
                   />
@@ -105,7 +104,7 @@ export function OrganizationNameStep({
             )}
           />
 
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-4 pt-2">
             <Button
               type="button"
               variant="outline"

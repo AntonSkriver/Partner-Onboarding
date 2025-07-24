@@ -40,20 +40,20 @@ export function MissionStatementStep({
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 c2c-purple-bg rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl text-white">🎯</span>
+      <div className="text-center mb-3">
+        <div className="w-10 h-10 c2c-purple-bg rounded-full flex items-center justify-center mx-auto mb-2">
+          <span className="text-sm text-white">🎯</span>
         </div>
-        <h2 className="heading-primary text-2xl mb-3 c2c-dark-gray">
+        <h2 className="heading-primary text-base mb-1 c2c-dark-gray">
           What is your mission?
         </h2>
-        <p className="text-gray-600 text-lg">
+        <p className="text-gray-600 text-xs">
           Share your organization&apos;s mission statement and what drives your work in education and global collaboration.
         </p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-3">
           <FormField
             control={form.control}
             name="mission"
@@ -65,12 +65,12 @@ export function MissionStatementStep({
                 <FormControl>
                   <Textarea
                     placeholder="Describe your organization's mission, values, and what you hope to achieve through educational partnerships..."
-                    className="text-base min-h-[160px] resize-none"
+                    className="text-sm min-h-[120px] resize-none"
                     autoFocus
                     {...field}
                   />
                 </FormControl>
-                <div className="flex justify-between text-sm text-gray-500">
+                <div className="flex justify-between text-xs text-gray-500">
                   <span>
                     {watchMission?.length || 0} characters (minimum 20)
                   </span>
@@ -83,19 +83,19 @@ export function MissionStatementStep({
             )}
           />
 
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-3 pt-1">
             <Button
               type="button"
               variant="outline"
               onClick={onBack}
-              size="lg"
+              size="default"
               className="flex-1"
             >
               ← Go back
             </Button>
             <Button
               type="submit"
-              size="lg"
+              size="default"
               className="flex-1 c2c-purple-bg hover:opacity-90"
               disabled={!isValid}
             >
@@ -105,12 +105,12 @@ export function MissionStatementStep({
         </form>
       </Form>
 
-      <div className="mt-8 bg-purple-50 border border-purple-200 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <span className="text-purple-600 text-lg">💡</span>
+      <div className="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-3">
+        <div className="flex items-start gap-2">
+          <span className="text-purple-600 text-sm">💡</span>
           <div>
-            <h4 className="font-medium text-purple-900 mb-1">Clear and inspiring</h4>
-            <p className="text-sm text-purple-800">
+            <h4 className="font-medium text-purple-900 mb-1 text-sm">Clear and inspiring</h4>
+            <p className="text-xs text-purple-800">
               Your mission statement helps schools understand your values and goals. 
               This will be prominently displayed on your partner profile.
             </p>
