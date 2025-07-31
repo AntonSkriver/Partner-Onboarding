@@ -259,9 +259,17 @@ export default function PartnerDashboard() {
                       </div>
                     </CardHeader>
                     <CardFooter>
-                      <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                        {action.action}
-                      </Button>
+                      {action.id === 'launch_marketing' ? (
+                        <Link href="/partner/marketing" className="w-full">
+                          <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                            {action.action}
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                          {action.action}
+                        </Button>
+                      )}
                     </CardFooter>
                   </Card>
                 ))}

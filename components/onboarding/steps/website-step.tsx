@@ -28,11 +28,11 @@ export function WebsiteStep({
   initialValue = '',
   organizationName
 }: WebsiteStepProps) {
-  // Pre-populate with UNICEF website if organization name contains "unicef"
+  // Pre-populate with UNICEF Denmark website if organization name contains "unicef"
   const getDefaultWebsite = () => {
     if (initialValue) return initialValue;
     if (organizationName?.toLowerCase().includes('unicef')) {
-      return "https://www.unicef.org";
+      return "https://www.unicef.dk";
     }
     return '';
   };

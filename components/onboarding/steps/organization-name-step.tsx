@@ -40,7 +40,7 @@ export function OrganizationNameStep({
   const getPlaceholder = () => {
     switch (organizationType) {
       case 'ngo':
-        return 'e.g., UNICEF, Oxfam, Save the Children';
+        return 'e.g., UNICEF Denmark, Oxfam, Save the Children';
       case 'government':
         return 'e.g., Ministry of Education, Department of Education';
       case 'school_network':

@@ -15,7 +15,7 @@ const organizationTypes = [
     label: 'NGO',
     description: 'Non-Governmental Organization',
     icon: '🤝',
-    examples: 'UNICEF, Oxfam, Save the Children'
+    examples: 'UNICEF Denmark, Oxfam, Save the Children'
   },
   {
     value: 'government',

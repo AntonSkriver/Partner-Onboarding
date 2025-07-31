@@ -104,7 +104,7 @@ export default function Home() {
             {[
               {
                 title: "NGOs",
-                description: "Organizations like UNICEF working on global citizenship and rights",
+                description: "Organizations like UNICEF Denmark working on global citizenship and rights",
                 icon: "🤝"
               },
               {

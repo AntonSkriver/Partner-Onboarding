@@ -26,11 +26,11 @@ export function OrganizationDescriptionStep({
   initialValue = '',
   organizationName
 }: OrganizationDescriptionStepProps) {
-  // Pre-populate with UNICEF example if organization name contains "unicef"
+  // Pre-populate with UNICEF Denmark example if organization name contains "unicef"
   const getDefaultDescription = () => {
     if (initialValue) return initialValue;
     if (organizationName?.toLowerCase().includes('unicef')) {
-      return "UNICEF is a global humanitarian and development agency working for every child's rights and well-being. We operate in over 190 countries and territories, focusing on the most disadvantaged children and families. Our work spans education, health, nutrition, water and sanitation, protection, and emergency response. We believe every child deserves a fair chance in life, regardless of their background or circumstances.";
+      return "UNICEF Danmark er verdens største børneorganisation og en del af FN-familien. Vi arbejder for børns rettigheder i Danmark ved at sikre, at børn bliver hørt og får medindflydelse på forhold, der har betydning for deres liv og hverdag - indenfor skole, sundhed og trivsel, fritidsliv, klima og digitale udfordringer. Gennem UNICEF rettighedsskoler, Børnenes Nytårstale og andre initiativer arbejder vi for at styrke danske børns kendskab til deres rettigheder og sikre meaningful deltagelse i beslutninger, der påvirker dem.";
     }
     return '';
   };

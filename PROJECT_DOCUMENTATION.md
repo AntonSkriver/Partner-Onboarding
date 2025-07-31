@@ -38,7 +38,7 @@ This adds a strategic layer to Class2Class—moving from individual teacher part
 
 ### Supported Partner Types
 
-1. **NGOs** (e.g., UNICEF)
+1. **NGOs** (e.g., UNICEF Denmark)
    - Thematic agendas: rights, inclusion, global citizenship
    - Example projects: Danish local school project, global collaboration initiative
 
@@ -188,7 +188,7 @@ When a school is invited:
 
 ### Multi-Partnership Support
 
-- **Schools can participate in multiple partnerships** (e.g., UNICEF + other NGOs)
+- **Schools can participate in multiple partnerships** (e.g., UNICEF Denmark + other NGOs)
 - **Flexible collaboration models**
 - **Shared data and outcomes across partnerships**
 

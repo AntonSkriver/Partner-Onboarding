@@ -67,7 +67,7 @@ export function PartnerOnboardingStep1({ onNext, initialData }: PartnerOnboardin
                 <FormLabel className="text-base font-medium">Organization Name *</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="e.g., UNICEF, Ministry of Education, ABC School District"
+                    placeholder="e.g., UNICEF Denmark, Ministry of Education, ABC School District"
                     className="text-base"
                     {...field}
                   />

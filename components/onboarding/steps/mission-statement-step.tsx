@@ -26,11 +26,11 @@ export function MissionStatementStep({
   initialValue = '',
   organizationName
 }: MissionStatementStepProps) {
-  // Pre-populate with UNICEF mission if organization name contains "unicef"
+  // Pre-populate with UNICEF Denmark mission if organization name contains "unicef"
   const getDefaultMission = () => {
     if (initialValue) return initialValue;
     if (organizationName?.toLowerCase().includes('unicef')) {
-      return "To advocate for the protection of children's rights, to help meet their basic needs and to expand opportunities for them to reach their full potential. We are guided by the Convention on the Rights of the Child and strive to establish children's rights as enduring ethical principles and international standards of behaviour towards children.";
+      return "Som FN's børneorganisation har UNICEF Danmark ansvar for at våge over børns rettigheder overalt i verden – også i Danmark. Vi holder øje med, om Børnekonventionen bliver overholdt og taler børnenes sag i forhold, der vedrører dem. Det er vores opgave at sikre, at børn også bliver hørt i Danmark og arbejder for børns rettigheder alle de steder, hvor børnene er.";
     }
     return '';
   };
