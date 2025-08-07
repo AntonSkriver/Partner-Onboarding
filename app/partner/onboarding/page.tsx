@@ -8,6 +8,7 @@ import { OrganizationDescriptionStep } from '@/components/onboarding/steps/organ
 import { MissionStatementStep } from '@/components/onboarding/steps/mission-statement-step';
 import { SDGSelectionStep } from '@/components/onboarding/steps/sdg-selection-step';
 import { ProfileCompletionStep } from '@/components/onboarding/steps/profile-completion-step';
+import Image from 'next/image';
 
 const TOTAL_STEPS = 6;
 
@@ -50,7 +51,6 @@ export default function PartnerOnboardingPage() {
     setCurrentStep(5);
   };
 
-
   const handleSDGNext = (sdgFocus: string[]) => {
     setOnboardingData(prev => ({ ...prev, sdgFocus }));
     setCurrentStep(6);
@@ -61,7 +61,6 @@ export default function PartnerOnboardingPage() {
       setCurrentStep(currentStep - 1);
     }
   };
-
 
   const getStepContent = () => {
     switch (currentStep) {
@@ -106,8 +105,10 @@ export default function PartnerOnboardingPage() {
           <SDGSelectionStep
             onNext={handleSDGNext}
             onBack={handleBack}
-            initialValue={onboardingData.sdgFocus}
-            aiPrefillData={onboardingData.aiPrefillData}
+            currentStep={currentStep}
+            totalSteps={TOTAL_STEPS}
+            initialData={{ sdgFocus: onboardingData.sdgFocus }}
+            context="partner"
           />
         );
       case 6:
@@ -124,44 +125,43 @@ export default function PartnerOnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 relative overflow-hidden">
-      {/* World Map Background */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="world-map-bg"></div>
-      </div>
-      
-      {/* Compact Header */}
+    <div className="min-h-screen bg-gradient-to-br from-[#7F56D9] via-purple-500 to-[#7F56D9]">
+      {/* Header */}
       <div className="relative z-10">
         <div className="flex items-center justify-start p-4 max-w-6xl mx-auto">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-700 rounded-full flex items-center justify-center border border-white border-opacity-30">
-              <span className="text-white text-sm font-bold">C2C</span>
-            </div>
+            <Image 
+              src="/isotipo.png" 
+              alt="Class2Class Logo" 
+              width={40} 
+              height={40}
+              className="w-10 h-10"
+            />
             <span className="font-semibold text-white text-lg">Partner Setup</span>
           </div>
         </div>
       </div>
       
-      {/* Compact Main Content */}
+      {/* Main Content */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-start px-4 py-6">
-        <div className={`w-full ${currentStep === 6 ? 'max-w-5xl' : 'max-w-3xl'}`}>
-          {/* Compact Setup Card */}
-          <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl border border-white border-opacity-30 p-6 shadow-2xl" style={{ height: 'calc(100vh - 120px)', maxHeight: '760px' }}>
-            <div className="mb-4 pb-3 border-b border-gray-100">
-              <h2 className="heading-secondary text-base font-semibold text-gray-800 mb-2 text-center">Complete your setup</h2>
-              <div className="flex items-center justify-center text-xs text-gray-600 mb-2">
+        <div className="w-full max-w-4xl mx-auto">
+          {/* Setup Card */}
+          <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl border border-white border-opacity-30 p-8 shadow-2xl">
+            <div className="mb-6 pb-4 border-b border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">Complete your setup</h2>
+              <div className="flex items-center justify-center text-sm text-gray-600 mb-3">
                 <span>Step {currentStep} of {TOTAL_STEPS}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className="c2c-purple-bg h-2 rounded-full transition-all duration-300 ease-out"
+                  className="bg-[#7F56D9] h-2 rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${(currentStep / TOTAL_STEPS) * 100}%` }}
                 ></div>
               </div>
             </div>
             
-            {/* Step Content - Scrollable for final step */}
-            <div className={`flex-1 ${currentStep === 7 ? 'overflow-y-auto' : 'flex flex-col justify-center'}`} style={{ height: 'calc(100% - 80px)' }}>
+            {/* Step Content */}
+            <div className="min-h-[400px]">
               {getStepContent()}
             </div>
           </div>

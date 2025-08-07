@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { createSession } from '@/lib/auth/session';
 import { 
   CheckCircle, 
   Eye, 
@@ -26,6 +28,17 @@ export function ProfileCompletionStep({
   organizationName,
   organizationType
 }: ProfileCompletionStepProps) {
+  
+  // Create session when component mounts (profile is completed)
+  useEffect(() => {
+    // Create a session for the newly registered partner
+    createSession({
+      email: `partner@${organizationName.toLowerCase().replace(/\s+/g, '')}.temp`, // Temporary email
+      role: 'partner',
+      organization: organizationName,
+      name: organizationName
+    });
+  }, [organizationName]);
   const getTypeLabel = () => {
     switch (organizationType) {
       case 'ngo':

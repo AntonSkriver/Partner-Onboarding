@@ -2,10 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { OnboardingLayout } from '../onboarding-layout';
-import { Target, ArrowLeft, ArrowRight, X } from 'lucide-react';
+import { Globe, ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface SDGSelectionStepProps {
   onNext: (sdgFocus: string[]) => void;
@@ -87,122 +84,73 @@ export function SDGSelectionStep({
   const contextText = getContextText();
 
   return (
-    <OnboardingLayout
-      title={contextText.title}
-      subtitle={contextText.subtitle}
-      currentStep={currentStep}
-      totalSteps={totalSteps}
-    >
-      <div className="max-w-4xl mx-auto">
-        <Card className={context === 'school' ? 'border-blue-200' : 'border-purple-200'}>
-          <CardHeader className="text-center">
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
-              context === 'school' ? 'bg-blue-100' : 'bg-purple-100'
-            }`}>
-              <Target className={`h-8 w-8 ${context === 'school' ? 'text-blue-600' : 'text-purple-600'}`} />
-            </div>
-            <CardTitle className="text-2xl text-gray-900">UN Sustainable Development Goals</CardTitle>
-            <CardDescription className="text-lg">
-              {contextText.description}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div className="text-center">
-                <p className="text-sm text-gray-600">
-                  Selected: {selectedSDGs.length} {selectedSDGs.length === 1 ? 'goal' : 'goals'} 
-                  {selectedSDGs.length === 0 && ' (minimum 1 required)'}
-                </p>
-              </div>
-
-              {selectedSDGs.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-3">Selected SDGs:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedSDGs.map((sdgId) => {
-                      const sdg = sdgOptions.find(s => s.id === sdgId);
-                      return sdg ? (
-                        <Badge key={sdgId} variant="secondary" className="flex items-center gap-1 py-1">
-                          SDG {sdg.id}: {sdg.title}
-                          <X 
-                            className="h-3 w-3 cursor-pointer hover:text-red-600" 
-                            onClick={() => handleSDGToggle(sdgId)}
-                          />
-                        </Badge>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                {sdgOptions.map((sdg) => (
-                  <div
-                    key={sdg.id}
-                    className={`relative rounded-lg border-2 cursor-pointer transition-all hover:scale-105 ${
-                      selectedSDGs.includes(sdg.id)
-                        ? context === 'school' ? 'border-blue-500 shadow-lg' : 'border-purple-500 shadow-lg'
-                        : 'border-gray-200 hover:border-gray-400'
-                    }`}
-                    onClick={() => handleSDGToggle(sdg.id)}
-                    title={`SDG ${sdg.id}: ${sdg.title}`}
-                  >
-                    <div className="aspect-square p-2">
-                      <img 
-                        src={sdg.imageUrl}
-                        alt={`SDG ${sdg.id}: ${sdg.title}`}
-                        className="w-full h-full object-cover rounded"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                        }}
-                      />
-                      {selectedSDGs.includes(sdg.id) && (
-                        <div className="absolute -top-1 -right-1">
-                          <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
-                            context === 'school' ? 'bg-blue-500' : 'bg-purple-500'
-                          }`}>
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="flex gap-4 pt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onBack}
-                className="flex-1"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-              <Button
-                onClick={handleNext}
-                disabled={isLoading || selectedSDGs.length === 0}
-                className={`flex-1 ${context === 'school' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-purple-600 hover:bg-purple-700'}`}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    Continue ({selectedSDGs.length} selected)
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="space-y-6">
+      {/* Icon and Title */}
+      <div className="text-center">
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+          context === 'school' ? 'bg-blue-100' : 'bg-[#7F56D9] bg-opacity-10'
+        }`}>
+          <Globe className={`h-8 w-8 ${context === 'school' ? 'text-blue-600' : 'text-[#7F56D9]'}`} />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">{contextText.title}</h2>
+        <p className="text-gray-600 max-w-2xl mx-auto mb-8">{contextText.description}</p>
       </div>
-    </OnboardingLayout>
+      
+      {/* SDG Grid */}
+      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {sdgOptions.map((sdg) => (
+          <div
+            key={sdg.id}
+            className={`relative cursor-pointer transition-all hover:scale-105 ${
+              selectedSDGs.includes(sdg.id) ? 'opacity-100' : 'opacity-70 hover:opacity-90'
+            }`}
+            onClick={() => handleSDGToggle(sdg.id)}
+          >
+            <img 
+              src={sdg.imageUrl}
+              alt={`SDG ${sdg.id}: ${sdg.title}`}
+              className={`w-full h-full object-cover rounded-lg transition-all ${
+                selectedSDGs.includes(sdg.id)
+                  ? context === 'school' 
+                    ? 'ring-4 ring-blue-500 shadow-lg' 
+                    : 'ring-4 ring-[#7F56D9] shadow-lg'
+                  : 'hover:shadow-md'
+              }`}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Navigation */}
+      <div className="flex justify-between pt-6">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Button>
+
+        <Button
+          onClick={handleNext}
+          disabled={selectedSDGs.length === 0 || isLoading}
+          className="flex items-center gap-2 bg-[#7F56D9] hover:bg-purple-700 text-white"
+        >
+          {isLoading ? (
+            <>Loading...</>
+          ) : (
+            <>
+              Continue ({selectedSDGs.length} selected)
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
   );
 }
