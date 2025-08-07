@@ -1,18 +1,12 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
-  School, 
   Target, 
-  Users, 
   Globe,
-  Heart,
   BookOpen,
-  CheckCircle,
   ArrowRight,
-  Building,
-  Handshake,
   LogIn,
   UserPlus
 } from 'lucide-react'
@@ -40,6 +34,11 @@ const partnerTypes = [
     type: "Corporate",
     icon: "🏢",
     description: "Companies with educational CSR initiatives and sustainability goals"
+  },
+  {
+    type: "School",
+    icon: "🎓",
+    description: "Schools that want to invite their classes and create programs with other schools"
   }
 ]
 
@@ -67,14 +66,15 @@ export default function PartnersPage() {
               <LanguageSwitcher />
               <div className="flex items-center space-x-4">
                 <Link href="/sign-in">
-                  <Button variant="outline" className="border-[#7F56D9] text-[#7F56D9] hover:bg-purple-50">
+                  <Button size="lg" variant="outline" className="border-[#7F56D9] text-[#7F56D9] hover:bg-purple-50 px-6 py-2.5 text-base font-semibold">
                     <LogIn className="h-4 w-4 mr-2" />
-                    Sign In
+                    Login
                   </Button>
                 </Link>
-                <Link href="/partner/onboarding">
-                  <Button className="bg-[#7F56D9] hover:bg-purple-700 text-white">
-                    Become a Partner
+                <Link href="/signup">
+                  <Button size="lg" className="bg-[#7F56D9] hover:bg-purple-700 text-white px-6 py-2.5 text-base font-semibold">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Sign Up
                   </Button>
                 </Link>
               </div>
@@ -95,15 +95,22 @@ export default function PartnersPage() {
               collaborative learning experiences that advance the UN Sustainable Development Goals.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/partner/onboarding">
+              <Link href="/school/onboarding">
                 <Button size="lg" className="bg-[#7F56D9] hover:bg-purple-700 px-8 py-3 text-lg font-semibold text-white">
-                  Start Your Partnership
+                  Join as a School
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="/school/onboarding">
-                <Button size="lg" variant="outline" className="border-[#7F56D9] text-[#7F56D9] hover:bg-purple-50 px-8 py-3 text-lg font-semibold">
-                  Join as a School
+              <Link href="/partner/onboarding">
+                <Button size="lg" className="bg-[#7F56D9] hover:bg-purple-700 px-8 py-3 text-lg font-semibold text-white">
+                  Join as Organization
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/projects">
+                <Button size="lg" className="bg-[#7F56D9] hover:bg-purple-700 px-8 py-3 text-lg font-semibold text-white">
+                  Browse Projects
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
             </div>
@@ -172,7 +179,7 @@ export default function PartnersPage() {
             </h2>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 max-w-6xl mx-auto">
             {partnerTypes.map((partner, index) => (
               <div key={index} className="text-center">
                 <div className="w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center mx-auto mb-4 text-3xl">

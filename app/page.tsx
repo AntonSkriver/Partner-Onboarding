@@ -33,10 +33,14 @@ export default function Home() {
               <LanguageSwitcher />
               <div className="flex items-center space-x-4">
                 <Link href="/sign-in">
-                  <Button variant="outline" className="border-[#7F56D9] text-[#7F56D9] hover:bg-purple-50">Log in</Button>
+                  <Button variant="outline" className="border-[#7F56D9] text-[#7F56D9] hover:bg-purple-50">
+                    Login
+                  </Button>
                 </Link>
-                <Link href="/school/onboarding">
-                  <Button className="bg-[#7F56D9] hover:bg-purple-700 text-white">Sign up</Button>
+                <Link href="/signup">
+                  <Button className="bg-[#7F56D9] hover:bg-purple-700 text-white">
+                    Sign up
+                  </Button>
                 </Link>
                 <Link href="/partners">
                   <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">Partners</Button>

@@ -135,48 +135,37 @@ export function SDGSelectionStep({
                 </div>
               )}
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
                 {sdgOptions.map((sdg) => (
                   <div
                     key={sdg.id}
-                    className={`relative rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+                    className={`relative rounded-lg border-2 cursor-pointer transition-all hover:scale-105 ${
                       selectedSDGs.includes(sdg.id)
-                        ? context === 'school' ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-purple-500 bg-purple-50 shadow-md'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? context === 'school' ? 'border-blue-500 shadow-lg' : 'border-purple-500 shadow-lg'
+                        : 'border-gray-200 hover:border-gray-400'
                     }`}
                     onClick={() => handleSDGToggle(sdg.id)}
+                    title={`SDG ${sdg.id}: ${sdg.title}`}
                   >
-                    <div className="aspect-square p-3">
-                      <div className="relative w-full h-full">
-                        <img 
-                          src={sdg.imageUrl}
-                          alt={`SDG ${sdg.id}: ${sdg.title}`}
-                          className="w-full h-full object-cover rounded-md"
-                          onError={(e) => {
-                            // Fallback to text if image fails
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                        <div className="absolute top-2 right-2">
-                          <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center bg-white ${
-                              selectedSDGs.includes(sdg.id)
-                                ? context === 'school' ? 'border-blue-500' : 'border-purple-500'
-                                : 'border-gray-300'
-                            }`}
-                          >
-                            {selectedSDGs.includes(sdg.id) && (
-                              <div className={`w-3 h-3 rounded-full ${
-                                context === 'school' ? 'bg-blue-500' : 'bg-purple-500'
-                              }`}></div>
-                            )}
+                    <div className="aspect-square p-2">
+                      <img 
+                        src={sdg.imageUrl}
+                        alt={`SDG ${sdg.id}: ${sdg.title}`}
+                        className="w-full h-full object-cover rounded"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                      {selectedSDGs.includes(sdg.id) && (
+                        <div className="absolute -top-1 -right-1">
+                          <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                            context === 'school' ? 'bg-blue-500' : 'bg-purple-500'
+                          }`}>
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="px-3 pb-3">
-                      <div className="text-xs font-medium text-gray-700 leading-tight">{sdg.title}</div>
+                      )}
                     </div>
                   </div>
                 ))}
