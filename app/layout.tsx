@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Roboto, Open_Sans } from "next/font/google";
 import "./globals.css";
+import { LanguageProvider } from '@/components/language-provider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,8 +27,8 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Class2Class Partner Dashboard",
-  description: "Empowering global educational partnerships through collaborative learning",
+  title: "Class2Class - Connecting Classrooms Around the World",
+  description: "Global education platform connecting schools worldwide for collaborative learning experiences aligned with UN Sustainable Development Goals",
 };
 
 export default function RootLayout({
@@ -40,7 +41,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable} ${openSans.variable} antialiased`}
       >
-        {children}
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

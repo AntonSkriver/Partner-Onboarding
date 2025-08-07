@@ -4,62 +4,53 @@
 
    ▲ Next.js 15.3.0 (Turbopack)
    - Local:        http://localhost:3000
-   - Network:      http://10.0.2.121:3000
+   - Network:      http://10.0.1.233:3000
 
  ✓ Starting...
- ✓ Ready in 790ms
+ ✓ Ready in 586ms
  ○ Compiling / ...
- ✓ Compiled / in 1282ms
- GET / 200 in 1459ms
- ✓ Compiled /sign-in in 276ms
- GET /sign-in 200 in 291ms
- ✓ Compiled /partner/dashboard in 356ms
- GET /partner/dashboard 200 in 370ms
- ✓ Compiled /partner/onboarding in 412ms
- GET /partner/onboarding 200 in 477ms
- GET / 200 in 50ms
- GET /sign-in 200 in 36ms
- GET /partner/dashboard 200 in 35ms
- ✓ Compiled in 107ms
- GET /partner/dashboard 200 in 70ms
- GET /partner/dashboard 200 in 18ms
- ✓ Compiled in 110ms
- GET / 200 in 59ms
- GET /partner/onboarding 200 in 30ms
- GET /sign-in 200 in 37ms
- GET /partner/dashboard 200 in 77ms
- ✓ Compiled /partner/marketing in 339ms
- GET /partner/marketing 200 in 353ms
- GET /partner/dashboard 200 in 33ms
- GET /partner/marketing 200 in 34ms
- ✓ Compiled in 148ms
- ✓ Compiled in 117ms
- GET /partner/marketing 200 in 151ms
- GET /partner/marketing 200 in 74ms
- GET /partner/marketing 200 in 72ms
- GET /partner/marketing 200 in 69ms
- GET /partner/marketing 200 in 76ms
- GET /partner/dashboard 200 in 37ms
- GET /partner/marketing 200 in 36ms
- GET / 200 in 115ms
- GET /sign-in 200 in 33ms
- GET /partner/dashboard 200 in 36ms
- GET /partner/marketing 200 in 34ms
- GET /partner/dashboard 200 in 36ms
- GET /partner/dashboard 200 in 46ms
- GET / 200 in 51ms
- GET / 200 in 49ms
- GET / 200 in 99ms
- ✓ Compiled /favicon.ico in 420ms
- GET /favicon.ico?favicon.45db1c09.ico 200 in 662ms
- GET /sign-in 200 in 51ms
- GET /partner/dashboard 200 in 39ms
- GET / 200 in 49ms
- GET /partner/onboarding 200 in 37ms
- GET /partner/dashboard 200 in 144ms
- GET /partner/marketing 200 in 38ms
- GET /partner/dashboard 200 in 34ms
- GET / 200 in 51ms
- GET /sign-in 200 in 33ms
- GET /partner/dashboard 200 in 35ms
- GET /partner/marketing 200 in 38ms
+ ✓ Compiled / in 935ms
+ HEAD / 200 in 1093ms
+ GET / 200 in 119ms
+ ✓ Compiled /sign-in in 389ms
+ GET /sign-in 200 in 404ms
+ ✓ Compiled /partner/dashboard in 348ms
+ GET /partner/dashboard 200 in 371ms
+ GET /partner/dashboard 200 in 92ms
+ GET /sign-in 200 in 20ms
+ ✓ Compiled /partner/onboarding in 315ms
+ GET /partner/onboarding 200 in 329ms
+ ✓ Compiled /school/onboarding in 413ms
+ GET /school/onboarding 200 in 428ms
+ GET /partner/onboarding 200 in 38ms
+ ✓ Compiled / in 13ms
+ GET / 200 in 90ms
+ HEAD / 200 in 61ms
+ ✓ Compiled /partners in 426ms
+ GET /partners 200 in 443ms
+ GET /partners 200 in 38ms
+ GET /partners 200 in 26ms
+ GET /partners 200 in 24ms
+ ✓ Compiled in 214ms
+ ⚠ Fast Refresh had to perform a full reload when ./app/partners/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 168ms
+ GET /partners 200 in 151ms
+ ✓ Compiled / in 8ms
+ HEAD / 200 in 144ms
+ HEAD /partners 200 in 60ms
+ GET / 200 in 61ms
+ GET / 200 in 86ms
+ GET /partners 200 in 39ms
+ GET /sign-in 200 in 35ms
+ GET / 200 in 38ms
+ GET /partners 200 in 36ms
+ ✓ Compiled in 205ms
+ ✓ Compiled in 144ms
+ ✓ Compiled in 126ms
+ ✓ Compiled in 112ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /partners 200 in 131ms
+ ✓ Compiled in 98ms
+ ✓ Compiled in 161ms
+ ✓ Compiled in 109ms
+[?25h

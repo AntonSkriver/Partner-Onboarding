@@ -6,19 +6,19 @@ import { OrganizationTypeStep } from '@/components/onboarding/steps/organization
 import { OrganizationNameStep } from '@/components/onboarding/steps/organization-name-step';
 import { OrganizationDescriptionStep } from '@/components/onboarding/steps/organization-description-step';
 import { MissionStatementStep } from '@/components/onboarding/steps/mission-statement-step';
-import { WebsiteStep } from '@/components/onboarding/steps/website-step';
 import { SDGSelectionStep } from '@/components/onboarding/steps/sdg-selection-step';
 import { ProfileCompletionStep } from '@/components/onboarding/steps/profile-completion-step';
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 6;
 
 interface OnboardingData {
   organizationType?: string;
   organizationName?: string;
+  website?: string;
   description?: string;
   mission?: string;
-  website?: string;
   sdgFocus?: string[];
+  aiPrefillData?: any;
 }
 
 export default function PartnerOnboardingPage() {
@@ -30,8 +30,13 @@ export default function PartnerOnboardingPage() {
     setCurrentStep(2);
   };
 
-  const handleOrganizationNameNext = (organizationName: string) => {
-    setOnboardingData(prev => ({ ...prev, organizationName }));
+  const handleOrganizationNameNext = (data: { organizationName: string; website?: string; aiPrefillData?: any }) => {
+    setOnboardingData(prev => ({ 
+      ...prev, 
+      organizationName: data.organizationName,
+      website: data.website,
+      aiPrefillData: data.aiPrefillData
+    }));
     setCurrentStep(3);
   };
 
@@ -45,19 +50,10 @@ export default function PartnerOnboardingPage() {
     setCurrentStep(5);
   };
 
-  const handleWebsiteNext = (website: string) => {
-    setOnboardingData(prev => ({ ...prev, website }));
-    setCurrentStep(6);
-  };
-
-  const handleWebsiteSkip = () => {
-    setOnboardingData(prev => ({ ...prev, website: '' }));
-    setCurrentStep(6);
-  };
 
   const handleSDGNext = (sdgFocus: string[]) => {
     setOnboardingData(prev => ({ ...prev, sdgFocus }));
-    setCurrentStep(7);
+    setCurrentStep(6);
   };
 
   const handleBack = () => {
@@ -92,6 +88,7 @@ export default function PartnerOnboardingPage() {
             onBack={handleBack}
             initialValue={onboardingData.description}
             organizationName={onboardingData.organizationName}
+            aiPrefillData={onboardingData.aiPrefillData}
           />
         );
       case 4:
@@ -101,27 +98,19 @@ export default function PartnerOnboardingPage() {
             onBack={handleBack}
             initialValue={onboardingData.mission}
             organizationName={onboardingData.organizationName}
+            aiPrefillData={onboardingData.aiPrefillData}
           />
         );
       case 5:
-        return (
-          <WebsiteStep
-            onNext={handleWebsiteNext}
-            onSkip={handleWebsiteSkip}
-            onBack={handleBack}
-            initialValue={onboardingData.website}
-            organizationName={onboardingData.organizationName}
-          />
-        );
-      case 6:
         return (
           <SDGSelectionStep
             onNext={handleSDGNext}
             onBack={handleBack}
             initialValue={onboardingData.sdgFocus}
+            aiPrefillData={onboardingData.aiPrefillData}
           />
         );
-      case 7:
+      case 6:
         return (
           <ProfileCompletionStep
             onEnhanceProfile={() => {}}

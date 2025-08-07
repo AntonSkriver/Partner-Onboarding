@@ -18,17 +18,26 @@ interface OrganizationDescriptionStepProps {
   onBack: () => void;
   initialValue?: string;
   organizationName?: string;
+  aiPrefillData?: any;
 }
 
 export function OrganizationDescriptionStep({ 
   onNext, 
   onBack, 
   initialValue = '',
-  organizationName
+  organizationName,
+  aiPrefillData
 }: OrganizationDescriptionStepProps) {
-  // Pre-populate with UNICEF Denmark example if organization name contains "unicef"
+  // Use AI prefill data if available, otherwise use fallback logic
   const getDefaultDescription = () => {
     if (initialValue) return initialValue;
+    
+    // Use AI prefill data if available
+    if (aiPrefillData?.description) {
+      return aiPrefillData.description;
+    }
+    
+    // Fallback: Pre-populate with UNICEF Denmark example if organization name contains "unicef"
     if (organizationName?.toLowerCase().includes('unicef')) {
       return "UNICEF Danmark er verdens største børneorganisation og en del af FN-familien. Vi arbejder for børns rettigheder i Danmark ved at sikre, at børn bliver hørt og får medindflydelse på forhold, der har betydning for deres liv og hverdag - indenfor skole, sundhed og trivsel, fritidsliv, klima og digitale udfordringer. Gennem UNICEF rettighedsskoler, Børnenes Nytårstale og andre initiativer arbejder vi for at styrke danske børns kendskab til deres rettigheder og sikre meaningful deltagelse i beslutninger, der påvirker dem.";
     }

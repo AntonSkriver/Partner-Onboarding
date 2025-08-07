@@ -1,166 +1,80 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Globe, Users, Target, BookOpen, Award, ArrowRight } from "lucide-react";
+'use client'
+
+import { Button } from '@/components/ui/button'
+import { 
+  ArrowRight,
+} from 'lucide-react'
+import Link from 'next/link'
+import { LanguageSwitcher } from '@/components/language-switcher'
+import Image from 'next/image'
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-c2c-light-gray to-white">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 c2c-purple-bg rounded-lg flex items-center justify-center">
-              <Globe className="w-5 h-5 text-white" />
+      <header className="border-b border-gray-200 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center gap-3">
+              <Image 
+                src="/isotipo.png" 
+                alt="Class2Class Logo" 
+                width={40} 
+                height={40}
+                className="w-10 h-10"
+              />
+              <span className="text-xl font-semibold text-gray-900">Class2Class</span>
             </div>
-            <span className="heading-primary text-xl c2c-dark-gray">Class2Class</span>
-          </div>
-          <div className="flex gap-4">
-            <Button variant="outline" asChild>
-              <Link href="/sign-in">Sign In</Link>
-            </Button>
-            <Button className="c2c-purple-bg hover:opacity-90" asChild>
-              <Link href="/partner/onboarding">Become a Partner</Link>
-            </Button>
+            <nav className="hidden md:flex items-center space-x-8">
+              <a href="#how-it-works" className="text-gray-600 hover:text-gray-900 transition-colors">How it works</a>
+              <a href="#platform" className="text-gray-600 hover:text-gray-900 transition-colors">Platform</a>
+              <a href="#success-stories" className="text-gray-600 hover:text-gray-900 transition-colors">Success cases</a>
+              <a href="#about" className="text-gray-600 hover:text-gray-900 transition-colors">About us</a>
+              <LanguageSwitcher />
+              <div className="flex items-center space-x-4">
+                <Link href="/sign-in">
+                  <Button variant="outline" className="border-[#7F56D9] text-[#7F56D9] hover:bg-purple-50">Log in</Button>
+                </Link>
+                <Link href="/school/onboarding">
+                  <Button className="bg-[#7F56D9] hover:bg-purple-700 text-white">Sign up</Button>
+                </Link>
+                <Link href="/partners">
+                  <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">Partners</Button>
+                </Link>
+              </div>
+            </nav>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <main className="container mx-auto px-6 py-20">
-        <div className="text-center max-w-4xl mx-auto mb-20">
-          <h1 className="heading-primary text-5xl mb-6 c2c-dark-gray">
-            Empowering Global Educational Partnerships
-          </h1>
-          <p className="text-xl text-gray-600 mb-10 leading-relaxed">
-            Join Class2Class as a partner organization and connect with schools worldwide 
-            to create meaningful collaborative learning experiences that advance the UN 
-            Sustainable Development Goals.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="c2c-purple-bg hover:opacity-90 text-lg px-8" asChild>
-              <Link href="/partner/onboarding">
-                Start Your Partnership
-                <ArrowRight className="w-5 h-5 ml-2" />
+      <section className="bg-gradient-to-br from-[#DFCFFF] via-white to-[#DFCFFF] py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900">
+              Connecting Classrooms
+              <span className="block text-[#7F56D9]">Around the World</span>
+            </h1>
+            <p className="text-xl md:text-2xl mb-8 text-gray-600 max-w-3xl">
+              Join Class2Class to connect schools worldwide, create collaborative learning 
+              experiences, and make a lasting impact on global education through the UN SDGs.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link href="/school/onboarding">
+                <Button size="lg" className="bg-[#7F56D9] hover:bg-purple-700 text-white px-8 py-3 text-lg font-semibold">
+                  Sign up for free
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
               </Link>
-            </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8" asChild>
-              <Link href="/school/onboarding">Join as a School</Link>
-            </Button>
+              <Link href="/partners">
+                <Button size="lg" variant="outline" className="border-[#7F56D9] text-[#7F56D9] hover:bg-purple-50 px-8 py-3 text-lg font-semibold">
+                  Learn more
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
-
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20 max-w-5xl mx-auto">
-          <Card className="border-2 hover:border-purple-200 transition-colors">
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 c2c-purple-bg rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Users className="w-6 h-6 text-white" />
-              </div>
-              <CardTitle className="heading-secondary">Global Network</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="text-center">
-                Connect with schools and students globally to create impactful collaborative projects.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card className="border-2 hover:border-purple-200 transition-colors">
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 c2c-purple-bg rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Target className="w-6 h-6 text-white" />
-              </div>
-              <CardTitle className="heading-secondary">SDG Alignment</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="text-center">
-                Align projects with UN Sustainable Development Goals and track your impact.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card className="border-2 hover:border-purple-200 transition-colors">
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 c2c-purple-bg rounded-lg flex items-center justify-center mx-auto mb-4">
-                <BookOpen className="w-6 h-6 text-white" />
-              </div>
-              <CardTitle className="heading-secondary">Project Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="text-center">
-                Create and manage educational projects with collaboration and tracking tools.
-              </CardDescription>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Partner Types */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-10 mb-20 max-w-4xl mx-auto">
-          <h2 className="heading-secondary text-3xl text-center mb-8 c2c-dark-gray">
-            Who Can Become a Partner?
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              {
-                title: "NGOs",
-                description: "Organizations like UNICEF Denmark working on global citizenship and rights",
-                icon: "🤝"
-              },
-              {
-                title: "Government",
-                description: "Ministries of Education launching inclusion or development campaigns",
-                icon: "🏛️"
-              },
-              {
-                title: "School Networks",
-                description: "School districts or educational networks coordinating programs",
-                icon: "🏫"
-              },
-              {
-                title: "Corporate",
-                description: "Companies with educational CSR initiatives and sustainability goals",
-                icon: "🏢"
-              }
-            ].map((type, index) => (
-              <div key={index} className="text-center p-3">
-                <div className="text-4xl mb-3">{type.icon}</div>
-                <h3 className="heading-secondary text-lg mb-2">{type.title}</h3>
-                <p className="text-gray-600 text-sm">{type.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="text-center bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl p-12 text-white max-w-5xl mx-auto">
-          <Award className="w-16 h-16 mx-auto mb-6 opacity-90" />
-          <h2 className="heading-primary text-3xl mb-4">Ready to Make a Global Impact?</h2>
-          <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-            Join our community of partners who are transforming education through 
-            international collaboration and sustainable development.
-          </p>
-          <Button size="lg" variant="secondary" className="text-lg px-8" asChild>
-            <Link href="/partner/onboarding">
-              Begin Partner Registration
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Link>
-          </Button>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 border-t border-gray-200 mt-16">
-        <div className="text-center text-gray-600">
-          <p className="mb-2">© 2024 Class2Class.org - Connecting classrooms globally</p>
-          <p className="text-sm">
-            Need help? Contact us at{' '}
-            <a href="mailto:support@class2class.org" className="c2c-purple hover:underline">
-              support@class2class.org
-            </a>
-          </p>
-        </div>
-      </footer>
+      </section>
     </div>
-  );
+  )
 }

@@ -18,17 +18,26 @@ interface MissionStatementStepProps {
   onBack: () => void;
   initialValue?: string;
   organizationName?: string;
+  aiPrefillData?: any;
 }
 
 export function MissionStatementStep({ 
   onNext, 
   onBack, 
   initialValue = '',
-  organizationName
+  organizationName,
+  aiPrefillData
 }: MissionStatementStepProps) {
-  // Pre-populate with UNICEF Denmark mission if organization name contains "unicef"
+  // Use AI prefill data if available, otherwise use fallback logic
   const getDefaultMission = () => {
     if (initialValue) return initialValue;
+    
+    // Use AI prefill data if available
+    if (aiPrefillData?.mission) {
+      return aiPrefillData.mission;
+    }
+    
+    // Fallback: Pre-populate with UNICEF Denmark mission if organization name contains "unicef"
     if (organizationName?.toLowerCase().includes('unicef')) {
       return "Som FN's børneorganisation har UNICEF Danmark ansvar for at våge over børns rettigheder overalt i verden – også i Danmark. Vi holder øje med, om Børnekonventionen bliver overholdt og taler børnenes sag i forhold, der vedrører dem. Det er vores opgave at sikre, at børn også bliver hørt i Danmark og arbejder for børns rettigheder alle de steder, hvor børnene er.";
     }

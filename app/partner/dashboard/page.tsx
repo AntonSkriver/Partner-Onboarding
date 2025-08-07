@@ -1,25 +1,63 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getCurrentSession, clearSession } from '@/lib/auth/session'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { 
-  Plus, Target, Edit3, Clock, UserCheck, School, Megaphone, PenTool
+  Plus, Target, Edit3, Clock, UserCheck, School, Megaphone, PenTool, MapPin, Mail, Users, ChevronDown, ChevronUp
 } from 'lucide-react'
 import Link from 'next/link'
 
 export default function PartnerDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
   const [progress] = useState(78)
+  const [session, setSession] = useState(getCurrentSession())
+  const [expandedProjects, setExpandedProjects] = useState(new Set())
+  const router = useRouter()
   
-  // Enhanced mock data based on comprehensive requirements
+  useEffect(() => {
+    const currentSession = getCurrentSession()
+    if (!currentSession || currentSession.role !== 'partner') {
+      router.push('/partner/login')
+      return
+    }
+    setSession(currentSession)
+  }, [router])
+
+  const handleLogout = () => {
+    clearSession()
+    router.push('/partner/login')
+  }
+
+  const toggleProjectDetails = (projectId) => {
+    const newExpanded = new Set(expandedProjects)
+    if (newExpanded.has(projectId)) {
+      newExpanded.delete(projectId)
+    } else {
+      newExpanded.add(projectId)
+    }
+    setExpandedProjects(newExpanded)
+  }
+
+  if (!session) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+        <p>Loading...</p>
+      </div>
+    </div>
+  }
+  
+  // Enhanced mock data based on comprehensive requirements and session
   const partnerData = {
-    name: "Anton Skriver",
-    organization: "UNICEF Denmark",
-    organizationType: "NGO",
+    name: session.name || "Partner User",
+    organization: session.organization || "Partner Organization",
+    organizationType: session.organization?.includes('UNICEF') ? "NGO" : "Partner",
     role: "Project Coordinator",
     
     // Core KPIs
@@ -52,7 +90,69 @@ export default function PartnerDashboard() {
         teachers: 18,
         students: 420,
         progress: 65,
-        sdgs: [4, 10, 16]
+        sdgs: [4, 10, 16],
+        participatingSchools: [
+          {
+            id: 1,
+            name: "Copenhagen International School",
+            country: "Denmark",
+            city: "Copenhagen",
+            teachers: 4,
+            students: 89,
+            status: "active",
+            joinedDate: "2024-09-15",
+            contactTeacher: "Maria Hansen",
+            email: "maria@cisd.dk"
+          },
+          {
+            id: 2,
+            name: "Nairobi Primary School",
+            country: "Kenya",
+            city: "Nairobi",
+            teachers: 3,
+            students: 76,
+            status: "active",
+            joinedDate: "2024-10-02",
+            contactTeacher: "Joseph Wanjiku",
+            email: "joseph@nairobipr.ke"
+          },
+          {
+            id: 3,
+            name: "São Paulo Elementary",
+            country: "Brazil",
+            city: "São Paulo",
+            teachers: 5,
+            students: 112,
+            status: "active",
+            joinedDate: "2024-09-22",
+            contactTeacher: "Ana Silva",
+            email: "ana@spelem.br"
+          },
+          {
+            id: 4,
+            name: "Helsinki International Academy",
+            country: "Finland",
+            city: "Helsinki",
+            teachers: 3,
+            students: 67,
+            status: "active",
+            joinedDate: "2024-10-10",
+            contactTeacher: "Elina Virtanen",
+            email: "elina@hia.fi"
+          },
+          {
+            id: 5,
+            name: "Mumbai Global School",
+            country: "India",
+            city: "Mumbai",
+            teachers: 3,
+            students: 76,
+            status: "pending",
+            joinedDate: "2024-11-01",
+            contactTeacher: "Raj Patel",
+            email: "raj@mumbglobal.in"
+          }
+        ]
       },
       {
         id: 2, 
@@ -62,7 +162,45 @@ export default function PartnerDashboard() {
         teachers: 12,
         students: 280,
         progress: 25,
-        sdgs: [13, 15, 17]
+        sdgs: [13, 15, 17],
+        participatingSchools: [
+          {
+            id: 6,
+            name: "Tokyo Green Academy",
+            country: "Japan",
+            city: "Tokyo",
+            teachers: 4,
+            students: 95,
+            status: "active",
+            joinedDate: "2024-10-20",
+            contactTeacher: "Yuki Tanaka",
+            email: "yuki@tga.jp"
+          },
+          {
+            id: 7,
+            name: "Vancouver Eco School",
+            country: "Canada",
+            city: "Vancouver",
+            teachers: 4,
+            students: 88,
+            status: "active",
+            joinedDate: "2024-10-25",
+            contactTeacher: "Sarah McKenzie",
+            email: "sarah@vecschool.ca"
+          },
+          {
+            id: 8,
+            name: "Berlin Environmental Institute",
+            country: "Germany",
+            city: "Berlin",
+            teachers: 4,
+            students: 97,
+            status: "planning",
+            joinedDate: "2024-11-05",
+            contactTeacher: "Klaus Weber",
+            email: "klaus@bei.de"
+          }
+        ]
       },
       {
         id: 3,
@@ -72,7 +210,57 @@ export default function PartnerDashboard() {
         teachers: 18,
         students: 547,
         progress: 100,
-        sdgs: [4, 8, 9]
+        sdgs: [4, 8, 9],
+        participatingSchools: [
+          {
+            id: 9,
+            name: "Stockholm Tech High School",
+            country: "Sweden",
+            city: "Stockholm",
+            teachers: 4,
+            students: 134,
+            status: "completed",
+            joinedDate: "2024-06-01",
+            contactTeacher: "Lars Andersson",
+            email: "lars@sths.se"
+          },
+          {
+            id: 10,
+            name: "Singapore Innovation Academy",
+            country: "Singapore",
+            city: "Singapore",
+            teachers: 4,
+            students: 142,
+            status: "completed",
+            joinedDate: "2024-06-08",
+            contactTeacher: "Li Wei",
+            email: "liwei@sia.sg"
+          },
+          {
+            id: 11,
+            name: "Sydney Digital School",
+            country: "Australia",
+            city: "Sydney",
+            teachers: 4,
+            students: 138,
+            status: "completed",
+            joinedDate: "2024-06-15",
+            contactTeacher: "Emma Thompson",
+            email: "emma@sds.au"
+          },
+          {
+            id: 12,
+            name: "London Future Academy",
+            country: "United Kingdom",
+            city: "London",
+            teachers: 4,
+            students: 133,
+            status: "completed",
+            joinedDate: "2024-06-20",
+            contactTeacher: "James Wilson",
+            email: "james@lfa.uk"
+          }
+        ]
       }
     ]
   }
@@ -86,16 +274,18 @@ export default function PartnerDashboard() {
       icon: School,
       action: "Invite Schools",
       completed: false,
-      priority: "high"
+      priority: "high",
+      href: "/partner/schools/invite"
     },
     {
       id: "create_content", 
-      title: "Create Educational Content",
-      description: "Use our AI-powered tools to develop lesson plans and materials",
+      title: "Upload Educational Content",
+      description: "Share your educational resources with partner schools",
       icon: PenTool,
-      action: "Create Content",
+      action: "Upload Content",
       completed: false,
-      priority: "high"
+      priority: "high",
+      href: "/partner/content/upload"
     },
     {
       id: "launch_marketing",
@@ -113,7 +303,8 @@ export default function PartnerDashboard() {
       icon: Target,
       action: "Create Project",
       completed: false,
-      priority: "medium"
+      priority: "medium",
+      href: "/partner/projects/create"
     }
   ]
 
@@ -187,6 +378,12 @@ export default function PartnerDashboard() {
               <button className="px-5 py-2.5 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 shadow-sm">
                 + New project
               </button>
+              <button 
+                onClick={handleLogout}
+                className="px-5 py-2.5 border border-gray-200 rounded-lg text-sm font-medium hover:bg-red-50 text-red-700 shadow-sm"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
@@ -259,7 +456,13 @@ export default function PartnerDashboard() {
                       </div>
                     </CardHeader>
                     <CardFooter>
-                      {action.id === 'launch_marketing' ? (
+                      {action.href ? (
+                        <Link href={action.href} className="w-full">
+                          <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                            {action.action}
+                          </Button>
+                        </Link>
+                      ) : action.id === 'launch_marketing' ? (
                         <Link href="/partner/marketing" className="w-full">
                           <Button className="w-full bg-purple-600 hover:bg-purple-700">
                             {action.action}
@@ -382,12 +585,77 @@ export default function PartnerDashboard() {
                         <p className="text-sm text-gray-600">Students</p>
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 mb-4">
                       <div className="flex justify-between text-sm">
                         <span>Progress</span>
                         <span>{project.progress}%</span>
                       </div>
                       <Progress value={project.progress} />
+                    </div>
+
+                    {/* Participating Schools Section */}
+                    <div className="border-t pt-4">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => toggleProjectDetails(project.id)}
+                        className="flex items-center gap-2 mb-3 text-sm font-medium text-gray-700 hover:text-purple-600"
+                      >
+                        <School className="h-4 w-4" />
+                        Participating Schools ({project.participatingSchools?.length || 0})
+                        {expandedProjects.has(project.id) ? 
+                          <ChevronUp className="h-4 w-4" /> : 
+                          <ChevronDown className="h-4 w-4" />
+                        }
+                      </Button>
+                      
+                      {expandedProjects.has(project.id) && project.participatingSchools && (
+                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                          {project.participatingSchools.map((school) => (
+                            <div key={school.id} className="bg-gray-50 rounded-lg p-3 border">
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-sm text-gray-900">{school.name}</h4>
+                                  <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                                    <MapPin className="h-3 w-3" />
+                                    <span>{school.city}, {school.country}</span>
+                                  </div>
+                                </div>
+                                <Badge 
+                                  variant={school.status === 'active' ? 'default' : 
+                                          school.status === 'completed' ? 'secondary' : 'outline'}
+                                  className="text-xs"
+                                >
+                                  {school.status}
+                                </Badge>
+                              </div>
+                              
+                              <div className="grid grid-cols-2 gap-3 mb-2">
+                                <div className="flex items-center gap-1 text-xs text-gray-600">
+                                  <Users className="h-3 w-3" />
+                                  <span>{school.teachers} teachers, {school.students} students</span>
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  Joined: {new Date(school.joinedDate).toLocaleDateString()}
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-2 text-xs">
+                                <div className="flex items-center gap-1 text-gray-600">
+                                  <Mail className="h-3 w-3" />
+                                  <span className="font-medium">{school.contactTeacher}</span>
+                                </div>
+                                <a 
+                                  href={`mailto:${school.email}`}
+                                  className="text-purple-600 hover:text-purple-700 hover:underline"
+                                >
+                                  {school.email}
+                                </a>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-between">
