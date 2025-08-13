@@ -30,6 +30,7 @@ export default function Home() {
               <a href="#platform" className="text-gray-600 hover:text-gray-900 transition-colors">Platform</a>
               <a href="#success-stories" className="text-gray-600 hover:text-gray-900 transition-colors">Success cases</a>
               <a href="#about" className="text-gray-600 hover:text-gray-900 transition-colors">About us</a>
+              <Link href="/discover" className="text-gray-600 hover:text-gray-900 transition-colors">Discover</Link>
               <LanguageSwitcher />
               <div className="flex items-center space-x-4">
                 <Link href="/sign-in">

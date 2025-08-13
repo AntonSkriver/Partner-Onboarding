@@ -63,6 +63,7 @@ export default function PartnersPage() {
             </div>
             <nav className="hidden md:flex items-center space-x-8">
               <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors">Home</Link>
+              <Link href="/discover" className="text-gray-600 hover:text-gray-900 transition-colors">Discover Projects</Link>
               <LanguageSwitcher />
               <div className="flex items-center space-x-4">
                 <Link href="/sign-in">
@@ -107,7 +108,7 @@ export default function PartnersPage() {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="/projects">
+              <Link href="/discover">
                 <Button size="lg" className="bg-[#7F56D9] hover:bg-purple-700 px-8 py-3 text-lg font-semibold text-white">
                   Browse Projects
                   <ArrowRight className="ml-2 h-5 w-5" />

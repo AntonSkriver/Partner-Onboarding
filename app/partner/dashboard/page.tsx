@@ -268,14 +268,14 @@ export default function PartnerDashboard() {
   // Post-onboarding action items based on documentation
   const nextStepActions = [
     {
-      id: "invite_schools",
-      title: "Invite Schools",
-      description: "Invite schools you already know to join your projects",
+      id: "connect_schools",
+      title: "Connect with Schools",
+      description: "Connect and network with schools worldwide to join your projects",
       icon: School,
-      action: "Invite Schools",
+      action: "Connect with Schools",
       completed: false,
       priority: "high",
-      href: "/partner/schools/invite"
+      href: "/connect"
     },
     {
       id: "create_content", 
