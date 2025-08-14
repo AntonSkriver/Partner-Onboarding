@@ -98,6 +98,39 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* Custom styles for the improved onboarding components */
+.welcome-screen {
+  @apply min-h-screen bg-[#151C2C] flex items-center justify-center px-8 sm:px-4 md:px-5 lg:px-6;
+}
+
+.welcome-card {
+  @apply bg-white rounded-3xl overflow-hidden shadow-lg w-full max-w-md;
+}
+
+.welcome-header {
+  @apply relative h-48 bg-[#F4EDFF] flex items-center justify-center;
+}
+
+.welcome-profile-photo {
+  @apply absolute -bottom-16 w-32 h-32 rounded-full overflow-hidden border-4 border-white bg-gray-100;
+}
+
+.welcome-content {
+  @apply pt-20 pb-8 px-8 text-center;
+}
+
+.welcome-title {
+  @apply text-2xl font-semibold text-gray-900 mb-2;
+}
+
+.welcome-description {
+  @apply text-gray-600 mb-8;
+}
+
+.welcome-button {
+  @apply w-48 bg-[#8157D9] hover:bg-[#8157D9]/90 text-white rounded-lg;
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

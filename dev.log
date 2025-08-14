@@ -7,128 +7,20 @@
    - Network:      http://10.0.1.233:3000
 
  ✓ Starting...
- ✓ Ready in 631ms
- ○ Compiling /connect ...
- ✓ Compiled /connect in 1061ms
- GET /connect 200 in 1235ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=100&h=100&fit=crop 404
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=100&h=100&fit=crop 404
- GET /connect 200 in 95ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=100&h=100&fit=crop 404
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=100&h=100&fit=crop 404
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=100&h=100&fit=crop 404
- ✓ Compiled in 131ms
- ✓ Compiled in 115ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=100&h=100&fit=crop 404
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=100&h=100&fit=crop 404
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- ✓ Compiled in 118ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=100&h=100&fit=crop 404
- ✓ Compiled in 131ms
- ⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
-   ▲ Next.js 15.3.0 (Turbopack)
-   - Local:        http://localhost:3000
-   - Network:      http://10.0.1.233:3000
-
- ✓ Starting...
- ✓ Ready in 666ms
- ○ Compiling /connect ...
- ✓ Compiled /connect in 1074ms
- GET /connect 200 in 1254ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=100&h=100&fit=crop 404
- ⨯ upstream image response failed for https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/UNESCO_logo.svg/200px-UNESCO_logo.svg.png 404
- ⨯ upstream image response failed for https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/UNICEF_Logo.png/200px-UNICEF_Logo.png 404
- ✓ Compiled in 109ms
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- ✓ Compiled in 95ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- GET /connect 200 in 137ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- ⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
-   ▲ Next.js 15.3.0 (Turbopack)
-   - Local:        http://localhost:3000
-   - Network:      http://10.0.1.233:3000
-
- ✓ Starting...
- ✓ Ready in 663ms
- ○ Compiling /connect ...
- ✓ Compiled /connect in 1088ms
- GET /connect 200 in 1268ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=100&h=100&fit=crop 404
- ⨯ upstream image response failed for https://logos-world.net/wp-content/uploads/2021/03/UNESCO-Logo.png 404
- ⨯ upstream image response failed for https://logos-world.net/wp-content/uploads/2021/02/Unicef-Logo.png 404
- GET /connect 200 in 87ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- ⨯ upstream image response failed for https://logos-world.net/wp-content/uploads/2021/02/Unicef-Logo.png 404
- ⨯ upstream image response failed for https://logos-world.net/wp-content/uploads/2021/03/UNESCO-Logo.png 404
- ✓ Compiled in 99ms
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- ✓ Compiled in 106ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- GET /connect 200 in 136ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- ⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
-   ▲ Next.js 15.3.0 (Turbopack)
-   - Local:        http://localhost:3000
-   - Network:      http://10.0.1.233:3000
-
- ✓ Starting...
- ✓ Ready in 673ms
- ○ Compiling /connect ...
- ✓ Compiled /connect in 1062ms
- GET /connect 200 in 1246ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=100&h=100&fit=crop 404
- ✓ Compiled / in 439ms
- GET / 200 in 456ms
- ✓ Compiled /partners in 342ms
- GET /partners 200 in 359ms
- ✓ Compiled /discover in 315ms
- GET /discover 200 in 330ms
- ✓ Compiled in 121ms
- ✓ Compiled in 107ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=500&h=300&fit=crop 404
- ✓ Compiled in 103ms
- ✓ Compiled in 104ms
- ✓ Compiled in 103ms
- GET /connect 200 in 33ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- ✓ Compiled /projects in 380ms
- GET /projects 200 in 393ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- GET /projects 200 in 36ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- ✓ Compiled /_not-found/page in 237ms
- GET /resources 404 in 250ms
- GET /resources 404 in 25ms
- GET /students 404 in 31ms
- GET /students 404 in 29ms
- GET /discover 200 in 92ms
- GET /connect 200 in 31ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=100&h=100&fit=crop 404
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- GET /connect 200 in 92ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- GET /connect 200 in 87ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- GET / 200 in 34ms
- GET /discover 200 in 39ms
- GET / 200 in 36ms
- GET /discover 200 in 36ms
- GET / 200 in 33ms
- GET /partners 200 in 37ms
- ○ Compiling /sign-in ...
- ✓ Compiled /sign-in in 508ms
- GET /sign-in 200 in 523ms
- ✓ Compiled /partner/dashboard in 390ms
- GET /partner/dashboard 200 in 404ms
- GET /connect 200 in 37ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face 404
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=100&h=100&fit=crop 404
- ✓ Compiled in 126ms
+ ✓ Ready in 561ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1079ms
+ GET / 200 in 1246ms
+ ✓ Compiled /partners in 345ms
+ GET /partners 200 in 363ms
+ ✓ Compiled /discover in 320ms
+ GET /discover 200 in 338ms
+ GET / 200 in 41ms
+ GET /partners 200 in 39ms
+ ✓ Compiled /school/onboarding in 399ms
+ GET /school/onboarding 200 in 415ms
+ ✓ Compiled /partner/onboarding in 391ms
+ GET /partner/onboarding 200 in 405ms
+ GET /partner/onboarding 200 in 37ms
+ GET /partner/onboarding?step=1 200 in 37ms
+ GET /partner/onboarding?step=2 200 in 37ms

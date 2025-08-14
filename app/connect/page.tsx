@@ -39,7 +39,7 @@ const teachersData = {
       subjects: ["Environmental Science", "Geography"],
       students: "Ages 12-16",
       timeZone: "5 hours from you",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=100&h=100&fit=crop&crop=face",
+      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b64c?w=400&h=400&fit=crop&crop=face",
       verified: true
     },
     {
@@ -247,7 +247,7 @@ export default function ConnectPage() {
     }
   }
 
-  const renderTeacherCard = (teacher) => (
+  const renderTeacherCard = (teacher: any) => (
     <Card key={teacher.id} className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
@@ -321,7 +321,7 @@ export default function ConnectPage() {
     </Card>
   )
 
-  const renderSchoolCard = (school) => (
+  const renderSchoolCard = (school: any) => (
     <Card key={school.id} className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
@@ -378,7 +378,7 @@ export default function ConnectPage() {
     </Card>
   )
 
-  const renderPartnerCard = (partner) => (
+  const renderPartnerCard = (partner: any) => (
     <Card key={partner.id} className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
