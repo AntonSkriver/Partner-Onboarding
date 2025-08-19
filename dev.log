@@ -24,3 +24,64 @@
  GET /partner/onboarding 200 in 37ms
  GET /partner/onboarding?step=1 200 in 37ms
  GET /partner/onboarding?step=2 200 in 37ms
+ ⨯ ./components/partner-onboarding/components/partner-mission-sdg.tsx:9:1
+Module not found: Can't resolve '../../../sdg-icons'
+[0m [90m  7 |[39m [36mimport[39m { [33mTarget[39m[33m,[39m [33mGlobe[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheck[39m } [36mfrom[39m [32m"lucide-react"[39m[0m
+[0m [90m  8 |[39m [36mimport[39m { useState } [36mfrom[39m [32m"react"[39m[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m [36mimport[39m { [33mSDGIcon[39m } [36mfrom[39m [32m"../../../sdg-icons"[39m[0m
+[0m [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m[0m
+[0m [90m 11 |[39m [36minterface[39m [33mPartnerMissionSdgProps[39m {[0m
+[0m [90m 12 |[39m   onNext[33m:[39m () [33m=>[39m [36mvoid[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./components/partner-onboarding/components/partner-mission-sdg.tsx:9:1
+Module not found: Can't resolve '../../../sdg-icons'
+[0m [90m  7 |[39m [36mimport[39m { [33mTarget[39m[33m,[39m [33mGlobe[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheck[39m } [36mfrom[39m [32m"lucide-react"[39m[0m
+[0m [90m  8 |[39m [36mimport[39m { useState } [36mfrom[39m [32m"react"[39m[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m [36mimport[39m { [33mSDGIcon[39m } [36mfrom[39m [32m"../../../sdg-icons"[39m[0m
+[0m [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m[0m
+[0m [90m 11 |[39m [36minterface[39m [33mPartnerMissionSdgProps[39m {[0m
+[0m [90m 12 |[39m   onNext[33m:[39m () [33m=>[39m [36mvoid[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./components/partner-onboarding/components/partner-mission-sdg.tsx:9:1
+Module not found: Can't resolve '../../../sdg-icons'
+[0m [90m  7 |[39m [36mimport[39m { [33mTarget[39m[33m,[39m [33mGlobe[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheck[39m } [36mfrom[39m [32m"lucide-react"[39m[0m
+[0m [90m  8 |[39m [36mimport[39m { useState } [36mfrom[39m [32m"react"[39m[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m [36mimport[39m { [33mSDGIcon[39m } [36mfrom[39m [32m"../../../sdg-icons"[39m[0m
+[0m [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m[0m
+[0m [90m 11 |[39m [36minterface[39m [33mPartnerMissionSdgProps[39m {[0m
+[0m [90m 12 |[39m   onNext[33m:[39m () [33m=>[39m [36mvoid[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./components/partner-onboarding/components/partner-mission-sdg.tsx:9:1
+Module not found: Can't resolve '../../../sdg-icons'
+[0m [90m  7 |[39m [36mimport[39m { [33mTarget[39m[33m,[39m [33mGlobe[39m[33m,[39m [33mAlertCircle[39m[33m,[39m [33mCheck[39m } [36mfrom[39m [32m"lucide-react"[39m[0m
+[0m [90m  8 |[39m [36mimport[39m { useState } [36mfrom[39m [32m"react"[39m[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m [36mimport[39m { [33mSDGIcon[39m } [36mfrom[39m [32m"../../../sdg-icons"[39m[0m
+[0m [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m[0m
+[0m [90m 11 |[39m [36minterface[39m [33mPartnerMissionSdgProps[39m {[0m
+[0m [90m 12 |[39m   onNext[33m:[39m () [33m=>[39m [36mvoid[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ✓ Compiled in 240ms

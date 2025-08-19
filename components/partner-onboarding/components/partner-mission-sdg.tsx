@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { usePartnerOnboarding, SDG_OPTIONS } from "../../../contexts/partner-onboarding-context"
 import { Target, Globe, AlertCircle, Check } from "lucide-react"
 import { useState } from "react"
+import { SDGIcon } from "../../sdg-icons"
 
 interface PartnerMissionSdgProps {
   onNext: () => void
@@ -175,8 +176,13 @@ export function PartnerMissionSdg({ onNext, onPrevious }: PartnerMissionSdgProps
                 }`}
                 onClick={() => toggleSDG(sdg.id)}
               >
-                <div className={`w-10 h-10 rounded-lg ${sdg.color} flex items-center justify-center text-white text-sm font-bold mr-4 flex-shrink-0`}>
-                  {sdg.id}
+                <div className="mr-4 flex-shrink-0">
+                  <SDGIcon 
+                    number={sdg.id} 
+                    size="sm" 
+                    showTitle={false}
+                    className="w-10 h-10"
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 mb-1">{sdg.title}</p>

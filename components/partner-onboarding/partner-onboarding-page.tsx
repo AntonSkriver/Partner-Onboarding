@@ -94,7 +94,7 @@ function PartnerOnboardingContent() {
     <PartnerOnboardingProvider>
       {currentStep === 0 ? (
         // Welcome Screen - Single Column with Dark Background
-        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center px-8 sm:px-4 md:px-5 lg:px-6">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 flex items-center justify-center px-8 sm:px-4 md:px-5 lg:px-6">
           <CurrentStepComponent onNext={goToNextStep} onPrevious={goToPreviousStep} onGoToStep={goToStep} />
         </div>
       ) : (
