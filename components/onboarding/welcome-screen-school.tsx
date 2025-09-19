@@ -10,11 +10,11 @@ interface WelcomeScreenSchoolProps {
   onGoToStep?: (step: number) => void
 }
 
+
 export function WelcomeScreenSchool({ onNext }: WelcomeScreenSchoolProps) {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full space-y-8">
-        {/* Header */}
+    <div className="w-full max-w-3xl mx-auto space-y-10 px-4 sm:px-6 lg:px-8">
+      {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex justify-center">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
@@ -122,7 +122,6 @@ export function WelcomeScreenSchool({ onNext }: WelcomeScreenSchoolProps) {
             <span className="bg-gray-100 px-3 py-1 rounded-full text-xs">Global Impact</span>
           </div>
         </div>
-      </div>
     </div>
   )
 }

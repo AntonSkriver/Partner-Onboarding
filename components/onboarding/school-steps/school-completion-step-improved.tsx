@@ -24,6 +24,7 @@ interface SchoolCompletionStepProps {
   onGoToStep?: (step: number) => void
 }
 
+
 export function SchoolCompletionStep({ }: SchoolCompletionStepProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { formData, resetForm } = useSchoolForm()
@@ -51,8 +52,7 @@ export function SchoolCompletionStep({ }: SchoolCompletionStepProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full space-y-8">
+    <div className="w-full max-w-3xl mx-auto space-y-10 px-4 sm:px-6 lg:px-8">
         {/* Success Header */}
         <div className="text-center space-y-4">
           <div className="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center">
@@ -210,7 +210,6 @@ export function SchoolCompletionStep({ }: SchoolCompletionStepProps) {
         <div className="text-center text-sm text-gray-500">
           <p>Need help? Contact our support team at support@class2class.org</p>
         </div>
-      </div>
     </div>
   )
 }

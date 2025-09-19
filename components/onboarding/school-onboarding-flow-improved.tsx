@@ -21,6 +21,7 @@ export default function SchoolOnboardingFlowImproved() {
   )
 }
 
+
 function SchoolOnboardingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -91,71 +92,62 @@ function SchoolOnboardingContent() {
     return null // Prevent hydration issues by not rendering until mounted
   }
 
+  const isWelcomeStep = currentStep === 0
+  const isFinalStep = currentStep === steps.length - 1
+  const shouldShowPreviewPanel = (isDesktop && !isWelcomeStep) || isFinalStep
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
-      {/* Desktop Layout */}
-      {isDesktop ? (
-        <div className="flex min-h-screen">
-          {/* Left Panel - Progress and Preview */}
-          <div className="w-1/2 bg-white border-r border-gray-200 p-8">
-            <div className="max-w-md mx-auto">
-              {/* Progress Bar */}
-              {currentStep > 0 && currentStep < steps.length - 1 && (
-                <div className="mb-8">
-                  <ProgressBar
-                    currentStep={getProgressStep()}
-                    totalSteps={getTotalSteps()}
-                    stepNames={steps.slice(1, -1).map(step => step.name)}
-                    onGoToStep={(step) => goToStep(step + 1)}
-                  />
-                </div>
-              )}
-
-              {/* School Profile Preview */}
-              {currentStep > 0 && currentStep < steps.length - 1 && (
-                <div className="mt-8">
-                  <SchoolProfilePreview formData={formData} />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Panel - Current Step */}
-          <div className="w-1/2 bg-white p-8">
-            <div className="max-w-md mx-auto">
-              <CurrentStepComponent
-                onNext={goToNextStep}
-                onPrevious={goToPreviousStep}
-                onGoToStep={goToStep}
-                context="school"
-              />
-            </div>
-          </div>
+    <div className="min-h-screen bg-white">
+      {isWelcomeStep ? (
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-6 sm:px-8 lg:px-12">
+          <CurrentStepComponent
+            onNext={goToNextStep}
+            onPrevious={goToPreviousStep}
+            onGoToStep={goToStep}
+            context="school"
+          />
         </div>
       ) : (
-        /* Mobile Layout */
-        <div className="min-h-screen bg-white">
-          <div className="max-w-md mx-auto p-4">
-            {/* Progress Bar for Mobile */}
-            {currentStep > 0 && currentStep < steps.length - 1 && (
-              <div className="mb-6">
-                <ProgressBar
-                  currentStep={getProgressStep()}
-                  totalSteps={getTotalSteps()}
-                  stepNames={steps.slice(1, -1).map(step => step.name)}
-                  onGoToStep={(step) => goToStep(step + 1)}
+        <div className="flex flex-col lg:flex-row min-h-screen max-w-[1920px] mx-auto">
+          {/* Form column */}
+          <div className="w-full lg:w-[55%] bg-white">
+            <div className={`relative flex flex-col justify-center mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-12 ${isFinalStep ? 'min-h-0' : 'min-h-screen'} max-w-[720px]`}>
+              {!isFinalStep && (
+                <div className="absolute top-0 left-0 right-0 bg-white/95 border-b border-gray-100 z-10">
+                  <div className="max-w-[720px] mx-auto px-6 sm:px-8 lg:px-12 py-4">
+                    <ProgressBar
+                      currentStep={getProgressStep()}
+                      totalSteps={getTotalSteps()}
+                      stepNames={steps.slice(1, -1).map(step => step.name)}
+                      onGoToStep={(step) => goToStep(step + 1)}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className={isFinalStep ? 'mt-6' : 'mt-20 pt-4'}>
+                <CurrentStepComponent
+                  onNext={goToNextStep}
+                  onPrevious={goToPreviousStep}
+                  onGoToStep={goToStep}
+                  context="school"
                 />
               </div>
-            )}
-
-            {/* Current Step */}
-            <CurrentStepComponent
-              onNext={goToNextStep}
-              onPrevious={goToPreviousStep}
-              onGoToStep={goToStep}
-              context="school"
-            />
+            </div>
           </div>
+
+          {/* Preview column */}
+          {shouldShowPreviewPanel && (
+            <div className={`w-full lg:w-[45%] bg-gradient-to-br from-green-50 via-white to-blue-50 ${isFinalStep ? 'py-12' : ''}`}>
+              <div className={`${isFinalStep ? '' : 'sticky top-0 h-screen'}`}>
+                <div className="flex flex-col justify-center h-full max-w-[700px] mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-12">
+                  <div className="lg:ml-8">
+                    <SchoolProfilePreview formData={formData} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
