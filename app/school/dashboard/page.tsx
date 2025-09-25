@@ -43,7 +43,7 @@ export default function SchoolDashboard() {
     {
       id: '1',
       title: 'Children\'s Rights Across Cultures',
-      partner: 'UNICEF Denmark',
+      partner: 'UNICEF Danmark',
       status: 'active',
       participants: 8,
       countries: ['Denmark', 'Kenya', 'Philippines'],
@@ -174,287 +174,23 @@ export default function SchoolDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Target className="h-4 w-4 text-blue-600" />
-                </div>
-                <div className="ml-4">
-                  <div className="text-2xl font-bold text-gray-900">{currentProjects.length}</div>
-                  <div className="text-sm text-gray-600">Active Projects</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <Users className="h-4 w-4 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <div className="text-2xl font-bold text-gray-900">
-                    {currentProjects.reduce((sum, project) => sum + project.participants, 0)}
-                  </div>
-                  <div className="text-sm text-gray-600">Students Participating</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Globe className="h-4 w-4 text-purple-600" />
-                </div>
-                <div className="ml-4">
-                  <div className="text-2xl font-bold text-gray-900">
-                    {[...new Set(currentProjects.flatMap(p => p.countries))].length}
-                  </div>
-                  <div className="text-sm text-gray-600">Partner Countries</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <Star className="h-4 w-4 text-yellow-600" />
-                </div>
-                <div className="ml-4">
-                  <div className="text-2xl font-bold text-gray-900">4.8</div>
-                  <div className="text-sm text-gray-600">Project Rating</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="projects" className="space-y-6">
-          <TabsList className={`grid w-full ${isIndependentSchool ? 'grid-cols-5' : 'grid-cols-3'}`}>
-            <TabsTrigger value="projects">My Projects</TabsTrigger>
-            <TabsTrigger value="discover">Discover Projects</TabsTrigger>
-            {isIndependentSchool && (
-              <>
-                <TabsTrigger value="create">Create Project</TabsTrigger>
-                <TabsTrigger value="invite">Invite Schools</TabsTrigger>
-              </>
-            )}
-            <TabsTrigger value="profile">School Profile</TabsTrigger>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="programs">Programs</TabsTrigger>
+            <TabsTrigger value="resources">Resources</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
-          {/* My Projects Tab */}
-          <TabsContent value="projects" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Current Projects</h2>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Project
-              </Button>
-            </div>
-
-            {currentProjects.length > 0 ? (
-              <div className="grid gap-6">
-                {currentProjects.map((project) => (
-                  <Card key={project.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-xl">{project.title}</CardTitle>
-                          <CardDescription className="text-lg mt-1">
-                            Partner: {project.partner}
-                          </CardDescription>
-                        </div>
-                        <Badge className={`${getStatusColor(project.status)} flex items-center gap-1`}>
-                          {getStatusIcon(project.status)}
-                          {project.status === 'active' ? 'Active' : 'Starting Soon'}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">Participants</p>
-                          <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4 text-gray-500" />
-                            <span>{project.participants} students</span>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">Countries</p>
-                          <div className="flex items-center gap-1">
-                            <Globe className="h-4 w-4 text-gray-500" />
-                            <span>{project.countries.length} countries</span>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">Duration</p>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4 text-gray-500" />
-                            <span>{new Date(project.startDate).toLocaleDateString()} - {new Date(project.endDate).toLocaleDateString()}</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-700">Countries:</span>
-                            <div className="flex gap-1">
-                              {project.countries.map((country, idx) => (
-                                <Badge key={idx} variant="outline" className="text-xs">
-                                  {country}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-700">SDGs:</span>
-                            <div className="flex gap-1">
-                              {project.sdgs.map((sdg, idx) => (
-                                <Badge key={idx} className="bg-purple-100 text-purple-800 text-xs">
-                                  SDG {sdg}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                        <Button variant="outline">
-                          View Project
-                          <ArrowRight className="h-4 w-4 ml-2" />
-                        </Button>
-                      </div>
-                      
-                      {project.status === 'active' && (
-                        <div className="mt-4">
-                          <div className="flex items-center justify-between text-sm mb-2">
-                            <span className="font-medium text-gray-700">Progress</span>
-                            <span className="text-gray-600">{project.progress}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${project.progress}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Active Projects</h3>
-                  <p className="text-gray-600 mb-6">
-                    Start your global education journey by joining a collaborative project
-                  </p>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Discover Projects
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          {/* Discover Projects Tab */}
-          <TabsContent value="discover" className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Available Projects</h2>
-              <p className="text-gray-600 mb-6">
-                Discover collaborative projects from partner organizations around the world
-              </p>
-            </div>
-
-            <div className="grid gap-6">
-              {availableProjects.map((project) => (
-                <Card key={project.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-xl">{project.title}</CardTitle>
-                        <CardDescription className="text-lg mt-1">
-                          by {project.partner}
-                        </CardDescription>
-                        <p className="text-gray-600 mt-2">{project.description}</p>
-                      </div>
-                      <Badge variant="outline" className="text-xs">
-                        {project.participants}/{project.maxParticipants} schools
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Languages</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {project.languages.map((lang, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs">
-                              {lang}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Age Groups</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {project.ageGroup.map((age, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs">
-                              {age}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Application Deadline</p>
-                        <div className="flex items-center gap-1 mt-1">
-                          <Calendar className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm">{new Date(project.applicationDeadline).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">SDGs:</span>
-                        <div className="flex gap-1">
-                          {project.sdgs.map((sdg, idx) => (
-                            <Badge key={idx} className="bg-purple-100 text-purple-800 text-xs">
-                              SDG {sdg}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline">Learn More</Button>
-                        <Button className="bg-blue-600 hover:bg-blue-700">
-                          Apply to Join
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* School Profile Tab */}
-          <TabsContent value="profile" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* School Information */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <School className="h-5 w-5 text-blue-600" />
+                    <School className="h-4 w-4" />
                     School Information
                   </CardTitle>
                 </CardHeader>
@@ -490,10 +226,11 @@ export default function SchoolDashboard() {
                 </CardContent>
               </Card>
 
+              {/* Contact Information */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Mail className="h-5 w-5 text-blue-600" />
+                    <Mail className="h-4 w-4" />
                     Contact Information
                   </CardTitle>
                 </CardHeader>
@@ -509,9 +246,52 @@ export default function SchoolDashboard() {
                 </CardContent>
               </Card>
 
+              {/* Quick Stats */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Learning Interests</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-4 w-4" />
+                    Quick Stats
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-2xl font-bold text-blue-600">{currentProjects.length}</div>
+                      <div className="text-sm text-gray-600">Active Projects</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {currentProjects.reduce((sum, project) => sum + project.participants, 0)}
+                      </div>
+                      <div className="text-sm text-gray-600">Students</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                    <div>
+                      <div className="text-xl font-bold text-purple-600">
+                        {[...new Set(currentProjects.flatMap(p => p.countries))].length}
+                      </div>
+                      <div className="text-sm text-gray-600">Countries</div>
+                    </div>
+                    <div>
+                      <div className="text-xl font-bold text-yellow-600">4.8</div>
+                      <div className="text-sm text-gray-600">Rating</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Focus Areas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Learning Interests */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    Learning Interests
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
@@ -524,9 +304,13 @@ export default function SchoolDashboard() {
                 </CardContent>
               </Card>
 
+              {/* SDG Focus Areas */}
               <Card>
                 <CardHeader>
-                  <CardTitle>SDG Focus Areas</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-4 w-4" />
+                    SDG Focus Areas
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
@@ -540,9 +324,10 @@ export default function SchoolDashboard() {
               </Card>
             </div>
 
+            {/* Profile Actions */}
             <Card>
               <CardHeader>
-                <CardTitle>Profile Actions</CardTitle>
+                <CardTitle>Profile Management</CardTitle>
                 <CardDescription>
                   Manage your school profile and settings
                 </CardDescription>
@@ -564,184 +349,405 @@ export default function SchoolDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Create Project Tab (for independent schools) */}
-          {isIndependentSchool && (
-            <TabsContent value="create" className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Create a Collaborative Project</h2>
-                <p className="text-gray-600 mb-8">
-                  As an independent school partner, you can create projects and invite other schools to collaborate
-                </p>
-              </div>
+          {/* Programs Tab */}
+          <TabsContent value="programs" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">My Programs</h2>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                {isIndependentSchool ? 'Create Program' : 'Discover Programs'}
+              </Button>
+            </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer border-blue-200 hover:border-blue-300">
-                  <CardHeader className="text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                      <Users className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <CardTitle>Host a Live Project</CardTitle>
-                    <CardDescription>
-                      Create and facilitate a collaborative project with direct school-to-school interaction
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 text-sm text-gray-600 mb-4">
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        Real-time collaboration features
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        Direct communication with participating schools
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        Progress tracking and support
-                      </li>
-                    </ul>
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                      Create Live Project
+            {/* Current Programs Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800">Current Programs</h3>
+              {currentProjects.length > 0 ? (
+                <div className="grid gap-6">
+                  {currentProjects.map((project) => (
+                    <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-xl">{project.title}</CardTitle>
+                            <CardDescription className="text-lg mt-1">
+                              Partner: {project.partner}
+                            </CardDescription>
+                          </div>
+                          <Badge className={`${getStatusColor(project.status)} flex items-center gap-1`}>
+                            {getStatusIcon(project.status)}
+                            {project.status === 'active' ? 'Active' : 'Starting Soon'}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Participants</p>
+                            <div className="flex items-center gap-1">
+                              <Users className="h-4 w-4 text-gray-500" />
+                              <span>{project.participants} students</span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Countries</p>
+                            <div className="flex items-center gap-1">
+                              <Globe className="h-4 w-4 text-gray-500" />
+                              <span>{project.countries.length} countries</span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Duration</p>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4 text-gray-500" />
+                              <span>{new Date(project.startDate).toLocaleDateString()} - {new Date(project.endDate).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-700">Countries:</span>
+                              <div className="flex gap-1">
+                                {project.countries.map((country, idx) => (
+                                  <Badge key={idx} variant="outline" className="text-xs">
+                                    {country}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-700">SDGs:</span>
+                              <div className="flex gap-1">
+                                {project.sdgs.map((sdg, idx) => (
+                                  <Badge key={idx} className="bg-purple-100 text-purple-800 text-xs">
+                                    SDG {sdg}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          <Button variant="outline">
+                            View Program
+                            <ArrowRight className="h-4 w-4 ml-2" />
+                          </Button>
+                        </div>
+
+                        {project.status === 'active' && (
+                          <div className="mt-4">
+                            <div className="flex items-center justify-between text-sm mb-2">
+                              <span className="font-medium text-gray-700">Progress</span>
+                              <span className="text-gray-600">{project.progress}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${project.progress}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Active Programs</h3>
+                    <p className="text-gray-600 mb-6">
+                      Start your global education journey by joining a collaborative program
+                    </p>
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Discover Programs
                     </Button>
                   </CardContent>
                 </Card>
+              )}
+            </div>
 
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer border-purple-200 hover:border-purple-300">
-                  <CardHeader className="text-center">
-                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                      <BookOpen className="h-6 w-6 text-purple-600" />
-                    </div>
-                    <CardTitle>Create Project Template</CardTitle>
-                    <CardDescription>
-                      Design a reusable project template that other schools can adapt and implement
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 text-sm text-gray-600 mb-4">
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        Share your successful project ideas
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        Help other schools implement similar projects
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        Build your school's reputation as an education leader
-                      </li>
-                    </ul>
-                    <Button variant="outline" className="w-full border-purple-300 text-purple-700 hover:bg-purple-50">
-                      Create Template
-                    </Button>
-                  </CardContent>
-                </Card>
+            {/* Available Programs Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800">Available Programs</h3>
+              <p className="text-gray-600">
+                Discover collaborative programs from partner organizations around the world
+              </p>
+              <div className="grid gap-6">
+                {availableProjects.map((project) => (
+                  <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <CardTitle className="text-xl">{project.title}</CardTitle>
+                          <CardDescription className="text-lg mt-1">
+                            by {project.partner}
+                          </CardDescription>
+                          <p className="text-gray-600 mt-2">{project.description}</p>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {project.participants}/{project.maxParticipants} schools
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Languages</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {project.languages.map((lang, idx) => (
+                              <Badge key={idx} variant="secondary" className="text-xs">
+                                {lang}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Age Groups</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {project.ageGroup.map((age, idx) => (
+                              <Badge key={idx} variant="secondary" className="text-xs">
+                                {age}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Application Deadline</p>
+                          <div className="flex items-center gap-1 mt-1">
+                            <Calendar className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm">{new Date(project.applicationDeadline).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-700">SDGs:</span>
+                          <div className="flex gap-1">
+                            {project.sdgs.map((sdg, idx) => (
+                              <Badge key={idx} className="bg-purple-100 text-purple-800 text-xs">
+                                SDG {sdg}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline">Learn More</Button>
+                          <Button className="bg-blue-600 hover:bg-blue-700">
+                            Apply to Join
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
+            </div>
+          </TabsContent>
 
-              <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+          {/* Resources Tab */}
+          <TabsContent value="resources" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Resources</h2>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Resource
+              </Button>
+            </div>
+
+            {/* Sample Resources - in a real app this would come from a database */}
+            <div className="grid gap-6">
+              <Card className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Star className="h-6 w-6 text-white" />
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <BookOpen className="w-4 h-4 text-blue-600" />
+                        <h3 className="font-semibold">Human Rights Education Toolkit</h3>
+                        <Badge variant="outline">PDF</Badge>
+                      </div>
+                      <p className="text-gray-600 text-sm">Comprehensive guide for teaching human rights concepts to high school students</p>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <span>English</span>
+                        <span>Updated 2 weeks ago</span>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-2">School Partnership Benefits</h3>
-                      <p className="text-gray-700 mb-4">
-                        As an independent school partner, you have the same project creation capabilities as traditional partner organizations. 
-                        You can create projects, invite schools, and lead collaborative educational initiatives.
-                      </p>
-                      <div className="flex gap-4">
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">Global Reach</Badge>
-                        <Badge variant="secondary" className="bg-purple-100 text-purple-800">SDG Aligned</Badge>
-                        <Badge variant="secondary" className="bg-green-100 text-green-800">Impact Tracking</Badge>
+                    <Button variant="outline" size="sm">
+                      Download
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <BookOpen className="w-4 h-4 text-blue-600" />
+                        <h3 className="font-semibold">Climate Action Project Templates</h3>
+                        <Badge variant="outline">ZIP</Badge>
+                      </div>
+                      <p className="text-gray-600 text-sm">Ready-to-use templates for climate change awareness projects</p>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <span>Multiple languages</span>
+                        <span>Updated 1 month ago</span>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      Download
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Empty state if no resources */}
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="font-medium text-gray-900 mb-2">Share Your Resources</h3>
+                  <p className="text-gray-500 mb-4">
+                    Upload and share educational resources with partner schools and organizations
+                  </p>
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Upload Resource
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Analytics & Impact</h2>
+              <p className="text-gray-600">
+                Track your school's participation and impact in global education programs
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Program Impact */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-4 h-4" />
+                    Program Impact
+                  </CardTitle>
+                  <CardDescription>
+                    Your school's impact metrics across all programs
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {currentProjects.reduce((sum, project) => sum + project.participants, 0)}
+                        </div>
+                        <div className="text-sm text-gray-600">Students Engaged</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-green-600">
+                          {[...new Set(currentProjects.flatMap(p => p.countries))].length}
+                        </div>
+                        <div className="text-sm text-gray-600">Countries Connected</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-purple-600">{currentProjects.length}</div>
+                        <div className="text-sm text-gray-600">Active Programs</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-orange-600">
+                          {[...new Set(currentProjects.flatMap(p => p.sdgs))].length}
+                        </div>
+                        <div className="text-sm text-gray-600">SDGs Addressed</div>
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-          )}
 
-          {/* Invite Schools Tab (for independent schools) */}
-          {isIndependentSchool && (
-            <TabsContent value="invite" className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Invite Partner Schools</h2>
-                <p className="text-gray-600 mb-8">
-                  Build your collaborative network by inviting other schools to join your projects
-                </p>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Mail className="h-5 w-5 text-blue-600" />
-                      Direct School Invitations
-                    </CardTitle>
-                    <CardDescription>
-                      Send personalized invitations to specific schools you'd like to collaborate with
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Send School Invitations
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Globe className="h-5 w-5 text-green-600" />
-                      Network Invitations
-                    </CardTitle>
-                    <CardDescription>
-                      Invite schools from educational networks or regional partnerships
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button variant="outline" className="w-full">
-                      <Users className="h-4 w-4 mr-2" />
-                      Browse School Networks
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-
+              {/* Export Data */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Invitation Statistics</CardTitle>
-                  <CardDescription>Track your school partnership invitations</CardDescription>
+                  <CardTitle>Export Data</CardTitle>
+                  <CardDescription>
+                    Download your school's participation data for reporting
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-6">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">0</div>
-                      <div className="text-sm text-gray-600">Invitations Sent</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">0</div>
-                      <div className="text-sm text-gray-600">Schools Joined</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">0%</div>
-                      <div className="text-sm text-gray-600">Acceptance Rate</div>
-                    </div>
-                  </div>
+                <CardContent className="space-y-4">
+                  <Button variant="outline" className="w-full">
+                    Export Program Report
+                  </Button>
+                  <Button variant="outline" className="w-full">
+                    Export Student Participation (CSV)
+                  </Button>
+                  <Button variant="outline" className="w-full">
+                    Export Impact Metrics
+                  </Button>
                 </CardContent>
               </Card>
 
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>School-to-School Partnerships:</strong> As an independent school partner, you can create projects and invite other schools directly. 
-                  This enables peer-to-peer educational collaboration and knowledge sharing between schools worldwide.
-                </AlertDescription>
-              </Alert>
-            </TabsContent>
-          )}
+              {/* Program Performance */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle>Program Performance</CardTitle>
+                  <CardDescription>
+                    Detailed breakdown of your participation in each program
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {currentProjects.length > 0 ? (
+                    <div className="space-y-4">
+                      {currentProjects.map((project) => (
+                        <div key={project.id} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-semibold">{project.title}</h4>
+                            <Badge className={getStatusColor(project.status)}>
+                              {project.status}
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-600">Students:</span>
+                              <span className="ml-2 font-medium">{project.participants}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Progress:</span>
+                              <span className="ml-2 font-medium">{project.progress}%</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Duration:</span>
+                              <span className="ml-2 font-medium">
+                                {Math.round((new Date(project.endDate).getTime() - new Date(project.startDate).getTime()) / (1000 * 60 * 60 * 24))} days
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">SDGs:</span>
+                              <span className="ml-2 font-medium">{project.sdgs.length} goals</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="font-medium text-gray-900 mb-2">No Program Data</h3>
+                      <p className="text-gray-500">
+                        Analytics data will appear here once you start participating in programs.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </div>

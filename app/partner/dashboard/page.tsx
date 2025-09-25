@@ -75,16 +75,16 @@ export default function PartnerDashboard() {
     
     // Recent activity
     recentActivity: [
-      { type: "school_joined", school: "Copenhagen International School", time: "2 hours ago" },
-      { type: "project_update", project: "Global Rights Education", time: "1 day ago" },
-      { type: "teacher_message", from: "Maria Santos", time: "2 days ago" }
+      { type: "school_joined", school: "Ørestad Gymnasium", time: "2 hours ago" },
+      { type: "project_update", project: "Children's Rights Across Cultures", time: "1 day ago" },
+      { type: "teacher_message", from: "Maria Hansen", time: "2 days ago" }
     ],
     
     // Active projects
     projects: [
       {
         id: 1,
-        title: "Global Rights Education",
+        title: "Children's Rights Across Cultures",
         status: "active",
         schools: 5,
         teachers: 18,
@@ -94,15 +94,15 @@ export default function PartnerDashboard() {
         participatingSchools: [
           {
             id: 1,
-            name: "Copenhagen International School",
+            name: "Ørestad Gymnasium",
             country: "Denmark",
             city: "Copenhagen",
-            teachers: 4,
-            students: 89,
+            teachers: 2,
+            students: 8,
             status: "active",
-            joinedDate: "2024-09-15",
+            joinedDate: "2025-01-15",
             contactTeacher: "Maria Hansen",
-            email: "maria@cisd.dk"
+            email: "maria.hansen@orestad.dk"
           },
           {
             id: 2,

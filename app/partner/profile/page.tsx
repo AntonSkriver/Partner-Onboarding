@@ -37,32 +37,32 @@ export default function PartnerProfilePage() {
       // In a real implementation, you'd get the organization ID from the user session
       const sampleOrg: Organization = {
         id: 'demo-org-id',
-        name: 'Global Education Alliance',
+        name: 'UNICEF Danmark',
         organization_type: 'ngo',
-        website: 'https://globaleducation.org',
+        website: 'https://unicef.dk',
         logo: null,
         short_description: 'Connecting classrooms worldwide through collaborative learning experiences aligned with UN Sustainable Development Goals',
         primary_contacts: [
           {
-            name: 'Sarah Johnson',
-            email: 'sarah@globaleducation.org',
-            phone: '+1 (555) 123-4567',
+            name: 'Sarah Hansen',
+            email: 'sarah@unicef.dk',
+            phone: '+45 35 27 35 35',
             role: 'Program Director',
             isPrimary: true
           },
           {
-            name: 'Michael Chen',
-            email: 'michael@globaleducation.org',
-            phone: '+1 (555) 123-4568',
+            name: 'Michael Andersen',
+            email: 'michael@unicef.dk',
+            phone: '+45 35 27 35 36',
             role: 'Partnership Coordinator',
             isPrimary: false
           }
         ],
-        regions_of_operation: ['North America', 'Europe', 'Asia-Pacific'],
-        countries_of_operation: ['United States', 'Canada', 'United Kingdom', 'Germany', 'Australia', 'Japan'],
-        languages: ['English', 'Spanish', 'French', 'German', 'Japanese'],
+        regions_of_operation: ['Europe', 'Africa', 'Asia-Pacific'],
+        countries_of_operation: ['Denmark', 'Kenya', 'Philippines', 'Germany', 'Brazil', 'Finland'],
+        languages: ['Danish', 'English', 'Portuguese', 'German', 'Swahili'],
         sdg_tags: ['4', '10', '16', '17'],
-        thematic_tags: ['Global Citizenship', 'Cultural Exchange', 'Environmental Education', 'Digital Literacy'],
+        thematic_tags: ['Children\'s Rights', 'Global Citizenship', 'Cultural Exchange', 'Human Rights Education'],
         verification_status: 'verified',
         brand_settings: {
           allowLogoUsage: true,

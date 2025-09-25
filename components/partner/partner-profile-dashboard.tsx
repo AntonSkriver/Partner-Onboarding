@@ -6,15 +6,15 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  Building2, 
-  Globe, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Tag, 
-  Award, 
-  Users, 
+import {
+  Building2,
+  Globe,
+  Mail,
+  Phone,
+  MapPin,
+  Tag,
+  Award,
+  Users,
   BookOpen,
   BarChart3,
   Edit,
@@ -23,7 +23,9 @@ import {
   Clock,
   XCircle,
   TrendingUp,
-  School
+  School,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react'
 import { OrganizationAPI } from '@/lib/api/organizations'
 import { Database } from '@/lib/types/database'
@@ -36,32 +38,130 @@ interface PartnerProfileDashboardProps {
   isOwnProfile?: boolean
 }
 
-export function PartnerProfileDashboard({ 
-  organization, 
-  onEdit, 
-  isOwnProfile = false 
+export function PartnerProfileDashboard({
+  organization,
+  onEdit,
+  isOwnProfile = false
 }: PartnerProfileDashboardProps) {
   const [programMemberships, setProgramMemberships] = useState<any[]>([])
   const [analytics, setAnalytics] = useState<any[]>([])
   const [resources, setResources] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [expandedPrograms, setExpandedPrograms] = useState(new Set())
 
   useEffect(() => {
     loadOrganizationData()
   }, [organization.id])
 
+  const toggleProgramDetails = (programId: string) => {
+    const newExpanded = new Set(expandedPrograms)
+    if (newExpanded.has(programId)) {
+      newExpanded.delete(programId)
+    } else {
+      newExpanded.add(programId)
+    }
+    setExpandedPrograms(newExpanded)
+  }
+
   const loadOrganizationData = async () => {
     setLoading(true)
     try {
-      const [memberships, analyticsData, resourcesData] = await Promise.all([
-        OrganizationAPI.getProgramMemberships(organization.id),
-        OrganizationAPI.getAnalytics(organization.id),
-        OrganizationAPI.getResources(organization.id)
-      ])
-      
-      setProgramMemberships(memberships)
-      setAnalytics(analyticsData)
-      setResources(resourcesData)
+      // For demo purposes, using mock data instead of API calls
+      const mockMemberships = [
+        {
+          id: 'children-rights-cultures',
+          title: "Children's Rights Across Cultures",
+          description: "An interactive program connecting classrooms worldwide to explore children's rights through cultural exchange and collaborative learning",
+          status: 'active',
+          type: 'educational_program',
+          lead_organization_id: organization.id,
+          start_date: '2025-01-15',
+          participating_schools: [
+            {
+              id: 'orestad-gymnasium',
+              name: 'Ørestad Gymnasium',
+              country: 'Denmark',
+              city: 'Copenhagen',
+              teachers: 2,
+              students: 8,
+              contact_teacher: 'Maria Hansen',
+              email: 'maria.hansen@orestad.dk',
+              status: 'active',
+              joined_date: '2025-01-15'
+            },
+            {
+              id: 'nairobi-primary',
+              name: 'Nairobi Primary School',
+              country: 'Kenya',
+              city: 'Nairobi',
+              teachers: 3,
+              students: 76,
+              contact_teacher: 'Joseph Wanjiku',
+              email: 'joseph@nairobipr.ke',
+              status: 'active',
+              joined_date: '2024-10-02'
+            },
+            {
+              id: 'manila-elementary',
+              name: 'Manila Elementary School',
+              country: 'Philippines',
+              city: 'Manila',
+              teachers: 2,
+              students: 45,
+              contact_teacher: 'Rosa Santos',
+              email: 'rosa@manila-elem.ph',
+              status: 'active',
+              joined_date: '2024-11-15'
+            }
+          ]
+        },
+        {
+          id: 'climate-action-youth',
+          title: "Climate Action Youth",
+          description: "Empowering young people to take action on climate change through collaborative projects and peer learning",
+          status: 'planning',
+          type: 'environmental_program',
+          lead_organization_id: organization.id,
+          start_date: '2025-03-01',
+          participating_schools: []
+        }
+      ]
+
+      const mockAnalytics = [
+        {
+          id: 'q1-2025',
+          period: '2025-Q1',
+          metrics: {
+            schoolsOnboarded: 12,
+            studentsReached: 1247,
+            teachersActive: 48,
+            projectsThisQuarter: 3
+          }
+        }
+      ]
+
+      const mockResources = [
+        {
+          id: 'children-rights-toolkit',
+          title: 'Children\'s Rights Education Toolkit',
+          description: 'Comprehensive guide for teaching children\'s rights concepts across cultures',
+          type: 'teaching_guide',
+          language: 'English',
+          updated_at: '2025-01-10T10:00:00Z'
+        },
+        {
+          id: 'cultural-exchange-framework',
+          title: 'Cultural Exchange Learning Framework',
+          description: 'Structured approach to facilitating cross-cultural learning experiences',
+          type: 'framework',
+          language: 'Multiple',
+          updated_at: '2024-12-15T15:30:00Z'
+        }
+      ]
+
+      setProgramMemberships(mockMemberships)
+      setAnalytics(mockAnalytics)
+      setResources(mockResources)
     } catch (error) {
       console.error('Error loading organization data:', error)
     } finally {
@@ -345,11 +445,13 @@ export function PartnerProfileDashboard({
             <div className="grid gap-4">
               {programMemberships.map((program) => {
                 const { role, color } = getRoleInCollaboration(program)
+                const participatingSchools = program.participating_schools || []
+
                 return (
-                  <Card key={program.id}>
+                  <Card key={program.id} className="hover:shadow-lg transition-shadow">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
-                        <div className="space-y-2">
+                        <div className="space-y-2 flex-1">
                           <div className="flex items-center space-x-2">
                             <h3 className="font-semibold">{program.title}</h3>
                             <Badge className={color}>{role}</Badge>
@@ -357,11 +459,97 @@ export function PartnerProfileDashboard({
                           </div>
                           <p className="text-gray-600 text-sm">{program.description}</p>
                           <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            <span className="capitalize">{program.type}</span>
+                            <span className="capitalize">{program.type?.replace('_', ' ')}</span>
                             {program.start_date && (
                               <span>Started {new Date(program.start_date).getFullYear()}</span>
                             )}
                           </div>
+
+                          {/* Program Statistics */}
+                          <div className="grid grid-cols-3 gap-4 mt-4">
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-purple-600">{participatingSchools.length}</p>
+                              <p className="text-sm text-gray-600">Schools</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-purple-600">
+                                {participatingSchools.reduce((sum, school) => sum + (school.teachers || 0), 0)}
+                              </p>
+                              <p className="text-sm text-gray-600">Teachers</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-purple-600">
+                                {participatingSchools.reduce((sum, school) => sum + (school.students || 0), 0)}
+                              </p>
+                              <p className="text-sm text-gray-600">Students</p>
+                            </div>
+                          </div>
+
+                          {/* Participating Schools Section */}
+                          {participatingSchools.length > 0 && (
+                            <div className="border-t pt-4 mt-4">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleProgramDetails(program.id)}
+                                className="flex items-center gap-2 mb-3 text-sm font-medium text-gray-700 hover:text-purple-600"
+                              >
+                                <School className="h-4 w-4" />
+                                Participating Schools ({participatingSchools.length})
+                                {expandedPrograms.has(program.id) ?
+                                  <ChevronUp className="h-4 w-4" /> :
+                                  <ChevronDown className="h-4 w-4" />
+                                }
+                              </Button>
+
+                              {expandedPrograms.has(program.id) && (
+                                <div className="space-y-3 max-h-64 overflow-y-auto">
+                                  {participatingSchools.map((school: any) => (
+                                    <div key={school.id} className="bg-gray-50 rounded-lg p-3 border">
+                                      <div className="flex justify-between items-start mb-2">
+                                        <div className="flex-1">
+                                          <h4 className="font-medium text-sm text-gray-900">{school.name}</h4>
+                                          <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                                            <MapPin className="h-3 w-3" />
+                                            <span>{school.city}, {school.country}</span>
+                                          </div>
+                                        </div>
+                                        <Badge
+                                          variant={school.status === 'active' ? 'default' : 'outline'}
+                                          className="text-xs"
+                                        >
+                                          {school.status}
+                                        </Badge>
+                                      </div>
+
+                                      <div className="grid grid-cols-2 gap-3 mb-2">
+                                        <div className="flex items-center gap-1 text-xs text-gray-600">
+                                          <Users className="h-3 w-3" />
+                                          <span>{school.teachers} teachers, {school.students} students</span>
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                          Joined: {school.joined_date ? new Date(school.joined_date).toLocaleDateString() : 'N/A'}
+                                        </div>
+                                      </div>
+
+                                      <div className="flex items-center gap-2 text-xs">
+                                        <div className="flex items-center gap-1 text-gray-600">
+                                          <Mail className="h-3 w-3" />
+                                          <span className="font-medium">{school.contact_teacher}</span>
+                                        </div>
+                                        <a
+                                          href={`mailto:${school.email}`}
+                                          className="text-purple-600 hover:text-purple-700 hover:underline"
+                                        >
+                                          {school.email}
+                                        </a>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>
