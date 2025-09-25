@@ -6,14 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  School, 
-  Users, 
-  Globe, 
-  BookOpen, 
-  Target, 
-  Mail, 
-  Calendar, 
+import {
+  School,
+  Users,
+  Globe,
+  BookOpen,
+  Target,
+  Mail,
+  Calendar,
   Star,
   Plus,
   ArrowRight,
@@ -21,6 +21,10 @@ import {
   Clock,
   AlertCircle,
   Settings,
+  MapPin,
+  BarChart3,
+  Award,
+  Tag,
   LogOut
 } from 'lucide-react'
 import Link from 'next/link'

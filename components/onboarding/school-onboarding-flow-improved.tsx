@@ -99,7 +99,7 @@ function SchoolOnboardingContent() {
   return (
     <div className="min-h-screen bg-white">
       {isWelcomeStep ? (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-6 sm:px-8 lg:px-12">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 flex items-center justify-center px-8 sm:px-4 md:px-5 lg:px-6">
           <CurrentStepComponent
             onNext={goToNextStep}
             onPrevious={goToPreviousStep}
@@ -111,10 +111,10 @@ function SchoolOnboardingContent() {
         <div className="flex flex-col lg:flex-row min-h-screen max-w-[1920px] mx-auto">
           {/* Form column */}
           <div className="w-full lg:w-[55%] bg-white">
-            <div className={`relative flex flex-col justify-center mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-12 ${isFinalStep ? 'min-h-0' : 'min-h-screen'} max-w-[720px]`}>
+            <div className={`relative flex flex-col justify-center mx-auto px-8 sm:px-4 md:px-5 lg:px-6 py-4 lg:py-6 ${isFinalStep ? 'min-h-0' : 'min-h-screen'} max-w-[700px]`}>
               {!isFinalStep && (
-                <div className="absolute top-0 left-0 right-0 bg-white/95 border-b border-gray-100 z-10">
-                  <div className="max-w-[720px] mx-auto px-6 sm:px-8 lg:px-12 py-4">
+                <div className="absolute top-0 left-0 right-0 bg-white z-10">
+                  <div className="max-w-[700px] mx-auto px-8 sm:px-4 md:px-5 lg:px-6 py-4">
                     <ProgressBar
                       currentStep={getProgressStep()}
                       totalSteps={getTotalSteps()}
@@ -125,7 +125,7 @@ function SchoolOnboardingContent() {
                 </div>
               )}
 
-              <div className={isFinalStep ? 'mt-6' : 'mt-20 pt-4'}>
+              <div className={isFinalStep ? 'mt-4' : 'mt-20 pt-4'}>
                 <CurrentStepComponent
                   onNext={goToNextStep}
                   onPrevious={goToPreviousStep}
@@ -138,9 +138,9 @@ function SchoolOnboardingContent() {
 
           {/* Preview column */}
           {shouldShowPreviewPanel && (
-            <div className={`w-full lg:w-[45%] bg-gradient-to-br from-green-50 via-white to-blue-50 ${isFinalStep ? 'py-12' : ''}`}>
+            <div className={`w-full lg:w-[45%] bg-gradient-to-br from-purple-50 to-blue-50 ${isFinalStep ? 'min-h-0 py-4' : ''}`}>
               <div className={`${isFinalStep ? '' : 'sticky top-0 h-screen'}`}>
-                <div className="flex flex-col justify-center h-full max-w-[700px] mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-12">
+                <div className="flex flex-col justify-center h-full max-w-[700px] mx-auto px-8 sm:px-4 md:px-5 lg:px-6 py-4 lg:py-6">
                   <div className="lg:ml-8">
                     <SchoolProfilePreview formData={formData} />
                   </div>

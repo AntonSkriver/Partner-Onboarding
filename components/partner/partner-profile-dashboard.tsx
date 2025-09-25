@@ -25,8 +25,12 @@ import {
   TrendingUp,
   School,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Plus,
+  Target
 } from 'lucide-react'
+import { SDGIcon } from '../sdg-icons'
+import { SDG_OPTIONS } from '../../contexts/partner-onboarding-context'
 import { OrganizationAPI } from '@/lib/api/organizations'
 import { Database } from '@/lib/types/database'
 
@@ -215,6 +219,14 @@ export function PartnerProfileDashboard({
 
   const primaryContact = primaryContacts.find(contact => contact.isPrimary) || primaryContacts[0]
 
+  const normalizedSdgTags = Array.isArray(organization.sdg_tags)
+    ? organization.sdg_tags
+        .map((sdg) => (typeof sdg === 'string' ? Number.parseInt(sdg, 10) : sdg))
+        .filter((sdg) => Number.isInteger(sdg))
+    : []
+
+  const sdgFocus = normalizedSdgTags.length > 0 ? normalizedSdgTags : [4] // Default to SDG 4 (Quality Education)
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -273,6 +285,7 @@ export function PartnerProfileDashboard({
           <TabsTrigger value="programs">Programs</TabsTrigger>
           <TabsTrigger value="resources">Resources</TabsTrigger>
           {isOwnProfile && <TabsTrigger value="analytics">Analytics</TabsTrigger>}
+          {isOwnProfile && <TabsTrigger value="dashboard">Dashboard</TabsTrigger>}
         </TabsList>
 
         {/* Overview Tab */}
@@ -389,6 +402,24 @@ export function PartnerProfileDashboard({
             </Card>
           </div>
 
+          {/* Mission Statement */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Our Mission
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 leading-relaxed">
+                UNICEF Danmark works to secure all children's rights through fundraising, education and
+                advocacy in Denmark. We collaborate with schools, organizations and communities to create
+                awareness about children's global situation and mobilize resources for UNICEF's work
+                worldwide.
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Focus Areas */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* SDG Focus */}
@@ -400,13 +431,24 @@ export function PartnerProfileDashboard({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {organization.sdg_tags.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {organization.sdg_tags.map((sdg) => (
-                      <Badge key={sdg} className="bg-blue-100 text-blue-800">
-                        SDG {sdg}
-                      </Badge>
-                    ))}
+                {sdgFocus.length > 0 ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                    {sdgFocus.map((sdgId) => {
+                      const sdg = SDG_OPTIONS.find(s => s.id === sdgId)
+                      return sdg ? (
+                        <div key={sdgId} className="flex flex-col items-center">
+                          <SDGIcon
+                            number={sdgId}
+                            size="md"
+                            showTitle={false}
+                            className="w-16 h-16 object-cover rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                          />
+                          <p className="text-xs text-gray-600 text-center mt-1 leading-tight">
+                            {sdg.title}
+                          </p>
+                        </div>
+                      ) : null
+                    })}
                   </div>
                 ) : (
                   <p className="text-gray-500">No SDG focus areas specified</p>
@@ -687,6 +729,141 @@ export function PartnerProfileDashboard({
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+        )}
+
+        {/* Dashboard Tab */}
+        {isOwnProfile && (
+          <TabsContent value="dashboard" className="space-y-6">
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Quick Actions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button className="w-full justify-start" variant="outline">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create New Program
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    <School className="w-4 h-4 mr-2" />
+                    Invite Schools
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Upload Resources
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Recent Activity */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Recent Activity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <div className="font-medium">New school joined</div>
+                      <div className="text-gray-600">Ørestad Gymnasium - 2 hours ago</div>
+                    </div>
+                    <div className="text-sm">
+                      <div className="font-medium">Program updated</div>
+                      <div className="text-gray-600">Children's Rights Across Cultures - 1 day ago</div>
+                    </div>
+                    <div className="text-sm">
+                      <div className="font-medium">Resource uploaded</div>
+                      <div className="text-gray-600">Human Rights Toolkit - 3 days ago</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Organization Stats */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4" />
+                    Organization Stats
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-2xl font-bold text-blue-600">{programMemberships.length}</div>
+                        <div className="text-sm text-gray-600">Active Programs</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-green-600">12</div>
+                        <div className="text-sm text-gray-600">Partner Schools</div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                      <div>
+                        <div className="text-xl font-bold text-purple-600">5</div>
+                        <div className="text-sm text-gray-600">Countries</div>
+                      </div>
+                      <div>
+                        <div className="text-xl font-bold text-orange-600">1,247</div>
+                        <div className="text-sm text-gray-600">Students</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Program Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Program Management</CardTitle>
+                <CardDescription>
+                  Manage your active programs and monitor engagement
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {programMemberships.length > 0 ? (
+                  <div className="space-y-4">
+                    {programMemberships.map((program) => (
+                      <div key={program.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="font-medium">{program.title}</div>
+                          <div className="text-sm text-gray-600">{program.status} • {program.participating_schools?.length || 0} schools</div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            View Details
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            Manage
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="font-medium text-gray-900 mb-2">No Active Programs</h3>
+                    <p className="text-gray-500 mb-4">
+                      Create your first program to start connecting with schools worldwide.
+                    </p>
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Program
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         )}
       </Tabs>

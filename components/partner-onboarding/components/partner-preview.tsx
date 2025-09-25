@@ -3,6 +3,7 @@
 import { usePartnerOnboarding, getOrganizationTypeLabel, getContactRoleLabel, SDG_OPTIONS } from "../../../contexts/partner-onboarding-context"
 import { Building2, Globe, MapPin, Mail, Phone, User } from "lucide-react"
 import Image from "next/image"
+import { SDGIcon } from "../../sdg-icons"
 
 export function PartnerPreview() {
   const { formData } = usePartnerOnboarding()
@@ -101,19 +102,20 @@ export function PartnerPreview() {
                 <Globe className="w-4 h-4 text-purple-600" />
                 UN SDG Focus Areas
               </h4>
-              <div className="grid grid-cols-3 gap-2">
-                {getSelectedSDGs().slice(0, 6).map((sdg) => (
-                  <div
-                    key={sdg!.id}
-                    className={`${sdg!.color} text-white text-xs font-bold rounded-lg px-2 py-2 text-center flex flex-col items-center gap-1`}
-                  >
-                    <span className="text-lg">{sdg!.id}</span>
-                    <span className="text-[10px] leading-tight">{sdg!.title}</span>
+              <div className="flex flex-wrap gap-2">
+                {getSelectedSDGs().slice(0, 4).map((sdg) => (
+                  <div key={sdg!.id} className="flex items-center gap-2">
+                    <SDGIcon
+                      number={sdg!.id}
+                      size="md"
+                      showTitle={false}
+                      className="w-16 h-16 object-cover rounded-lg shadow-sm"
+                    />
                   </div>
                 ))}
-                {getSelectedSDGs().length > 6 && (
-                  <div className="bg-gray-200 text-gray-600 text-xs font-medium rounded-lg px-2 py-2 text-center flex items-center justify-center">
-                    +{getSelectedSDGs().length - 6} more
+                {getSelectedSDGs().length > 4 && (
+                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-xs font-medium text-gray-600">
+                    +{getSelectedSDGs().length - 4}
                   </div>
                 )}
               </div>
@@ -179,6 +181,7 @@ export function PartnerPreview() {
               </button>
             </div>
           </div>
+
         </div>
       </div>
 

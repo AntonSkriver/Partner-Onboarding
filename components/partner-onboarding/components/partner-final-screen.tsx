@@ -154,13 +154,13 @@ export function PartnerFinalScreen({ onPrevious }: PartnerFinalScreenProps) {
 
       {/* Call to Action Buttons */}
       <div className="space-y-4">
-        <Link href="/partner/dashboard">
-          <Button 
-            size="lg" 
+        <Link href="/partner/profile">
+          <Button
+            size="lg"
             className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 text-lg rounded-xl"
             onClick={handleComplete}
           >
-            Go to Partner Dashboard
+            Go to Partner Profile
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
         </Link>

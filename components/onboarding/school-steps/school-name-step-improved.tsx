@@ -49,8 +49,8 @@ export function SchoolNameStep({ onNext, onPrevious }: SchoolNameStepProps) {
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center space-y-4">
-        <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
-          <School className="w-8 h-8 text-green-600" />
+        <div className="w-16 h-16 mx-auto bg-purple-100 rounded-full flex items-center justify-center">
+          <School className="w-8 h-8 text-purple-600" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">What's your school name?</h1>
@@ -96,7 +96,7 @@ export function SchoolNameStep({ onNext, onPrevious }: SchoolNameStepProps) {
             <Button
               type="submit"
               disabled={isLoading || !form.watch('schoolName')}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-purple-600 hover:bg-purple-700"
             >
               {isLoading ? 'Processing...' : 'Continue'}
             </Button>

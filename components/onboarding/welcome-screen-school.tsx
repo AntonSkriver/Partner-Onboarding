@@ -17,8 +17,8 @@ export function WelcomeScreenSchool({ onNext }: WelcomeScreenSchoolProps) {
       {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
-              <School className="h-10 w-10 text-green-600" />
+            <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center">
+              <School className="h-10 w-10 text-purple-600" />
             </div>
           </div>
           <div>
@@ -33,11 +33,11 @@ export function WelcomeScreenSchool({ onNext }: WelcomeScreenSchoolProps) {
 
         {/* Benefits Grid */}
         <div className="grid md:grid-cols-2 gap-4">
-          <Card className="border-l-4 border-l-green-500">
+          <Card className="border-l-4 border-l-purple-500">
             <CardContent className="p-6">
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0">
-                  <Users className="h-6 w-6 text-green-600" />
+                  <Users className="h-6 w-6 text-purple-600" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-2">Global Classroom Connections</h3>
@@ -106,7 +106,7 @@ export function WelcomeScreenSchool({ onNext }: WelcomeScreenSchoolProps) {
           <Button 
             onClick={onNext} 
             size="lg"
-            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-medium"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg font-medium"
           >
             Get Started
             <ArrowRight className="ml-2 h-5 w-5" />

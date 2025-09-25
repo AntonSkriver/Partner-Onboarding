@@ -55,8 +55,8 @@ export function SchoolCompletionStep({ }: SchoolCompletionStepProps) {
     <div className="w-full max-w-3xl mx-auto space-y-10 px-4 sm:px-6 lg:px-8">
         {/* Success Header */}
         <div className="text-center space-y-4">
-          <div className="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center">
-            <CheckCircle className="w-10 h-10 text-green-600" />
+          <div className="w-20 h-20 mx-auto bg-purple-100 rounded-full flex items-center justify-center">
+            <CheckCircle className="w-10 h-10 text-purple-600" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -69,9 +69,9 @@ export function SchoolCompletionStep({ }: SchoolCompletionStepProps) {
         </div>
 
         {/* Profile Summary */}
-        <Card className="border-2 border-green-200 bg-green-50">
+        <Card className="border-2 border-purple-200 bg-purple-50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-800">
+            <CardTitle className="flex items-center gap-2 text-purple-800">
               <School className="h-5 w-5" />
               {formData.schoolName || 'Your School'}
             </CardTitle>
@@ -182,8 +182,8 @@ export function SchoolCompletionStep({ }: SchoolCompletionStepProps) {
             </Card>
 
             <Card className="text-center p-4">
-              <div className="w-12 h-12 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-3">
-                <ExternalLink className="h-6 w-6 text-green-600" />
+              <div className="w-12 h-12 mx-auto bg-purple-100 rounded-full flex items-center justify-center mb-3">
+                <ExternalLink className="h-6 w-6 text-purple-600" />
               </div>
               <h3 className="font-medium text-gray-900 mb-2">Access Resources</h3>
               <p className="text-sm text-gray-600">
@@ -199,7 +199,7 @@ export function SchoolCompletionStep({ }: SchoolCompletionStepProps) {
             onClick={handleGoToDashboard}
             disabled={isLoading}
             size="lg"
-            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-medium"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg font-medium"
           >
             {isLoading ? 'Setting up your dashboard...' : 'Go to Dashboard'}
             <ArrowRight className="ml-2 h-5 w-5" />
