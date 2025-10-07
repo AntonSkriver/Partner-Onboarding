@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -32,6 +33,12 @@ import {
 import { SDGIcon } from '../sdg-icons'
 import { SDG_OPTIONS } from '../../contexts/partner-onboarding-context'
 import { OrganizationAPI } from '@/lib/api/organizations'
+import { usePrototypeDb } from '@/hooks/use-prototype-db'
+import {
+  buildProgramSummariesForPartner,
+  aggregateProgramMetrics,
+  type ProgramSummary,
+} from '@/lib/programs/selectors'
 import { Database } from '@/lib/types/database'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
@@ -40,18 +47,50 @@ interface PartnerProfileDashboardProps {
   organization: Organization
   onEdit?: () => void
   isOwnProfile?: boolean
+  initialTab?: 'overview' | 'programs' | 'resources' | 'analytics' | 'dashboard'
 }
 
 export function PartnerProfileDashboard({
   organization,
   onEdit,
-  isOwnProfile = false
+  isOwnProfile = false,
+  initialTab = 'overview',
 }: PartnerProfileDashboardProps) {
-  const [programMemberships, setProgramMemberships] = useState<any[]>([])
   const [analytics, setAnalytics] = useState<any[]>([])
   const [resources, setResources] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [expandedPrograms, setExpandedPrograms] = useState(new Set())
+  const [activeTab, setActiveTab] = useState(initialTab)
+  useEffect(() => {
+    setActiveTab(initialTab)
+  }, [initialTab])
+  const { ready: prototypeReady, database } = usePrototypeDb()
+
+  const partnerRecord = useMemo(() => {
+    if (!database) return null
+    const normalizedName = organization.name?.trim().toLowerCase()
+    if (normalizedName) {
+      const match = database.partners.find(
+        (partner) => partner.organizationName.toLowerCase() === normalizedName,
+      )
+      if (match) return match
+    }
+    return database.partners.length > 0 ? database.partners[0] : null
+  }, [database, organization.name])
+
+  const programSummaries = useMemo<ProgramSummary[]>(() => {
+    if (!prototypeReady || !database || !partnerRecord) {
+      return []
+    }
+    return buildProgramSummariesForPartner(database, partnerRecord.id, {
+      includeRelatedPrograms: true,
+    })
+  }, [prototypeReady, database, partnerRecord])
+
+  const programMetrics = useMemo(
+    () => aggregateProgramMetrics(programSummaries),
+    [programSummaries],
+  )
 
   useEffect(() => {
     loadOrganizationData()
@@ -70,67 +109,6 @@ export function PartnerProfileDashboard({
   const loadOrganizationData = async () => {
     setLoading(true)
     try {
-      // For demo purposes, using mock data instead of API calls
-      const mockMemberships = [
-        {
-          id: 'children-rights-cultures',
-          title: "Children's Rights Across Cultures",
-          description: "An interactive program connecting classrooms worldwide to explore children's rights through cultural exchange and collaborative learning",
-          status: 'active',
-          type: 'educational_program',
-          lead_organization_id: organization.id,
-          start_date: '2025-01-15',
-          participating_schools: [
-            {
-              id: 'orestad-gymnasium',
-              name: 'Ørestad Gymnasium',
-              country: 'Denmark',
-              city: 'Copenhagen',
-              teachers: 2,
-              students: 8,
-              contact_teacher: 'Maria Hansen',
-              email: 'maria.hansen@orestad.dk',
-              status: 'active',
-              joined_date: '2025-01-15'
-            },
-            {
-              id: 'nairobi-primary',
-              name: 'Nairobi Primary School',
-              country: 'Kenya',
-              city: 'Nairobi',
-              teachers: 3,
-              students: 76,
-              contact_teacher: 'Joseph Wanjiku',
-              email: 'joseph@nairobipr.ke',
-              status: 'active',
-              joined_date: '2024-10-02'
-            },
-            {
-              id: 'manila-elementary',
-              name: 'Manila Elementary School',
-              country: 'Philippines',
-              city: 'Manila',
-              teachers: 2,
-              students: 45,
-              contact_teacher: 'Rosa Santos',
-              email: 'rosa@manila-elem.ph',
-              status: 'active',
-              joined_date: '2024-11-15'
-            }
-          ]
-        },
-        {
-          id: 'climate-action-youth',
-          title: "Climate Action Youth",
-          description: "Empowering young people to take action on climate change through collaborative projects and peer learning",
-          status: 'planning',
-          type: 'environmental_program',
-          lead_organization_id: organization.id,
-          start_date: '2025-03-01',
-          participating_schools: []
-        }
-      ]
-
       const mockAnalytics = [
         {
           id: 'q1-2025',
@@ -163,7 +141,6 @@ export function PartnerProfileDashboard({
         }
       ]
 
-      setProgramMemberships(mockMemberships)
       setAnalytics(mockAnalytics)
       setResources(mockResources)
     } catch (error) {
@@ -195,19 +172,6 @@ export function PartnerProfileDashboard({
     }
   }
 
-  const getRoleInCollaboration = (collaboration: any) => {
-    if (collaboration.lead_organization_id === organization.id) {
-      return { role: 'Lead', color: 'bg-blue-100 text-blue-800' }
-    }
-    if (collaboration.co_host_organizations?.includes(organization.id)) {
-      return { role: 'Co-Host', color: 'bg-green-100 text-green-800' }
-    }
-    if (collaboration.partner_organizations?.includes(organization.id)) {
-      return { role: 'Partner', color: 'bg-purple-100 text-purple-800' }
-    }
-    return { role: 'Unknown', color: 'bg-gray-100 text-gray-800' }
-  }
-
   const getLatestMetrics = () => {
     if (analytics.length === 0) return null
     return analytics[0].metrics
@@ -226,6 +190,18 @@ export function PartnerProfileDashboard({
     : []
 
   const sdgFocus = normalizedSdgTags.length > 0 ? normalizedSdgTags : [4] // Default to SDG 4 (Quality Education)
+  const programDataLoading = !prototypeReady || !partnerRecord
+
+  const formatDate = (value?: string | null) => {
+    if (!value) return '—'
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return value
+    return date.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -279,7 +255,7 @@ export function PartnerProfileDashboard({
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="space-y-6">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="programs">Programs</TabsTrigger>
@@ -370,7 +346,7 @@ export function PartnerProfileDashboard({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="text-2xl font-bold text-blue-600">
-                      {programMemberships.length}
+                      {programSummaries.length}
                     </div>
                     <div className="text-sm text-gray-600">Active Programs</div>
                   </div>
@@ -483,117 +459,146 @@ export function PartnerProfileDashboard({
 
         {/* Programs Tab */}
         <TabsContent value="programs" className="space-y-4">
-          {programMemberships.length > 0 ? (
+          {programDataLoading ? (
+            <Card>
+              <CardContent className="p-10 text-center text-sm text-gray-500">
+                Loading program insights…
+              </CardContent>
+            </Card>
+          ) : programSummaries.length > 0 ? (
             <div className="grid gap-4">
-              {programMemberships.map((program) => {
-                const { role, color } = getRoleInCollaboration(program)
-                const participatingSchools = program.participating_schools || []
+              {programSummaries.map(({ program, institutions, metrics }) => {
+                const isExpanded = expandedPrograms.has(program.id)
+                const visibleInstitutions = isExpanded ? institutions : institutions.slice(0, 2)
 
                 return (
                   <Card key={program.id} className="hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-2 flex-1">
-                          <div className="flex items-center space-x-2">
-                            <h3 className="font-semibold">{program.title}</h3>
-                            <Badge className={color}>{role}</Badge>
-                            <Badge variant="outline">{program.status}</Badge>
+                    <CardContent className="space-y-6 p-6">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-lg text-gray-900">{program.name}</h3>
+                            <Badge variant="outline" className="capitalize">
+                              {program.status}
+                            </Badge>
                           </div>
-                          <p className="text-gray-600 text-sm">{program.description}</p>
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            <span className="capitalize">{program.type?.replace('_', ' ')}</span>
-                            {program.start_date && (
-                              <span>Started {new Date(program.start_date).getFullYear()}</span>
-                            )}
+                          <p className="text-sm text-gray-600">{program.description}</p>
+                          <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+                            {program.projectTypes.map((type) => (
+                              <Badge key={type} variant="secondary" className="bg-purple-50 text-purple-700">
+                                {type.replace(/_/g, ' ')}
+                              </Badge>
+                            ))}
                           </div>
-
-                          {/* Program Statistics */}
-                          <div className="grid grid-cols-3 gap-4 mt-4">
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-purple-600">{participatingSchools.length}</p>
-                              <p className="text-sm text-gray-600">Schools</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-purple-600">
-                                {participatingSchools.reduce((sum, school) => sum + (school.teachers || 0), 0)}
-                              </p>
-                              <p className="text-sm text-gray-600">Teachers</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-purple-600">
-                                {participatingSchools.reduce((sum, school) => sum + (school.students || 0), 0)}
-                              </p>
-                              <p className="text-sm text-gray-600">Students</p>
-                            </div>
+                        </div>
+                        <div className="text-sm text-gray-500 text-left md:text-right">
+                          <div className="font-medium text-gray-700">
+                            {formatDate(program.startDate)} – {formatDate(program.endDate)}
                           </div>
-
-                          {/* Participating Schools Section */}
-                          {participatingSchools.length > 0 && (
-                            <div className="border-t pt-4 mt-4">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleProgramDetails(program.id)}
-                                className="flex items-center gap-2 mb-3 text-sm font-medium text-gray-700 hover:text-purple-600"
-                              >
-                                <School className="h-4 w-4" />
-                                Participating Schools ({participatingSchools.length})
-                                {expandedPrograms.has(program.id) ?
-                                  <ChevronUp className="h-4 w-4" /> :
-                                  <ChevronDown className="h-4 w-4" />
-                                }
-                              </Button>
-
-                              {expandedPrograms.has(program.id) && (
-                                <div className="space-y-3 max-h-64 overflow-y-auto">
-                                  {participatingSchools.map((school: any) => (
-                                    <div key={school.id} className="bg-gray-50 rounded-lg p-3 border">
-                                      <div className="flex justify-between items-start mb-2">
-                                        <div className="flex-1">
-                                          <h4 className="font-medium text-sm text-gray-900">{school.name}</h4>
-                                          <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
-                                            <MapPin className="h-3 w-3" />
-                                            <span>{school.city}, {school.country}</span>
-                                          </div>
-                                        </div>
-                                        <Badge
-                                          variant={school.status === 'active' ? 'default' : 'outline'}
-                                          className="text-xs"
-                                        >
-                                          {school.status}
-                                        </Badge>
-                                      </div>
-
-                                      <div className="grid grid-cols-2 gap-3 mb-2">
-                                        <div className="flex items-center gap-1 text-xs text-gray-600">
-                                          <Users className="h-3 w-3" />
-                                          <span>{school.teachers} teachers, {school.students} students</span>
-                                        </div>
-                                        <div className="text-xs text-gray-500">
-                                          Joined: {school.joined_date ? new Date(school.joined_date).toLocaleDateString() : 'N/A'}
-                                        </div>
-                                      </div>
-
-                                      <div className="flex items-center gap-2 text-xs">
-                                        <div className="flex items-center gap-1 text-gray-600">
-                                          <Mail className="h-3 w-3" />
-                                          <span className="font-medium">{school.contact_teacher}</span>
-                                        </div>
-                                        <a
-                                          href={`mailto:${school.email}`}
-                                          className="text-purple-600 hover:text-purple-700 hover:underline"
-                                        >
-                                          {school.email}
-                                        </a>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )}
+                          <div>
+                            {metrics.countries.length} countr{metrics.countries.length === 1 ? 'y' : 'ies'} •{' '}
+                            {metrics.teacherCount} teacher{metrics.teacherCount === 1 ? '' : 's'}
+                          </div>
                         </div>
                       </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                          <div className="text-xs font-medium text-gray-500 uppercase">Co-Partners</div>
+                          <div className="mt-1 text-lg font-semibold text-gray-900">
+                            {metrics.coPartnerCount}
+                          </div>
+                        </div>
+                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                          <div className="text-xs font-medium text-gray-500 uppercase">Coordinators</div>
+                          <div className="mt-1 text-lg font-semibold text-gray-900">
+                            {metrics.coordinatorCount}
+                          </div>
+                        </div>
+                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                          <div className="text-xs font-medium text-gray-500 uppercase">Institutions</div>
+                          <div className="mt-1 text-lg font-semibold text-gray-900">
+                            {metrics.institutionCount}
+                          </div>
+                        </div>
+                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                          <div className="text-xs font-medium text-gray-500 uppercase">Students (est.)</div>
+                          <div className="mt-1 text-lg font-semibold text-gray-900">
+                            {metrics.studentCount.toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2">
+                        <Button size="sm" variant="outline" asChild>
+                          <Link href={`/partner/programs/${program.id}`}>Open overview</Link>
+                        </Button>
+                        <Button size="sm" variant="outline" asChild>
+                          <Link href={`/partner/programs/${program.id}/edit`}>Edit program</Link>
+                        </Button>
+                      </div>
+
+                      {institutions.length > 0 && (
+                        <div className="border-t pt-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleProgramDetails(program.id)}
+                            className="flex items-center gap-2 mb-3 text-sm font-medium text-gray-700 hover:text-purple-600"
+                          >
+                            <School className="h-4 w-4" />
+                            Participating institutions ({institutions.length})
+                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </Button>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {visibleInstitutions.map((institution) => (
+                              <div key={institution.id} className="border rounded-lg p-3 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <h4 className="font-medium text-sm text-gray-900">{institution.name}</h4>
+                                    <p className="text-xs text-gray-500">
+                                      {institution.city ? `${institution.city}, ` : ''}
+                                      {institution.country}
+                                    </p>
+                                  </div>
+                                  <Badge variant="outline" className="capitalize">
+                                    {institution.status}
+                                  </Badge>
+                                </div>
+                                <div className="text-sm text-gray-600 space-y-1">
+                                  <p className="flex items-center gap-1">
+                                    <Users className="w-3 h-3" />
+                                    {institution.teacherCount ?? 0} teachers • {institution.studentCount ?? 0} students
+                                  </p>
+                                  {institution.contactEmail && (
+                                    <p className="flex items-center gap-1">
+                                      <Mail className="w-3 h-3" />
+                                      <a
+                                        href={`mailto:${institution.contactEmail}`}
+                                        className="text-purple-600 hover:text-purple-700"
+                                      >
+                                        {institution.contactEmail}
+                                      </a>
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {institutions.length > 2 && !isExpanded && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleProgramDetails(program.id)}
+                              className="mt-3 w-full text-sm text-purple-600 hover:text-purple-700"
+                            >
+                              View all institutions
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 )
@@ -601,12 +606,18 @@ export function PartnerProfileDashboard({
             </div>
           ) : (
             <Card>
-              <CardContent className="p-6 text-center">
-                <School className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="font-medium text-gray-900 mb-2">No Programs Yet</h3>
+              <CardContent className="p-10 text-center space-y-4">
+                <Users className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <h3 className="text-lg font-medium text-gray-900">No Programs Yet</h3>
                 <p className="text-gray-500">
-                  This organization hasn't joined any programs yet.
+                  Create your first program to start collaborating with partner schools.
                 </p>
+                <Button className="bg-blue-600 hover:bg-blue-700" asChild>
+                  <Link href="/partner/programs/create">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create New Program
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           )}
@@ -745,17 +756,23 @@ export function PartnerProfileDashboard({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button className="w-full justify-start" variant="outline">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create New Program
+                  <Button className="w-full justify-start" variant="outline" asChild>
+                    <Link href="/partner/programs/create">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create New Program
+                    </Link>
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
-                    <School className="w-4 h-4 mr-2" />
-                    Invite Schools
+                  <Button className="w-full justify-start" variant="outline" asChild>
+                    <Link href="/partner/schools/invite">
+                      <School className="w-4 h-4 mr-2" />
+                      Invite Schools
+                    </Link>
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    Upload Resources
+                  <Button className="w-full justify-start" variant="outline" asChild>
+                    <Link href="/partner/content/upload">
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      Upload Resources
+                    </Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -798,21 +815,29 @@ export function PartnerProfileDashboard({
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <div className="text-2xl font-bold text-blue-600">{programMemberships.length}</div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {programSummaries.length}
+                        </div>
                         <div className="text-sm text-gray-600">Active Programs</div>
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-green-600">12</div>
-                        <div className="text-sm text-gray-600">Partner Schools</div>
+                        <div className="text-2xl font-bold text-green-600">
+                          {programMetrics.countryCount}
+                        </div>
+                        <div className="text-sm text-gray-600">Countries</div>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 pt-2 border-t">
                       <div>
-                        <div className="text-xl font-bold text-purple-600">5</div>
-                        <div className="text-sm text-gray-600">Countries</div>
+                        <div className="text-xl font-bold text-purple-600">
+                          {programMetrics.institutions}
+                        </div>
+                        <div className="text-sm text-gray-600">Institutions</div>
                       </div>
                       <div>
-                        <div className="text-xl font-bold text-orange-600">1,247</div>
+                        <div className="text-xl font-bold text-orange-600">
+                          {programMetrics.students.toLocaleString()}
+                        </div>
                         <div className="text-sm text-gray-600">Students</div>
                       </div>
                     </div>
@@ -830,24 +855,45 @@ export function PartnerProfileDashboard({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {programMemberships.length > 0 ? (
+                {programDataLoading ? (
+                  <div className="flex items-center justify-center py-8 text-sm text-gray-500">
+                    Loading program data…
+                  </div>
+                ) : programSummaries.length > 0 ? (
                   <div className="space-y-4">
-                    {programMemberships.map((program) => (
-                      <div key={program.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <div className="font-medium">{program.title}</div>
-                          <div className="text-sm text-gray-600">{program.status} • {program.participating_schools?.length || 0} schools</div>
+                    {programSummaries.map(({ program, metrics }) => (
+                      <div
+                        key={program.id}
+                        className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between p-4 border rounded-lg"
+                      >
+                        <div className="flex-1 space-y-1">
+                          <div className="font-medium text-gray-900">{program.name}</div>
+                          <div className="text-sm text-gray-600">
+                            {program.status} • {metrics.institutionCount} institution{metrics.institutionCount === 1 ? '' : 's'} • {metrics.teacherCount} teacher{metrics.teacherCount === 1 ? '' : 's'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Timeline: {formatDate(program.startDate)} – {formatDate(program.endDate)}
+                          </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            View Details
+                          <Button size="sm" variant="outline" asChild>
+                            <Link href={`/partner/programs/${program.id}`}>
+                              View Details
+                            </Link>
                           </Button>
-                          <Button size="sm" variant="outline">
-                            Manage
+                          <Button size="sm" variant="outline" asChild>
+                            <Link href={`/partner/programs/${program.id}/edit`}>
+                              Manage
+                            </Link>
                           </Button>
                         </div>
                       </div>
                     ))}
+                    <div className="flex justify-end">
+                      <Button variant="link" className="text-purple-600 hover:text-purple-700" asChild>
+                        <Link href="/partner/programs">Open Programs workspace →</Link>
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-8">
@@ -856,9 +902,11 @@ export function PartnerProfileDashboard({
                     <p className="text-gray-500 mb-4">
                       Create your first program to start connecting with schools worldwide.
                     </p>
-                    <Button className="bg-blue-600 hover:bg-blue-700">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Program
+                    <Button className="bg-blue-600 hover:bg-blue-700" asChild>
+                      <Link href="/partner/programs/create">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Program
+                      </Link>
                     </Button>
                   </div>
                 )}

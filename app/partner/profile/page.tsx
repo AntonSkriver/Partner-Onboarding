@@ -9,6 +9,7 @@ import { getCurrentSession } from '@/lib/auth/session'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Loader2, Building2 } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 
@@ -17,6 +18,15 @@ export default function PartnerProfilePage() {
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const searchParams = useSearchParams()
+  const tabParam = searchParams.get('tab')
+  const allowedTabs = new Set(['overview', 'programs', 'resources', 'analytics', 'dashboard'])
+  const initialTab = (tabParam && allowedTabs.has(tabParam) ? tabParam : 'overview') as
+    | 'overview'
+    | 'programs'
+    | 'resources'
+    | 'analytics'
+    | 'dashboard'
 
   useEffect(() => {
     loadOrganizationProfile()
@@ -174,6 +184,7 @@ export default function PartnerProfilePage() {
               organization={organization}
               onEdit={handleStartEditing}
               isOwnProfile={true}
+              initialTab={initialTab}
             />
           </div>
         )}

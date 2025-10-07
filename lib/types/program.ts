@@ -242,6 +242,7 @@ export interface ProgramInvitation {
 
   // Message
   customMessage?: string;
+  metadata?: Record<string, unknown>;
 
   // Token & Security
   token: string; // Unique invitation token

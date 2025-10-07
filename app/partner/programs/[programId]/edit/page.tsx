@@ -2,9 +2,16 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  ArrowLeft,
+  CheckCircle,
+  Loader2,
+  Sparkles,
+} from 'lucide-react'
+
 import { getCurrentSession } from '@/lib/auth/session'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import type { Program } from '@/lib/types/program'
@@ -29,9 +36,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, CheckCircle, Loader2, Sparkles } from 'lucide-react'
-import { resolvePartnerContext } from '@/lib/auth/partner-context'
 import { Badge } from '@/components/ui/badge'
+
+import { resolvePartnerContext } from '@/lib/auth/partner-context'
 import {
   AGE_RANGE_VALUES,
   COUNTRY_OPTIONS,
@@ -41,26 +48,45 @@ import {
   STATUS_VALUES,
   friendlyLabel,
   programSchema,
-} from '../shared'
-import type { ProgramFormValues } from '../shared'
+} from '../../shared'
+import type { ProgramFormValues } from '../../shared'
+import { findProgramSummaryById } from '@/lib/programs/selectors'
 
-const ProgramCreationSkeleton = () => (
+const ProgramEditSkeleton = () => (
   <div className="min-h-screen bg-gray-50 flex items-center justify-center">
     <div className="flex flex-col items-center gap-4 text-gray-600">
       <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
-      <span>Loading partner data…</span>
+      <span>Loading program data…</span>
     </div>
   </div>
 )
 
-export default function CreateProgramPage() {
+const toFormValues = (program: Program): ProgramFormValues => ({
+  name: program.name,
+  description: program.description,
+  learningGoals: program.learningGoals,
+  projectTypes: program.projectTypes,
+  pedagogicalFramework: program.pedagogicalFramework,
+  targetAgeRanges: program.targetAgeRanges,
+  countriesInScope: program.countriesInScope,
+  sdgFocus: program.sdgFocus,
+  startDate: program.startDate,
+  endDate: program.endDate,
+  status: program.status,
+  isPublic: program.isPublic,
+  programUrl: program.programUrl ?? '',
+  brandColor: program.brandColor ?? '#7F56D9',
+})
+
+export default function EditProgramPage() {
   const router = useRouter()
+  const params = useParams<{ programId: string }>()
   const [session, setSession] = useState(() => getCurrentSession())
-  const [createdProgram, setCreatedProgram] = useState<Program | null>(null)
+  const [updatedProgram, setUpdatedProgram] = useState<Program | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
-  const { ready: dataReady, database, createRecord } = usePrototypeDb()
+  const { ready: dataReady, database, updateRecord } = usePrototypeDb()
 
   useEffect(() => {
     setSession(getCurrentSession())
@@ -77,29 +103,28 @@ export default function CreateProgramPage() {
     }
   }, [session, router])
 
-  const { partnerId, partnerRecord, partnerUser } = useMemo(
+  const { partnerRecord } = useMemo(
     () => resolvePartnerContext(session, database ?? null),
     [database, session],
   )
 
-  const fallbackPartnerUser = useMemo(() => {
-    if (!database || !partnerId) return null
-    return database.partnerUsers.find((user) => user.partnerId === partnerId) ?? null
-  }, [database, partnerId])
+  const programSummary = useMemo(() => {
+    if (!database || !params?.programId) return null
+    return findProgramSummaryById(database, params.programId)
+  }, [database, params?.programId])
 
-  const createdById =
-    partnerUser?.id ?? fallbackPartnerUser?.id ?? 'partner-user-prototype-system'
+  const program = programSummary?.program ?? null
 
   const form = useForm<ProgramFormValues>({
     resolver: zodResolver(programSchema),
-    defaultValues: {
+    defaultValues: program ? toFormValues(program) : {
       name: '',
       description: '',
       learningGoals: '',
       projectTypes: [],
       pedagogicalFramework: [],
       targetAgeRanges: [],
-      countriesInScope: partnerRecord?.country ? [partnerRecord.country] : [],
+      countriesInScope: [],
       sdgFocus: [],
       startDate: '',
       endDate: '',
@@ -110,6 +135,12 @@ export default function CreateProgramPage() {
     },
   })
 
+  useEffect(() => {
+    if (program) {
+      form.reset(toFormValues(program))
+    }
+  }, [program, form])
+
   const toggleValue = <T,>(value: T, current: T[], onChange: (next: T[]) => void) => {
     const next = current.includes(value)
       ? current.filter((item) => item !== value)
@@ -118,8 +149,8 @@ export default function CreateProgramPage() {
   }
 
   const handleSubmit = async (values: ProgramFormValues) => {
-    if (!partnerId) {
-      setFormError('Unable to resolve your partner organisation. Please try signing in again.')
+    if (!program) {
+      setFormError('Program data was not found. Please return to the program list and try again.')
       return
     }
 
@@ -128,60 +159,62 @@ export default function CreateProgramPage() {
 
     try {
       const now = new Date().toISOString()
-      const programRecord = createRecord('programs', {
-        partnerId,
+      const updated = updateRecord('programs', program.id, {
         name: values.name,
         description: values.description,
+        learningGoals: values.learningGoals,
         projectTypes: values.projectTypes,
         pedagogicalFramework: values.pedagogicalFramework,
-        learningGoals: values.learningGoals,
         targetAgeRanges: values.targetAgeRanges,
         countriesInScope: values.countriesInScope,
         sdgFocus: values.sdgFocus,
         startDate: values.startDate,
         endDate: values.endDate,
-        programUrl: values.programUrl || undefined,
-        brandColor: values.brandColor,
         status: values.status,
         isPublic: values.isPublic,
-        createdBy: createdById,
-        createdAt: now,
+        programUrl: values.programUrl || undefined,
+        brandColor: values.brandColor,
         updatedAt: now,
       })
 
-      createRecord('programPartners', {
-        programId: programRecord.id,
-        partnerId,
-        role: 'host',
-        permissions: {
-          canEditProgram: true,
-          canInviteCoordinators: true,
-          canViewAllData: true,
-          canManageProjects: true,
-          canRemoveParticipants: true,
-        },
-        invitedBy: createdById,
-        invitedAt: now,
-        status: 'accepted',
-        acceptedAt: now,
-        createdAt: now,
-        updatedAt: now,
-      })
+      if (!updated) {
+        throw new Error('Program not found in storage')
+      }
 
-      setCreatedProgram(programRecord)
+      setUpdatedProgram(updated)
     } catch (error) {
-      console.error('Failed to create program', error)
-      setFormError('We were unable to create the program. Please try again.')
+      console.error('Failed to update program', error)
+      setFormError('We were unable to save the changes. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  if (!dataReady || !session) {
-    return <ProgramCreationSkeleton />
+  if (!session || !dataReady) {
+    return <ProgramEditSkeleton />
   }
 
-  if (createdProgram) {
+  if (!program) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <Card className="max-w-lg w-full text-center space-y-4">
+          <CardHeader>
+            <CardTitle className="text-2xl">Program not found</CardTitle>
+            <CardDescription>
+              We couldn&apos;t locate this program in the prototype store. It may have been deleted.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="justify-center">
+            <Link href="/partner/programs">
+              <Button variant="outline">Back to programs</Button>
+            </Link>
+          </CardFooter>
+        </Card>
+      </div>
+    )
+  }
+
+  if (updatedProgram) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="max-w-xl w-full">
@@ -191,29 +224,31 @@ export default function CreateProgramPage() {
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
             </div>
-            <CardTitle className="text-2xl">Program Created</CardTitle>
+            <CardTitle className="text-2xl">Program updated</CardTitle>
             <CardDescription>
-              {createdProgram.name} is now available in your partner dashboard. Invite co-partners
-              and coordinators to begin onboarding.
+              {updatedProgram.name} has been saved. Stakeholders will see the latest configuration
+              when they review the prototype dashboards.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-lg border border-purple-100 bg-purple-50 p-4">
               <h3 className="font-medium text-purple-900">Next steps</h3>
               <ul className="mt-2 text-sm text-purple-800 space-y-1 list-disc list-inside">
-                <li>Review the program overview from your dashboard</li>
-                <li>Invite co-partners and country coordinators</li>
-                <li>Connect participating institutions and teachers</li>
+                <li>Review the updated overview page</li>
+                <li>Invite co-partners and coordinators</li>
+                <li>Test downstream flows with the latest data</li>
               </ul>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-            <Button variant="outline" onClick={() => setCreatedProgram(null)}>
-              Create another program
-            </Button>
-            <Link href="/partner/dashboard" className="w-full sm:w-auto">
+            <Link href={`/partner/programs/${program.id}/edit`} className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full">
+                Keep editing
+              </Button>
+            </Link>
+            <Link href={`/partner/programs/${program.id}`} className="w-full sm:w-auto">
               <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                Go to Dashboard
+                View program details
               </Button>
             </Link>
           </CardFooter>
@@ -231,11 +266,10 @@ export default function CreateProgramPage() {
               <Sparkles className="h-4 w-4" />
               <span>Program Builder</span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Create a New Program</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Edit Program</h1>
             <p className="text-gray-600 mt-2 max-w-3xl">
-              Design a collaboration that aligns with your mission. We&apos;ll add it to the
-              prototype database so the dashboard and upcoming flows can reference the same local
-              data.
+              Update the configuration for your program. Changes are saved to the prototype
+              localStorage store so dashboards and invitation flows stay aligned.
             </p>
           </div>
           <Button
@@ -258,7 +292,7 @@ export default function CreateProgramPage() {
           <CardHeader>
             <CardTitle>Program Overview</CardTitle>
             <CardDescription>
-              Share the core details partners and institutions need to understand your learning
+              Update the key details partners and institutions use to understand your learning
               initiative.
             </CardDescription>
           </CardHeader>
@@ -366,10 +400,7 @@ export default function CreateProgramPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Status</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select status" />
@@ -408,24 +439,23 @@ export default function CreateProgramPage() {
                   name="projectTypes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Project types</FormLabel>
-                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                        {PROGRAM_TYPE_VALUES.map((value) => (
-                          <label
-                            key={value}
-                            className="flex items-start gap-2 rounded-lg border border-gray-200 bg-white p-3 hover:border-purple-300"
-                          >
-                            <Checkbox
-                              checked={field.value?.includes(value) ?? false}
-                              onCheckedChange={() =>
+                      <FormLabel>Project formats</FormLabel>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {PROGRAM_TYPE_VALUES.map((value) => {
+                          const isActive = field.value?.includes(value)
+                          return (
+                            <Badge
+                              key={value}
+                              variant={isActive ? 'default' : 'outline'}
+                              className="cursor-pointer"
+                              onClick={() =>
                                 toggleValue(value, field.value ?? [], field.onChange)
                               }
-                            />
-                            <span className="text-sm leading-5 text-gray-700">
+                            >
                               {friendlyLabel(value)}
-                            </span>
-                          </label>
-                        ))}
+                            </Badge>
+                          )
+                        })}
                       </div>
                       <FormMessage />
                     </FormItem>
@@ -438,23 +468,22 @@ export default function CreateProgramPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Pedagogical frameworks</FormLabel>
-                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                        {PEDAGOGICAL_FRAMEWORK_VALUES.map((value) => (
-                          <label
-                            key={value}
-                            className="flex items-start gap-2 rounded-lg border border-gray-200 bg-white p-3 hover:border-purple-300"
-                          >
-                            <Checkbox
-                              checked={field.value?.includes(value) ?? false}
-                              onCheckedChange={() =>
+                      <div className="flex flex-wrap gap-2">
+                        {PEDAGOGICAL_FRAMEWORK_VALUES.map((value) => {
+                          const isActive = field.value?.includes(value)
+                          return (
+                            <Badge
+                              key={value}
+                              variant={isActive ? 'default' : 'outline'}
+                              className="cursor-pointer"
+                              onClick={() =>
                                 toggleValue(value, field.value ?? [], field.onChange)
                               }
-                            />
-                            <span className="text-sm leading-5 text-gray-700">
+                            >
                               {friendlyLabel(value)}
-                            </span>
-                          </label>
-                        ))}
+                            </Badge>
+                          )
+                        })}
                       </div>
                       <FormMessage />
                     </FormItem>
@@ -568,7 +597,7 @@ export default function CreateProgramPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => router.push('/partner/dashboard')}
+                    onClick={() => router.push(`/partner/programs/${program.id}`)}
                   >
                     Cancel
                   </Button>
@@ -580,10 +609,10 @@ export default function CreateProgramPage() {
                     {isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving program…
+                        Saving changes…
                       </>
                     ) : (
-                      'Create program'
+                      'Save changes'
                     )}
                   </Button>
                 </div>

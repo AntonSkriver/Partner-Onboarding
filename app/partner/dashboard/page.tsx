@@ -984,6 +984,8 @@ export default function PartnerDashboard() {
                 })
               )}
 
+            </div>
+
             </TabsContent>
 
             </Tabs>
