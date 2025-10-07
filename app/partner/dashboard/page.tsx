@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { getCurrentSession, clearSession } from '@/lib/auth/session'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,10 +8,68 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
-import { 
-  Plus, Target, Edit3, Clock, UserCheck, School, Megaphone, PenTool, MapPin, Mail, Users, ChevronDown, ChevronUp
+import {
+  Plus,
+  Target,
+  Edit3,
+  Clock,
+  UserCheck,
+  School,
+  Megaphone,
+  PenTool,
+  MapPin,
+  Mail,
+  Users,
+  ChevronDown,
+  ChevronUp,
+  Phone,
 } from 'lucide-react'
 import Link from 'next/link'
+import { usePrototypeDb } from '@/hooks/use-prototype-db'
+
+const toStartCase = (value: string): string =>
+  value
+    .split(/[_\s-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+
+const formatProjectName = (projectId: string): string => {
+  const normalized = projectId.replace(/^project[-_]/, '')
+  return toStartCase(normalized || projectId)
+}
+
+const formatRelativeTime = (timestamp: string): string => {
+  const date = new Date(timestamp)
+  if (Number.isNaN(date.getTime())) {
+    return timestamp
+  }
+
+  const diffMs = Date.now() - date.getTime()
+  const diffMinutes = Math.floor(diffMs / 60000)
+
+  if (diffMinutes < 1) return 'just now'
+  if (diffMinutes < 60) {
+    return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60)
+  if (diffHours < 24) {
+    return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`
+  }
+
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays < 7) {
+    return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`
+  }
+
+  const diffWeeks = Math.floor(diffDays / 7)
+  if (diffWeeks < 4) {
+    return `${diffWeeks} week${diffWeeks === 1 ? '' : 's'} ago`
+  }
+
+  return date.toLocaleDateString()
+}
 
 export default function PartnerDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
@@ -19,6 +77,260 @@ export default function PartnerDashboard() {
   const [session, setSession] = useState(getCurrentSession())
   const [expandedProjects, setExpandedProjects] = useState(new Set())
   const router = useRouter()
+  const { ready: dataReady, database, selectors } = usePrototypeDb()
+  const {
+    programsForPartner,
+    coPartnersForProgram,
+    coordinatorsForProgram,
+    institutionsForProgram,
+    teachersForProgram,
+    invitationsForProgram,
+  } = selectors
+
+  const partnerId = useMemo(() => {
+    if (!dataReady || !session) return null
+
+    const partners = database?.partners ?? []
+    const normalizedOrganization = session.organization?.trim().toLowerCase()
+
+    if (normalizedOrganization) {
+      const directMatch = partners.find(
+        (partner) => partner.organizationName.toLowerCase() === normalizedOrganization
+      )
+      if (directMatch) {
+        return directMatch.id
+      }
+    }
+
+    const email = session.email?.toLowerCase() ?? ''
+    if (email.includes('lego')) return 'partner-lego-foundation'
+    if (email.includes('unicef')) return 'partner-unicef'
+    if (email.includes('ngo')) return 'partner-save-the-children'
+    if (email.includes('partner')) return 'partner-save-the-children'
+
+    return partners.length > 0 ? partners[0].id : null
+  }, [dataReady, session, database])
+
+  const partnerRecord = useMemo(() => {
+    if (!dataReady || !partnerId || !database) return null
+    return database.partners.find((partner) => partner.id === partnerId) ?? null
+  }, [dataReady, partnerId, database])
+
+  const partnerUser = useMemo(() => {
+    if (!dataReady || !database || !session?.email) return null
+    const normalizedEmail = session.email.toLowerCase()
+    return database.partnerUsers.find(
+      (user) => user.email.toLowerCase() === normalizedEmail,
+    ) ?? null
+  }, [dataReady, database, session?.email])
+
+  const partnerPrograms = useMemo(() => {
+    if (!partnerId || !database) return []
+
+    const ownedPrograms = programsForPartner(partnerId)
+    const relatedProgramIds = database.programPartners
+      .filter((relationship) => relationship.partnerId === partnerId)
+      .map((relationship) => relationship.programId)
+
+    const relatedPrograms = database.programs.filter((program) =>
+      relatedProgramIds.includes(program.id),
+    )
+
+    const map = new Map<string, (typeof database.programs)[number]>()
+    for (const program of [...ownedPrograms, ...relatedPrograms]) {
+      map.set(program.id, program)
+    }
+
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(b.createdAt).valueOf() - new Date(a.createdAt).valueOf(),
+    )
+  }, [database, partnerId, programsForPartner])
+
+  const programSummaries = useMemo(() => {
+    if (!database) return []
+
+    return partnerPrograms.map((program) => {
+      const coPartnerEntries = coPartnersForProgram(program.id).filter(
+        ({ relationship }) => relationship.status === 'accepted',
+      )
+      const coordinators = coordinatorsForProgram(program.id)
+      const institutions = institutionsForProgram(program.id)
+      const teachers = teachersForProgram(program.id)
+      const projects = database.programProjects.filter((project) => project.programId === program.id)
+      const invitations = invitationsForProgram(program.id)
+      const activities = database.activities.filter((activity) => activity.programId === program.id)
+      const studentCount = institutions.reduce(
+        (total, institution) => total + (institution.studentCount ?? 0),
+        0,
+      )
+      const activeInstitutionCount = institutions.filter(
+        (institution) => institution.status === 'active',
+      ).length
+      const countrySet = new Set<string>([
+        ...program.countriesInScope,
+        ...institutions.map((institution) => institution.country),
+        ...coordinators.map((coordinator) => coordinator.country),
+      ])
+
+      return {
+        program,
+        coPartners: coPartnerEntries,
+        coordinators,
+        institutions,
+        teachers,
+        projects,
+        invitations,
+        activities,
+        metrics: {
+          studentCount,
+          institutionCount: institutions.length,
+          activeInstitutionCount,
+          teacherCount: teachers.length,
+          coordinatorCount: coordinators.length,
+          coPartnerCount: coPartnerEntries.length,
+          projectCount: projects.length,
+          pendingInvitations: invitations.filter((invitation) => invitation.status === 'pending')
+            .length,
+          countries: Array.from(countrySet),
+        },
+      }
+    })
+  }, [
+    database,
+    partnerPrograms,
+    coPartnersForProgram,
+    coordinatorsForProgram,
+    institutionsForProgram,
+    teachersForProgram,
+    invitationsForProgram,
+  ])
+
+  const partnerMetrics = useMemo(() => {
+    if (programSummaries.length === 0) {
+      return {
+        totalPrograms: 0,
+        activePrograms: 0,
+        coPartners: 0,
+        coordinators: 0,
+        institutions: 0,
+        teachers: 0,
+        students: 0,
+        projects: 0,
+        pendingInvitations: 0,
+        countryCount: 0,
+      }
+    }
+
+    const countries = new Set<string>()
+    let coPartners = 0
+    let coordinators = 0
+    let institutions = 0
+    let teachers = 0
+    let students = 0
+    let projects = 0
+    let pendingInvitations = 0
+
+    for (const summary of programSummaries) {
+      coPartners += summary.metrics.coPartnerCount
+      coordinators += summary.metrics.coordinatorCount
+      institutions += summary.metrics.institutionCount
+      teachers += summary.metrics.teacherCount
+      students += summary.metrics.studentCount
+      projects += summary.metrics.projectCount
+      pendingInvitations += summary.metrics.pendingInvitations
+
+      summary.metrics.countries.forEach((country) => {
+        countries.add(country)
+      })
+    }
+
+    return {
+      totalPrograms: programSummaries.length,
+      activePrograms: programSummaries.filter((summary) => summary.program.status === 'active')
+        .length,
+      coPartners,
+      coordinators,
+      institutions,
+      teachers,
+      students,
+      projects,
+      pendingInvitations,
+      countryCount: countries.size,
+    }
+  }, [programSummaries])
+
+  const recentActivity = useMemo(() => {
+    const items = programSummaries.flatMap((summary) =>
+      summary.activities.map((activity) => ({
+        activity,
+        program: summary.program,
+      })),
+    )
+
+    return items
+      .sort(
+        (a, b) =>
+          new Date(b.activity.timestamp).valueOf() - new Date(a.activity.timestamp).valueOf(),
+      )
+      .slice(0, 6)
+  }, [programSummaries])
+
+  const programProjectGroups = useMemo(() => {
+    if (!database) return []
+
+    const resolveCreatedByName = (type: string, id: string): string => {
+      if (type === 'partner') {
+        const partnerUserRecord = database.partnerUsers.find((user) => user.id === id)
+        return partnerUserRecord
+          ? `${partnerUserRecord.firstName ?? ''} ${partnerUserRecord.lastName ?? ''}`.trim() ||
+              partnerUserRecord.email
+          : 'Partner Team'
+      }
+
+      if (type === 'coordinator') {
+        const coordinator = database.coordinators.find((item) => item.id === id)
+        return coordinator
+          ? `${coordinator.firstName} ${coordinator.lastName}`.trim()
+          : 'Program Coordinator'
+      }
+
+      if (type === 'teacher') {
+        const teacher = database.institutionTeachers.find((item) => item.id === id)
+        return teacher
+          ? `${teacher.firstName} ${teacher.lastName}`.trim()
+          : 'Teacher Team'
+      }
+
+      return 'Class2Class Team'
+    }
+
+    return programSummaries.map((summary) => ({
+      program: summary.program,
+      metrics: summary.metrics,
+      coPartners: summary.coPartners,
+      coordinators: summary.coordinators,
+      institutions: summary.institutions,
+      teachers: summary.teachers,
+      projects: summary.projects.map((project) => {
+        const associatedCoPartner = summary.coPartners.find(
+          ({ relationship }) => relationship.id === project.associatedCoPartnerId,
+        )
+
+        return {
+          ...project,
+          displayName: formatProjectName(project.projectId),
+          createdByName: resolveCreatedByName(project.createdByType, project.createdById),
+          associatedCoPartnerName: associatedCoPartner?.partner?.organizationName,
+        }
+      }),
+    }))
+  }, [database, programSummaries])
+
+  
+
+  const isProgramsLoading = !dataReady || !partnerId
+  const formatDate = (date: string) =>
+    new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
   
   useEffect(() => {
     const currentSession = getCurrentSession()
@@ -52,218 +364,33 @@ export default function PartnerDashboard() {
       </div>
     </div>
   }
-  
-  // Enhanced mock data based on comprehensive requirements and session
-  const partnerData = {
-    name: session.name || "Partner User",
-    organization: session.organization || "Partner Organization",
-    organizationType: session.organization?.includes('UNICEF') ? "NGO" : "Partner",
-    role: "Project Coordinator",
-    
-    // Core KPIs
-    metrics: {
-      schools: 12,
-      teachers: 48,
-      students: 1247,
-      projects: 3,
-      completedProjects: 1,
-      activeCollaborations: 8,
-      countries: 5,
-      npsScore: 8.7,
-      engagementRate: 84
-    },
-    
-    // Recent activity
-    recentActivity: [
-      { type: "school_joined", school: "Ørestad Gymnasium", time: "2 hours ago" },
-      { type: "project_update", project: "Children's Rights Across Cultures", time: "1 day ago" },
-      { type: "teacher_message", from: "Maria Hansen", time: "2 days ago" }
-    ],
-    
-    // Active projects
-    projects: [
-      {
-        id: 1,
-        title: "Children's Rights Across Cultures",
-        status: "active",
-        schools: 5,
-        teachers: 18,
-        students: 420,
-        progress: 65,
-        sdgs: [4, 10, 16],
-        participatingSchools: [
-          {
-            id: 1,
-            name: "Ørestad Gymnasium",
-            country: "Denmark",
-            city: "Copenhagen",
-            teachers: 2,
-            students: 8,
-            status: "active",
-            joinedDate: "2025-01-15",
-            contactTeacher: "Maria Hansen",
-            email: "maria.hansen@orestad.dk"
-          },
-          {
-            id: 2,
-            name: "Nairobi Primary School",
-            country: "Kenya",
-            city: "Nairobi",
-            teachers: 3,
-            students: 76,
-            status: "active",
-            joinedDate: "2024-10-02",
-            contactTeacher: "Joseph Wanjiku",
-            email: "joseph@nairobipr.ke"
-          },
-          {
-            id: 3,
-            name: "São Paulo Elementary",
-            country: "Brazil",
-            city: "São Paulo",
-            teachers: 5,
-            students: 112,
-            status: "active",
-            joinedDate: "2024-09-22",
-            contactTeacher: "Ana Silva",
-            email: "ana@spelem.br"
-          },
-          {
-            id: 4,
-            name: "Helsinki International Academy",
-            country: "Finland",
-            city: "Helsinki",
-            teachers: 3,
-            students: 67,
-            status: "active",
-            joinedDate: "2024-10-10",
-            contactTeacher: "Elina Virtanen",
-            email: "elina@hia.fi"
-          },
-          {
-            id: 5,
-            name: "Mumbai Global School",
-            country: "India",
-            city: "Mumbai",
-            teachers: 3,
-            students: 76,
-            status: "pending",
-            joinedDate: "2024-11-01",
-            contactTeacher: "Raj Patel",
-            email: "raj@mumbglobal.in"
-          }
-        ]
-      },
-      {
-        id: 2, 
-        title: "Climate Action Youth",
-        status: "planning",
-        schools: 3,
-        teachers: 12,
-        students: 280,
-        progress: 25,
-        sdgs: [13, 15, 17],
-        participatingSchools: [
-          {
-            id: 6,
-            name: "Tokyo Green Academy",
-            country: "Japan",
-            city: "Tokyo",
-            teachers: 4,
-            students: 95,
-            status: "active",
-            joinedDate: "2024-10-20",
-            contactTeacher: "Yuki Tanaka",
-            email: "yuki@tga.jp"
-          },
-          {
-            id: 7,
-            name: "Vancouver Eco School",
-            country: "Canada",
-            city: "Vancouver",
-            teachers: 4,
-            students: 88,
-            status: "active",
-            joinedDate: "2024-10-25",
-            contactTeacher: "Sarah McKenzie",
-            email: "sarah@vecschool.ca"
-          },
-          {
-            id: 8,
-            name: "Berlin Environmental Institute",
-            country: "Germany",
-            city: "Berlin",
-            teachers: 4,
-            students: 97,
-            status: "planning",
-            joinedDate: "2024-11-05",
-            contactTeacher: "Klaus Weber",
-            email: "klaus@bei.de"
-          }
-        ]
-      },
-      {
-        id: 3,
-        title: "Digital Inclusion Initiative",
-        status: "completed",
-        schools: 4,
-        teachers: 18,
-        students: 547,
-        progress: 100,
-        sdgs: [4, 8, 9],
-        participatingSchools: [
-          {
-            id: 9,
-            name: "Stockholm Tech High School",
-            country: "Sweden",
-            city: "Stockholm",
-            teachers: 4,
-            students: 134,
-            status: "completed",
-            joinedDate: "2024-06-01",
-            contactTeacher: "Lars Andersson",
-            email: "lars@sths.se"
-          },
-          {
-            id: 10,
-            name: "Singapore Innovation Academy",
-            country: "Singapore",
-            city: "Singapore",
-            teachers: 4,
-            students: 142,
-            status: "completed",
-            joinedDate: "2024-06-08",
-            contactTeacher: "Li Wei",
-            email: "liwei@sia.sg"
-          },
-          {
-            id: 11,
-            name: "Sydney Digital School",
-            country: "Australia",
-            city: "Sydney",
-            teachers: 4,
-            students: 138,
-            status: "completed",
-            joinedDate: "2024-06-15",
-            contactTeacher: "Emma Thompson",
-            email: "emma@sds.au"
-          },
-          {
-            id: 12,
-            name: "London Future Academy",
-            country: "United Kingdom",
-            city: "London",
-            teachers: 4,
-            students: 133,
-            status: "completed",
-            joinedDate: "2024-06-20",
-            contactTeacher: "James Wilson",
-            email: "james@lfa.uk"
-          }
-        ]
-      }
-    ]
-  }
+
+  const greetingName =
+    (partnerUser
+      ? `${partnerUser.firstName ?? ''} ${partnerUser.lastName ?? ''}`.trim() || partnerUser.email
+      : session.name?.trim()) || 'Partner User'
+
+  const organizationName =
+    partnerRecord?.organizationName ?? session.organization ?? 'Partner Organization'
+
+  const organizationTypeLabel = partnerRecord
+    ? toStartCase(partnerRecord.organizationType)
+    : 'Partner'
+
+  const partnerRoleLabel = partnerUser?.role ? toStartCase(partnerUser.role) : 'Partner Team'
+
+  const keyMetrics = [
+    { id: 'programs', label: 'Programs', value: partnerMetrics.totalPrograms },
+    { id: 'activePrograms', label: 'Active Programs', value: partnerMetrics.activePrograms },
+    { id: 'projects', label: 'Projects', value: partnerMetrics.projects },
+    { id: 'coPartners', label: 'Co-Partners', value: partnerMetrics.coPartners },
+    { id: 'coordinators', label: 'Coordinators', value: partnerMetrics.coordinators },
+    { id: 'institutions', label: 'Institutions', value: partnerMetrics.institutions },
+    { id: 'teachers', label: 'Teachers', value: partnerMetrics.teachers },
+    { id: 'students', label: 'Students (est.)', value: partnerMetrics.students, isLargeNumber: true },
+    { id: 'countries', label: 'Countries', value: partnerMetrics.countryCount },
+    { id: 'pendingInvites', label: 'Pending Invites', value: partnerMetrics.pendingInvitations },
+  ]
 
   // Post-onboarding action items based on documentation
   const nextStepActions = [
@@ -361,9 +488,11 @@ export default function PartnerDashboard() {
         <div className="bg-white border-b-2 border-gray-200 px-6 py-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="heading-primary text-2xl font-bold text-gray-800 mb-1">Hi, {partnerData.name}</h1>
-              <p className="text-base text-c2c-purple font-semibold">{partnerData.role}</p>
-              <p className="text-sm text-gray-600 mt-2">Welcome to your {partnerData.organizationType} partner dashboard</p>
+              <h1 className="heading-primary text-2xl font-bold text-gray-800 mb-1">Hi, {greetingName}</h1>
+              <p className="text-base text-c2c-purple font-semibold">{partnerRoleLabel}</p>
+              <p className="text-sm text-gray-600 mt-2">
+                Welcome to your {organizationTypeLabel} partner dashboard at {organizationName}
+              </p>
             </div>
             <div className="flex gap-3">
               <Link 
@@ -433,6 +562,111 @@ export default function PartnerDashboard() {
               </CardContent>
             </Card>
 
+            {/* Programs Overview (Prototype Data) */}
+            <Card className="border-purple-200 shadow-sm">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-gray-900">
+                    <MapPin className="h-5 w-5 text-purple-600" />
+                    Active Programs
+                  </CardTitle>
+                  {partnerId && (
+                    <Badge variant="secondary" className="bg-purple-50 text-purple-700">
+                      {programSummaries.length} program{programSummaries.length === 1 ? '' : 's'}
+                    </Badge>
+                  )}
+                </div>
+                <CardDescription>
+                  Programs seeded from the prototype data layer. Upcoming flows will persist changes to localStorage.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {isProgramsLoading ? (
+                  <div className="flex items-center justify-center py-10 text-sm text-gray-500">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-purple-300 border-t-transparent rounded-full animate-spin" />
+                      Loading program data…
+                    </div>
+                  </div>
+                ) : programSummaries.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-6 text-sm text-purple-700">
+                    No programs yet. Use the upcoming Program Creation flow to add your first learning initiative.
+                  </div>
+                ) : (
+                  programSummaries.map((summary) => {
+                    const { program, metrics } = summary
+
+                    return (
+                      <div
+                        key={program.id}
+                        className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                      >
+                        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-lg font-semibold text-gray-900">{program.name}</h4>
+                              <Badge variant="outline" className="capitalize">
+                                {program.status.replace('_', ' ')}
+                              </Badge>
+                            </div>
+                            <p className="mt-1 text-sm text-gray-600">
+                              {program.description}
+                            </p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {program.projectTypes.slice(0, 3).map((type) => (
+                                <Badge key={type} variant="secondary" className="bg-purple-50 text-purple-700">
+                                  {type.replace(/_/g, ' ')}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-1 text-sm text-gray-500 md:text-right">
+                            <span>Timeline</span>
+                            <span className="font-medium text-gray-900">
+                              {formatDate(program.startDate)} – {formatDate(program.endDate)}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {metrics.countries.length} country{metrics.countries.length === 1 ? '' : 'ies'} • {program.targetAgeRanges.join(', ')}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+                          <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                            <div className="text-xs font-medium text-gray-500 uppercase">Co-Partners</div>
+                            <div className="mt-1 text-lg font-semibold text-gray-900">{metrics.coPartnerCount}</div>
+                          </div>
+                          <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                            <div className="text-xs font-medium text-gray-500 uppercase">Coordinators</div>
+                            <div className="mt-1 text-lg font-semibold text-gray-900">{metrics.coordinatorCount}</div>
+                          </div>
+                          <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                            <div className="text-xs font-medium text-gray-500 uppercase">Institutions</div>
+                            <div className="mt-1 text-lg font-semibold text-gray-900">{metrics.institutionCount}</div>
+                          </div>
+                          <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                            <div className="text-xs font-medium text-gray-500 uppercase">Active Institutions</div>
+                            <div className="mt-1 text-lg font-semibold text-gray-900">{metrics.activeInstitutionCount}</div>
+                          </div>
+                          <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                            <div className="text-xs font-medium text-gray-500 uppercase">Teachers</div>
+                            <div className="mt-1 text-lg font-semibold text-gray-900">{metrics.teacherCount}</div>
+                          </div>
+                          <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                            <div className="text-xs font-medium text-gray-500 uppercase">Students (est.)</div>
+                            <div className="mt-1 text-lg font-semibold text-gray-900">{metrics.studentCount.toLocaleString()}</div>
+                          </div>
+                          <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                            <div className="text-xs font-medium text-gray-500 uppercase">Pending Invites</div>
+                            <div className="mt-1 text-lg font-semibold text-gray-900">{metrics.pendingInvitations}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </CardContent>
+            </Card>
+
             {/* Next Steps Action Items */}
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-6">Ready to Get Started? Here&apos;s What You Can Do Next</h3>
@@ -488,21 +722,27 @@ export default function PartnerDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {partnerData.recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-3 rounded-lg bg-gray-50">
-                      <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-900">
-                          {activity.type === 'school_joined' && `${activity.school} joined your network`}
-                          {activity.type === 'project_update' && `${activity.project} received an update`}
-                          {activity.type === 'teacher_message' && `New message from ${activity.from}`}
-                        </p>
-                        <p className="text-xs text-gray-500">{activity.time}</p>
+                {recentActivity.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-6 text-sm text-purple-700">
+                    Activity from your programs will appear here once coordinators, institutions, and teachers start collaborating.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {recentActivity.map(({ activity, program }) => (
+                      <div key={activity.id} className="flex items-center space-x-4 p-3 rounded-lg bg-gray-50">
+                        <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-900">
+                            <span className="font-semibold text-gray-800">{program.name}</span>
+                            <span className="text-gray-500"> · </span>
+                            {activity.description}
+                          </p>
+                          <p className="text-xs text-gray-500">{formatRelativeTime(activity.timestamp)}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -512,27 +752,20 @@ export default function PartnerDashboard() {
             {/* Key Metrics - Only shown in Projects */}
             <div className="mb-8">
               <h2 className="text-sm font-medium text-gray-600 mb-4 uppercase tracking-wide">Key Metrics</h2>
-              <div className="grid grid-cols-5 gap-4 mb-6">
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center diagonal-stripes hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="font-medium text-gray-800 mb-1 text-sm">Schools</div>
-                  <div className="text-xl font-bold text-gray-900">{partnerData.metrics.schools}</div>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center diagonal-stripes hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="font-medium text-gray-800 mb-1 text-sm">Teachers</div>
-                  <div className="text-xl font-bold text-gray-900">{partnerData.metrics.teachers}</div>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center diagonal-stripes hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="font-medium text-gray-800 mb-1 text-sm">Students</div>
-                  <div className="text-xl font-bold text-gray-900">{partnerData.metrics.students.toLocaleString()}</div>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center diagonal-stripes hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="font-medium text-gray-800 mb-1 text-sm">Countries</div>
-                  <div className="text-xl font-bold text-gray-900">{partnerData.metrics.countries}</div>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center diagonal-stripes hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="font-medium text-gray-800 mb-1 text-sm">NPS</div>
-                  <div className="text-xl font-bold text-gray-900">{partnerData.metrics.npsScore}</div>
-                </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
+                {keyMetrics.map((metric) => (
+                  <div
+                    key={metric.id}
+                    className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center diagonal-stripes hover:shadow-md transition-shadow"
+                  >
+                    <div className="font-medium text-gray-800 mb-1 text-sm">{metric.label}</div>
+                    <div className="text-xl font-bold text-gray-900">
+                      {metric.isLargeNumber
+                        ? metric.value.toLocaleString()
+                        : metric.value}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -545,127 +778,201 @@ export default function PartnerDashboard() {
             </div>
             
             <div className="grid gap-6">
-              {partnerData.projects.map((project) => (
-                <Card key={project.id} className="hover:shadow-lg transition-shadow">
+              {programProjectGroups.length === 0 ? (
+                <Card className="border-dashed border-purple-200 bg-purple-50/60">
                   <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-lg">{project.title}</CardTitle>
-                        <div className="flex items-center space-x-4 mt-2">
-                          <Badge variant={
-                            project.status === 'active' ? 'default' : 
-                            project.status === 'completed' ? 'secondary' : 'outline'
-                          }>
-                            {project.status}
-                          </Badge>
-                          <div className="flex space-x-1">
-                            {project.sdgs.map(sdg => (
-                              <Badge key={sdg} variant="outline" className="text-xs">SDG {sdg}</Badge>
-                            ))}
+                    <CardTitle className="text-lg text-purple-800">No program projects yet</CardTitle>
+                    <CardDescription>
+                      Create your first project to connect coordinators, institutions, and teachers inside your program.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardFooter>
+                    <Button className="bg-purple-600 hover:bg-purple-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Program Project
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ) : (
+                programProjectGroups.map((group) => {
+                  const programMetrics = [
+                    { id: 'coPartners', label: 'Co-Partners', value: group.metrics.coPartnerCount },
+                    { id: 'coordinators', label: 'Coordinators', value: group.metrics.coordinatorCount },
+                    { id: 'institutions', label: 'Institutions', value: group.metrics.institutionCount },
+                    { id: 'activeInstitutions', label: 'Active Institutions', value: group.metrics.activeInstitutionCount },
+                    { id: 'teachers', label: 'Teachers', value: group.metrics.teacherCount },
+                    { id: 'students', label: 'Students (est.)', value: group.metrics.studentCount, isLargeNumber: true },
+                    { id: 'pendingInvites', label: 'Pending Invites', value: group.metrics.pendingInvitations },
+                  ]
+
+                  return (
+                    <Card key={group.program.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                          <div>
+                            <CardTitle className="text-lg">{group.program.name}</CardTitle>
+                            <p className="mt-2 text-sm text-gray-600">
+                              {group.program.description}
+                            </p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <Badge variant="outline" className="capitalize">
+                                {group.program.status.replace('_', ' ')}
+                              </Badge>
+                              {group.program.projectTypes.slice(0, 3).map((type) => (
+                                <Badge key={type} variant="secondary" className="bg-purple-50 text-purple-700">
+                                  {type.replace(/_/g, ' ')}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="text-sm text-gray-500 lg:text-right">
+                            <div className="font-medium text-gray-700">
+                              {formatDate(group.program.startDate)} – {formatDate(group.program.endDate)}
+                            </div>
+                            <div className="mt-1">
+                              {group.metrics.countries.length} country{group.metrics.countries.length === 1 ? '' : 'ies'} in scope
+                            </div>
+                            <div className="mt-1">
+                              {group.metrics.projectCount} project{group.metrics.projectCount === 1 ? '' : 's'} published
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <Button variant="ghost" size="sm">
-                        <Edit3 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-purple-600">{project.schools}</p>
-                        <p className="text-sm text-gray-600">Schools</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-purple-600">{project.teachers}</p>
-                        <p className="text-sm text-gray-600">Teachers</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-purple-600">{project.students}</p>
-                        <p className="text-sm text-gray-600">Students</p>
-                      </div>
-                    </div>
-                    <div className="space-y-2 mb-4">
-                      <div className="flex justify-between text-sm">
-                        <span>Progress</span>
-                        <span>{project.progress}%</span>
-                      </div>
-                      <Progress value={project.progress} />
-                    </div>
-
-                    {/* Participating Schools Section */}
-                    <div className="border-t pt-4">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => toggleProjectDetails(project.id)}
-                        className="flex items-center gap-2 mb-3 text-sm font-medium text-gray-700 hover:text-purple-600"
-                      >
-                        <School className="h-4 w-4" />
-                        Participating Schools ({project.participatingSchools?.length || 0})
-                        {expandedProjects.has(project.id) ? 
-                          <ChevronUp className="h-4 w-4" /> : 
-                          <ChevronDown className="h-4 w-4" />
-                        }
-                      </Button>
-                      
-                      {expandedProjects.has(project.id) && project.participatingSchools && (
-                        <div className="space-y-3 max-h-64 overflow-y-auto">
-                          {project.participatingSchools.map((school) => (
-                            <div key={school.id} className="bg-gray-50 rounded-lg p-3 border">
-                              <div className="flex justify-between items-start mb-2">
-                                <div className="flex-1">
-                                  <h4 className="font-medium text-sm text-gray-900">{school.name}</h4>
-                                  <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
-                                    <MapPin className="h-3 w-3" />
-                                    <span>{school.city}, {school.country}</span>
-                                  </div>
-                                </div>
-                                <Badge 
-                                  variant={school.status === 'active' ? 'default' : 
-                                          school.status === 'completed' ? 'secondary' : 'outline'}
-                                  className="text-xs"
-                                >
-                                  {school.status}
-                                </Badge>
-                              </div>
-                              
-                              <div className="grid grid-cols-2 gap-3 mb-2">
-                                <div className="flex items-center gap-1 text-xs text-gray-600">
-                                  <Users className="h-3 w-3" />
-                                  <span>{school.teachers} teachers, {school.students} students</span>
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  Joined: {new Date(school.joinedDate).toLocaleDateString()}
-                                </div>
-                              </div>
-                              
-                              <div className="flex items-center gap-2 text-xs">
-                                <div className="flex items-center gap-1 text-gray-600">
-                                  <Mail className="h-3 w-3" />
-                                  <span className="font-medium">{school.contactTeacher}</span>
-                                </div>
-                                <a 
-                                  href={`mailto:${school.email}`}
-                                  className="text-purple-600 hover:text-purple-700 hover:underline"
-                                >
-                                  {school.email}
-                                </a>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                          {programMetrics.map((metric) => (
+                            <div key={metric.id} className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                              <div className="text-xs font-medium text-gray-500 uppercase">{metric.label}</div>
+                              <div className="mt-1 text-lg font-semibold text-gray-900">
+                                {metric.isLargeNumber ? metric.value.toLocaleString() : metric.value}
                               </div>
                             </div>
                           ))}
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Button variant="outline" size="sm">View Details</Button>
-                    <Button size="sm" className="bg-purple-600 hover:bg-purple-700">Manage</Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
+
+                        <div className="space-y-4">
+                          {group.projects.length === 0 ? (
+                            <div className="rounded-lg border border-dashed border-gray-300 p-6 text-sm text-gray-600">
+                              No projects have been created in this program yet. Use the button above to add one.
+                            </div>
+                          ) : (
+                            group.projects.map((project) => (
+                              <div key={project.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                                <div className="flex items-start justify-between gap-4">
+                                  <div>
+                                    <h4 className="text-base font-semibold text-gray-900">{project.displayName}</h4>
+                                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                                      <Badge variant={
+                                        project.status === 'active' ? 'default' :
+                                        project.status === 'completed' ? 'secondary' : 'outline'
+                                      }>
+                                        {project.status}
+                                      </Badge>
+                                      <span>Created {formatDate(project.createdAt)}</span>
+                                      <span>by {project.createdByName}</span>
+                                      {project.associatedCoPartnerName && (
+                                        <Badge variant="outline" className="text-xs">
+                                          Linked to {project.associatedCoPartnerName}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Button variant="ghost" size="sm">
+                                    <Edit3 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+
+                                <div className="mt-4 border-t pt-4">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleProjectDetails(project.id)}
+                                    className="flex items-center gap-2 mb-3 text-sm font-medium text-gray-700 hover:text-purple-600"
+                                  >
+                                    <School className="h-4 w-4" />
+                                    Participating Institutions ({group.institutions.length})
+                                    {expandedProjects.has(project.id) ? (
+                                      <ChevronUp className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronDown className="h-4 w-4" />
+                                    )}
+                                  </Button>
+
+                                  {expandedProjects.has(project.id) && (
+                                    <div className="space-y-3 max-h-64 overflow-y-auto">
+                                      {group.institutions.map((institution) => (
+                                        <div key={institution.id} className="bg-gray-50 rounded-lg p-3 border">
+                                          <div className="flex justify-between items-start mb-2">
+                                            <div className="flex-1">
+                                              <h4 className="font-medium text-sm text-gray-900">{institution.name}</h4>
+                                              <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                                                <MapPin className="h-3 w-3" />
+                                                <span>
+                                                  {[institution.city, institution.country].filter(Boolean).join(', ')}
+                                                </span>
+                                              </div>
+                                            </div>
+                                            <Badge
+                                              variant={
+                                                institution.status === 'active'
+                                                  ? 'default'
+                                                  : institution.status === 'invited'
+                                                  ? 'outline'
+                                                  : 'secondary'
+                                              }
+                                              className="text-xs capitalize"
+                                            >
+                                              {institution.status}
+                                            </Badge>
+                                          </div>
+
+                                          <div className="grid grid-cols-2 gap-3 mb-2">
+                                            <div className="flex items-center gap-1 text-xs text-gray-600">
+                                              <Users className="h-3 w-3" />
+                                              <span>
+                                                {(institution.teacherCount ?? 0).toLocaleString()} teachers, {(institution.studentCount ?? 0).toLocaleString()} students
+                                              </span>
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                              Joined: {institution.joinedAt ? formatDate(institution.joinedAt) : '—'}
+                                            </div>
+                                          </div>
+
+                                          <div className="flex flex-col gap-1 text-xs text-gray-600">
+                                            {institution.contactEmail && (
+                                              <div className="flex items-center gap-1">
+                                                <Mail className="h-3 w-3" />
+                                                <a
+                                                  href={`mailto:${institution.contactEmail}`}
+                                                  className="font-medium text-purple-600 hover:text-purple-700"
+                                                >
+                                                  {institution.contactEmail}
+                                                </a>
+                                              </div>
+                                            )}
+                                            {institution.contactPhone && (
+                                              <div className="flex items-center gap-1">
+                                                <Phone className="h-3 w-3" />
+                                                <span>{institution.contactPhone}</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })
+              )}
+
+            </TabsContent>
 
             </Tabs>
           </div>

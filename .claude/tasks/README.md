@@ -1,8 +1,10 @@
 # Class2Class Partner Platform - Implementation Documentation
 
-**Last Updated:** October 7, 2025, 11:00 AM
+**Last Updated:** October 7, 2025, 1:30 PM
 **Project Type:** 🎨 UI/UX Prototype (localStorage-based)
 **Timeline:** 7-10 weeks for prototype completion
+
+> **Prototype Team Reminder:** This folder guides our UI/UX prototype work. Keep focusing on localStorage-powered flows; the production backend specs live here for future engineers only.
 
 ---
 
@@ -483,4 +485,3 @@ Partner (Save the Children)
 **Status:** ✅ Ready for Review
 **Next Milestone:** Phase 0 Week 1 Complete
 **Owner:** Engineering Team
-
