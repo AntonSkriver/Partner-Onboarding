@@ -36,6 +36,7 @@ interface UsePrototypeDbResult {
     coordinatorsForProgram: (programId: string) => CountryCoordinator[]
     institutionsForProgram: (programId: string) => EducationalInstitution[]
     teachersForProgram: (programId: string) => InstitutionTeacher[]
+    templatesForProgram: (programId: string) => PrototypeDatabase['programTemplates']
     invitationsForProgram: (programId: string, invitationType?: ProgramInvitation['invitationType']) => ProgramInvitation[]
   }
 }
@@ -129,6 +130,7 @@ export function usePrototypeDb(): UsePrototypeDbResult {
     const institutions = database?.institutions ?? []
     const teachers = database?.institutionTeachers ?? []
     const invitations = database?.invitations ?? []
+    const templates = database?.programTemplates ?? []
 
     return {
       programsForPartner: (partnerId: string) =>
@@ -146,6 +148,8 @@ export function usePrototypeDb(): UsePrototypeDbResult {
         institutions.filter((institution) => institution.programId === programId),
       teachersForProgram: (programId: string) =>
         teachers.filter((teacher) => teacher.programId === programId),
+      templatesForProgram: (programId: string) =>
+        templates.filter((template) => template.programId === programId),
       invitationsForProgram: (programId: string, invitationType?: ProgramInvitation['invitationType']) =>
         invitations.filter((invitation) => {
           if (invitation.programId !== programId) return false

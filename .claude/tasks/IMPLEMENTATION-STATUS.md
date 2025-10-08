@@ -50,6 +50,12 @@
 
 ### October 7, 2025
 
+#### 4:30 PM - Program Template Hierarchy Clarified ✅
+
+- ✅ Documented the program → template → teacher project relationship so every surface (partner dashboard, Discover, classroom view) reads from the same dataset.
+- ✅ Added `display_title`, supporting-partner fields, and template linkage (`template_id`) to the schema reference.
+- 🔄 Next: Extend prototype selectors to expose program cards and template metrics for both partner and teacher experiences.
+
 #### 3:45 PM - Program Builder Writes to Prototype Store ✅
 
 - ✅ Added `/partner/programs/create` multi-section form with Zod/RHF validation

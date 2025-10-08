@@ -467,31 +467,49 @@ export function PartnerProfileDashboard({
             </Card>
           ) : programSummaries.length > 0 ? (
             <div className="grid gap-4">
-              {programSummaries.map(({ program, institutions, metrics }) => {
+              {programSummaries.map(({ program, institutions, metrics, coPartners }) => {
                 const isExpanded = expandedPrograms.has(program.id)
                 const visibleInstitutions = isExpanded ? institutions : institutions.slice(0, 2)
+                const supportingPartner = program.supportingPartnerId
+                  ? coPartners.find(
+                      ({ relationship }) => relationship.partnerId === program.supportingPartnerId,
+                    )?.partner
+                  : undefined
 
                 return (
                   <Card key={program.id} className="hover:shadow-lg transition-shadow">
                     <CardContent className="space-y-6 p-6">
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-lg text-gray-900">{program.name}</h3>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="font-semibold text-lg text-gray-900">
+                              {program.displayTitle ?? program.name}
+                            </h3>
                             <Badge variant="outline" className="capitalize">
                               {program.status}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-600">{program.description}</p>
+                          {program.displayTitle && program.displayTitle !== program.name && (
+                            <p className="text-xs text-gray-500">{program.name}</p>
+                          )}
+                          <p className="text-sm text-gray-600">
+                            {program.marketingTagline ?? program.description}
+                          </p>
                           <div className="flex flex-wrap gap-2 text-xs text-gray-500">
                             {program.projectTypes.map((type) => (
                               <Badge key={type} variant="secondary" className="bg-purple-50 text-purple-700">
                                 {type.replace(/_/g, ' ')}
                               </Badge>
                             ))}
+                            {supportingPartner && (
+                              <Badge variant="outline" className="border-purple-200 text-purple-700">
+                                {program.supportingPartnerRole === 'sponsor' ? 'Sponsor' : 'Co-host'}:{' '}
+                                {supportingPartner.organizationName}
+                              </Badge>
+                            )}
                           </div>
                         </div>
-                        <div className="text-sm text-gray-500 text-left md:text-right">
+                        <div className="space-y-1 text-sm text-gray-500 text-left md:text-right">
                           <div className="font-medium text-gray-700">
                             {formatDate(program.startDate)} – {formatDate(program.endDate)}
                           </div>
@@ -499,10 +517,13 @@ export function PartnerProfileDashboard({
                             {metrics.countries.length} countr{metrics.countries.length === 1 ? 'y' : 'ies'} •{' '}
                             {metrics.teacherCount} teacher{metrics.teacherCount === 1 ? '' : 's'}
                           </div>
+                          <div>
+                            Templates {metrics.templateCount} • Active projects {metrics.activeProjectCount}
+                          </div>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
                         <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
                           <div className="text-xs font-medium text-gray-500 uppercase">Co-Partners</div>
                           <div className="mt-1 text-lg font-semibold text-gray-900">
@@ -522,9 +543,39 @@ export function PartnerProfileDashboard({
                           </div>
                         </div>
                         <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                          <div className="text-xs font-medium text-gray-500 uppercase">Teachers</div>
+                          <div className="mt-1 text-lg font-semibold text-gray-900">
+                            {metrics.teacherCount}
+                          </div>
+                        </div>
+                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
                           <div className="text-xs font-medium text-gray-500 uppercase">Students (est.)</div>
                           <div className="mt-1 text-lg font-semibold text-gray-900">
                             {metrics.studentCount.toLocaleString()}
+                          </div>
+                        </div>
+                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                          <div className="text-xs font-medium text-gray-500 uppercase">Active projects</div>
+                          <div className="mt-1 text-lg font-semibold text-gray-900">
+                            {metrics.activeProjectCount}
+                          </div>
+                        </div>
+                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                          <div className="text-xs font-medium text-gray-500 uppercase">Templates</div>
+                          <div className="mt-1 text-lg font-semibold text-gray-900">
+                            {metrics.templateCount}
+                          </div>
+                        </div>
+                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                          <div className="text-xs font-medium text-gray-500 uppercase">Pending invites</div>
+                          <div className="mt-1 text-lg font-semibold text-gray-900">
+                            {metrics.pendingInvitations}
+                          </div>
+                        </div>
+                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
+                          <div className="text-xs font-medium text-gray-500 uppercase">Countries</div>
+                          <div className="mt-1 text-lg font-semibold text-gray-900">
+                            {metrics.countries.length}
                           </div>
                         </div>
                       </div>

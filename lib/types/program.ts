@@ -5,8 +5,12 @@
 export interface Program {
   id: string;
   partnerId: string; // The partner who created this program
+  displayTitle: string; // Marketing-friendly name (e.g. "Save the Children x LEGO: Build the Change")
   name: string;
+  marketingTagline?: string;
   description: string;
+  supportingPartnerId?: string; // Optional highlighted co-host or sponsor
+  supportingPartnerRole?: 'co_host' | 'sponsor';
 
   // Program Configuration
   projectTypes: ProjectType[];
@@ -220,8 +224,27 @@ export interface ProgramProject {
 
   // Status
   status: 'draft' | 'active' | 'completed' | 'archived';
+  coverImageUrl?: string;
+  templateId?: string; // Template the classroom project originated from
 
   // Metadata
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProgramProjectTemplate {
+  id: string;
+  programId: string;
+  title: string;
+  summary: string;
+  heroImageUrl?: string;
+  estimatedDurationWeeks?: number;
+  recommendedStartMonth?: string;
+  subjectFocus: string[];
+  sdgAlignment: number[];
+  requiredMaterials?: string[];
+  languageSupport: string[];
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }

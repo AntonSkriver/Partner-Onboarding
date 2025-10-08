@@ -47,7 +47,7 @@ export default function PartnerProfilePage() {
       // In a real implementation, you'd get the organization ID from the user session
       const sampleOrg: Organization = {
         id: 'demo-org-id',
-        name: 'UNICEF Danmark',
+        name: 'UNICEF Learning Lab',
         organization_type: 'ngo',
         website: 'https://unicef.dk',
         logo: null,
@@ -69,8 +69,8 @@ export default function PartnerProfilePage() {
           }
         ],
         regions_of_operation: ['Europe', 'Africa', 'Asia-Pacific'],
-        countries_of_operation: ['Denmark', 'Kenya', 'Philippines', 'Germany', 'Brazil', 'Finland'],
-        languages: ['Danish', 'English', 'Portuguese', 'German', 'Swahili'],
+        countries_of_operation: ['Denmark', 'Mexico', 'Italy', 'Germany', 'Brazil', 'Finland'],
+        languages: ['Danish', 'English', 'Spanish', 'Italian'],
         sdg_tags: ['4', '10', '16', '17'],
         thematic_tags: ['Children\'s Rights', 'Global Citizenship', 'Cultural Exchange', 'Human Rights Education'],
         verification_status: 'verified',

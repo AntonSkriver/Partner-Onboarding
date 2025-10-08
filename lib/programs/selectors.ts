@@ -10,6 +10,7 @@ import type {
   EducationalInstitution,
   InstitutionTeacher,
   ProgramProject,
+  ProgramProjectTemplate,
   ProgramInvitation,
   ProgramActivity,
 } from '@/lib/types/program'
@@ -24,6 +25,7 @@ export interface ProgramSummary {
   institutions: EducationalInstitution[]
   teachers: InstitutionTeacher[]
   projects: ProgramProject[]
+  templates: ProgramProjectTemplate[]
   invitations: ProgramInvitation[]
   activities: ProgramActivity[]
   metrics: ProgramSummaryMetrics
@@ -37,6 +39,8 @@ export interface ProgramSummaryMetrics {
   coordinatorCount: number
   coPartnerCount: number
   projectCount: number
+  activeProjectCount: number
+  templateCount: number
   pendingInvitations: number
   countries: string[]
 }
@@ -50,8 +54,35 @@ export interface PartnerProgramMetrics {
   teachers: number
   students: number
   projects: number
+  activeProjects: number
+  templates: number
   pendingInvitations: number
   countryCount: number
+}
+
+export interface ProgramCatalogItem {
+  programId: string
+  name: string
+  displayTitle: string
+  marketingTagline?: string
+  description: string
+  status: Program['status']
+  isPublic: boolean
+  hostPartner?: StoredPartner
+  supportingPartner?: StoredPartner
+  supportingRole?: 'co_host' | 'sponsor'
+  coverImageUrl?: string
+  brandColor?: string
+  sdgFocus: number[]
+  startMonthLabel?: string
+  metrics: {
+    templates: number
+    activeProjects: number
+    institutions: number
+    countries: number
+    students: number
+  }
+  templates: ProgramProjectTemplate[]
 }
 
 interface ProgramSummaryOptions {
@@ -65,6 +96,7 @@ const computeMetrics = (
   institutions: EducationalInstitution[],
   teachers: InstitutionTeacher[],
   projects: ProgramProject[],
+  templates: ProgramProjectTemplate[],
   invitations: ProgramInvitation[],
 ): ProgramSummaryMetrics => {
   const acceptedCoPartners = coPartners.filter(
@@ -99,6 +131,8 @@ const computeMetrics = (
     coordinatorCount: coordinators.length,
     coPartnerCount: acceptedCoPartners.length,
     projectCount: projects.length,
+    activeProjectCount: projects.filter((project) => project.status === 'active').length,
+    templateCount: templates.length,
     pendingInvitations,
     countries: Array.from(countries),
   }
@@ -165,6 +199,10 @@ export const buildProgramSummary = (
     (project) => project.programId === program.id,
   )
 
+  const templates = database.programTemplates.filter(
+    (template) => template.programId === program.id,
+  )
+
   const invitations = database.invitations.filter(
     (invitation) => invitation.programId === program.id,
   )
@@ -180,6 +218,7 @@ export const buildProgramSummary = (
     institutions,
     teachers,
     projects,
+    templates,
     invitations,
     activities,
     metrics: computeMetrics(
@@ -189,6 +228,7 @@ export const buildProgramSummary = (
       institutions,
       teachers,
       projects,
+      templates,
       invitations,
     ),
   }
@@ -225,6 +265,8 @@ export const aggregateProgramMetrics = (
       teachers: 0,
       students: 0,
       projects: 0,
+      activeProjects: 0,
+      templates: 0,
       pendingInvitations: 0,
       countryCount: 0,
     }
@@ -237,6 +279,8 @@ export const aggregateProgramMetrics = (
   let teachers = 0
   let students = 0
   let projects = 0
+  let activeProjects = 0
+  let templates = 0
   let pendingInvitations = 0
 
   for (const summary of summaries) {
@@ -246,6 +290,8 @@ export const aggregateProgramMetrics = (
     teachers += summary.metrics.teacherCount
     students += summary.metrics.studentCount
     projects += summary.metrics.projectCount
+    activeProjects += summary.metrics.activeProjectCount
+    templates += summary.metrics.templateCount
     pendingInvitations += summary.metrics.pendingInvitations
 
     summary.metrics.countries.forEach((country) => countries.add(country))
@@ -264,9 +310,102 @@ export const aggregateProgramMetrics = (
     teachers,
     students,
     projects,
+    activeProjects,
+    templates,
     pendingInvitations,
     countryCount: countries.size,
   }
+}
+
+const toMonthLabel = (value?: string): string | undefined => {
+  if (!value) {
+    return undefined
+  }
+
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return undefined
+  }
+
+  const monthOnly = trimmed.replace(/\s+/g, ' ')
+  const capitalised = monthOnly.charAt(0).toUpperCase() + monthOnly.slice(1)
+  return capitalised
+}
+
+const formatMonthFromDate = (isoDate?: string): string | undefined => {
+  if (!isoDate) {
+    return undefined
+  }
+  const date = new Date(isoDate)
+  if (Number.isNaN(date.valueOf())) {
+    return undefined
+  }
+  return new Intl.DateTimeFormat(undefined, { month: 'long' }).format(date)
+}
+
+export const buildProgramCatalog = (
+  database: PrototypeDatabase,
+  options: { includePrivate?: boolean } = {},
+): ProgramCatalogItem[] => {
+  const includePrivate = options.includePrivate ?? false
+  const candidates = includePrivate
+    ? database.programs
+    : database.programs.filter((program) => program.isPublic)
+
+  return candidates.map((program) => {
+    const summary = buildProgramSummary(database, program)
+    const hostRelationship =
+      summary.coPartners.find(({ relationship }) => relationship.role === 'host') ?? null
+    const supportingRelationship = program.supportingPartnerId
+      ? summary.coPartners.find(
+          ({ relationship }) => relationship.partnerId === program.supportingPartnerId,
+        ) ?? null
+      : null
+
+    const hostPartner =
+      hostRelationship?.partner ??
+      database.partners.find((partner) => partner.id === program.partnerId)
+
+    const supportingPartner = supportingRelationship?.partner ?? null
+
+    const coverImageUrl =
+      summary.templates.find((template) => Boolean(template.heroImageUrl))?.heroImageUrl ??
+      program.logo ??
+      hostPartner?.logo ??
+      undefined
+
+    const recommendedMonth = summary.templates.find(
+      (template) => Boolean(template.recommendedStartMonth),
+    )?.recommendedStartMonth
+
+    const startMonthLabel =
+      toMonthLabel(recommendedMonth) ?? formatMonthFromDate(program.startDate) ?? undefined
+
+    return {
+      programId: program.id,
+      name: program.name,
+      displayTitle: program.displayTitle ?? program.name,
+      marketingTagline: program.marketingTagline,
+      description: program.description,
+      status: program.status,
+      isPublic: program.isPublic,
+      hostPartner: hostPartner ?? undefined,
+      supportingPartner: supportingPartner ?? undefined,
+      supportingRole: program.supportingPartnerRole,
+      coverImageUrl,
+      brandColor: program.brandColor,
+      sdgFocus: program.sdgFocus,
+      startMonthLabel,
+      metrics: {
+        templates: summary.metrics.templateCount,
+        activeProjects: summary.metrics.activeProjectCount,
+        institutions: summary.metrics.institutionCount,
+        countries: summary.metrics.countries.length,
+        students: summary.metrics.studentCount,
+      },
+      templates: summary.templates,
+    }
+  })
 }
 
 export const cascadeDeleteProgram = (
@@ -304,6 +443,12 @@ export const cascadeDeleteProgram = (
     [
       'programProjects',
       database.programProjects
+        .filter((record) => record.programId === programId)
+        .map((record) => record.id),
+    ],
+    [
+      'programTemplates',
+      database.programTemplates
         .filter((record) => record.programId === programId)
         .map((record) => record.id),
     ],

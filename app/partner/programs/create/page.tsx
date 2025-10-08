@@ -128,8 +128,11 @@ export default function CreateProgramPage() {
 
     try {
       const now = new Date().toISOString()
+      const hostName = partnerRecord?.organizationName ?? 'Program Host'
+      const displayTitle = `${hostName}: ${values.name}`
       const programRecord = createRecord('programs', {
         partnerId,
+        displayTitle,
         name: values.name,
         description: values.description,
         projectTypes: values.projectTypes,

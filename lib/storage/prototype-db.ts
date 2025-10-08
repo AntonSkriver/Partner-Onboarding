@@ -9,12 +9,13 @@ import type {
   EducationalInstitution,
   InstitutionTeacher,
   ProgramProject,
+  ProgramProjectTemplate,
   ProgramInvitation,
   ProgramActivity,
 } from '@/lib/types/program'
 
 // Local storage key – bump version when we need to invalidate older seeds
-export const PROTOTYPE_STORAGE_KEY = 'class2class_prototype_db_v1'
+export const PROTOTYPE_STORAGE_KEY = 'class2class_prototype_db_v4'
 
 export type StoredPartner = Omit<Partner, 'createdAt' | 'updatedAt'> & {
   createdAt: string
@@ -35,6 +36,7 @@ type PrototypeTables = {
   institutions: EducationalInstitution[]
   institutionTeachers: InstitutionTeacher[]
   programProjects: ProgramProject[]
+  programTemplates: ProgramProjectTemplate[]
   invitations: ProgramInvitation[]
   activities: ProgramActivity[]
 }
@@ -59,10 +61,11 @@ const DEFAULT_DB: PrototypeDatabase = {
   institutions: [],
   institutionTeachers: [],
   programProjects: [],
+  programTemplates: [],
   invitations: [],
   activities: [],
   metadata: {
-    version: 1,
+    version: 4,
     seededAt: null,
   },
 }

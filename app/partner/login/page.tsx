@@ -4,16 +4,16 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
-import { Eye, EyeOff, Building, ArrowRight, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createSession, clearSession } from '@/lib/auth/session'
+import { resetPrototypeDb } from '@/lib/storage/prototype-db'
+import { seedPrototypeDb } from '@/lib/storage/seeds'
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -25,6 +25,8 @@ type LoginData = z.infer<typeof loginSchema>
 export default function PartnerLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isDemoLoading, setIsDemoLoading] = useState<'partner' | 'school' | null>(null)
+  const [isResetting, setIsResetting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
@@ -81,170 +83,230 @@ export default function PartnerLoginPage() {
     }
   }
 
+  const handleDemoLogin = async (mode: 'partner' | 'school') => {
+    setIsDemoLoading(mode)
+    setError(null)
+    clearSession()
+
+    if (mode === 'partner') {
+      createSession({
+        email: 'demo.partner@class2class.org',
+        role: 'partner',
+        organization: 'UNICEF Learning Lab',
+        name: 'UNICEF Communities Lead',
+      })
+      router.push('/partner/profile')
+    } else {
+      createSession({
+        email: 'demo.school@class2class.org',
+        role: 'teacher',
+        organization: 'Global Classroom Lab',
+        name: 'Demo Teacher',
+      })
+      router.push('/discover')
+    }
+
+    setIsDemoLoading(null)
+  }
+
+  const handleResetPrototype = () => {
+    setIsResetting(true)
+    try {
+      resetPrototypeDb()
+      seedPrototypeDb({ force: true })
+      window.location.reload()
+    } finally {
+      setIsResetting(false)
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="world-map-bg"></div>
-      </div>
-      
-      {/* Header */}
-      <div className="relative z-10">
-        <div className="flex items-center justify-start p-4 max-w-6xl mx-auto">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-10 h-10 bg-purple-700 rounded-full flex items-center justify-center border border-white border-opacity-30">
-              <span className="text-white text-sm font-bold">C2C</span>
+    <div className="min-h-screen bg-white lg:grid lg:grid-cols-2">
+      <div className="flex flex-col px-6 py-8 sm:px-10 lg:px-16">
+        <header className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 text-purple-700 hover:text-purple-900 transition">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-purple-200 bg-purple-100 text-sm font-semibold">
+              C2C
             </div>
-            <span className="font-semibold text-white text-lg">Class2Class</span>
+            <span className="text-lg font-semibold">Class2Class</span>
           </Link>
-        </div>
-      </div>
+        </header>
 
-      {/* Main Content */}
-      <div className="relative z-10 flex items-center justify-center px-4 py-8">
-        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
-          <CardHeader className="text-center pb-4">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Building className="h-8 w-8 text-purple-600" />
+        <main className="flex flex-1 items-center">
+          <div className="w-full max-w-md">
+            <h1 className="text-3xl font-semibold text-gray-900">Partner login</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Sign in to manage programs, invitations, and school partnerships across your network.
+            </p>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <Button
+                variant="outline"
+                className="h-12 border border-purple-200 bg-white text-purple-700 hover:bg-purple-50"
+                onClick={() => handleDemoLogin('partner')}
+                disabled={Boolean(isDemoLoading)}
+              >
+                {isDemoLoading === 'partner' ? 'Loading...' : 'Continue as Partner'}
+              </Button>
+              <Button
+                variant="outline"
+                className="h-12 border-gray-200 text-gray-700 hover:text-purple-700"
+                onClick={() => handleDemoLogin('school')}
+                disabled={Boolean(isDemoLoading)}
+              >
+                {isDemoLoading === 'school' ? 'Loading...' : 'Continue as School'}
+              </Button>
             </div>
-            <CardTitle className="text-2xl font-bold text-gray-900">Partner Login</CardTitle>
-            <CardDescription className="text-gray-600">
-              Access your organization&apos;s dashboard and manage your partnerships
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
 
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email Address</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="partner@youorganization.org"
-                          type="email"
-                          className="h-12"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <div className="mt-8 space-y-5">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <div className="relative">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email address</FormLabel>
+                        <FormControl>
                           <Input
-                            placeholder="Enter your password"
-                            type={showPassword ? "text" : "password"}
-                            className="h-12 pr-12"
+                            type="email"
+                            autoComplete="email"
+                            placeholder="you@organization.org"
+                            className="h-12"
                             {...field}
                           />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4 text-gray-400" />
-                            ) : (
-                              <Eye className="h-4 w-4 text-gray-400" />
-                            )}
-                          </Button>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Password</FormLabel>
+                          <Link href="#" className="text-xs text-purple-600 hover:text-purple-700">
+                            Forgot password?
+                          </Link>
                         </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              type={showPassword ? 'text' : 'password'}
+                              autoComplete="current-password"
+                              placeholder="Enter your password"
+                              className="h-12 pr-12"
+                              {...field}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-0 top-0 h-full px-3 text-gray-500 hover:bg-transparent"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
+                  <Button
+                    type="submit"
+                    className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-semibold"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Signing in...
+                      </>
+                    ) : (
+                      'Sign in'
+                    )}
+                  </Button>
+                </form>
+              </Form>
+
+              <div className="grid gap-3 text-sm text-gray-600 sm:grid-cols-2">
+                <Button asChild variant="ghost" className="justify-start px-0 text-purple-600 hover:text-purple-700">
+                  <Link href="/partner/onboarding">Sign up as Partner</Link>
+                </Button>
+                <Button asChild variant="ghost" className="justify-start px-0 text-gray-700 hover:text-purple-700">
+                  <Link href="/school/onboarding">Sign up as School</Link>
+                </Button>
+              </div>
+
+              <div className="text-sm text-gray-500">
+                Looking for teacher or student access?{' '}
+                <Link href="/sign-in" className="text-purple-600 hover:text-purple-700">
+                  Use the main login
+                </Link>
+              </div>
+
+              <div className="text-xs text-gray-400">
                 <Button
-                  type="submit"
-                  className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-semibold"
-                  disabled={isLoading}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="px-0 text-gray-500 hover:text-purple-600"
+                  onClick={handleResetPrototype}
+                  disabled={isResetting || Boolean(isDemoLoading) || isLoading}
                 >
-                  {isLoading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Signing in...
-                    </>
-                  ) : (
-                    <>
-                      Sign in to Dashboard
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </>
-                  )}
+                  {isResetting ? 'Resetting data...' : 'Reset prototype data'}
                 </Button>
-              </form>
-            </Form>
-
-            <div className="text-center text-sm text-gray-600">
-              <Link href="#" className="text-purple-600 hover:text-purple-700 hover:underline">
-                Forgot your password?
-              </Link>
-            </div>
-
-            <Separator />
-
-            <div className="text-center space-y-3">
-              <p className="text-sm text-gray-600">
-                Don&apos;t have a partner account?
-              </p>
-              <Link href="/partner/onboarding">
-                <Button variant="outline" className="w-full border-purple-200 text-purple-600 hover:bg-purple-50">
-                  Start Your Partnership
-                </Button>
-              </Link>
-            </div>
-
-            <div className="text-center">
-              <Separator className="mb-3" />
-              <p className="text-xs text-gray-500 mb-3">
-                Looking for teacher or student login?
-              </p>
-              <Link href="/sign-in">
-                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
-                  Go to Main Login
-                </Button>
-              </Link>
-            </div>
-
-            {/* Demo Credentials */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-xs font-medium text-blue-900 mb-2">Demo Credentials:</p>
-              <div className="text-xs text-blue-800 space-y-1">
-                <div><strong>UNICEF Partner:</strong> unicef.partner@demo.org</div>
-                <div><strong>NGO Partner:</strong> ngo.partner@demo.org</div>
-                <div><strong>Password:</strong> demo123</div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </main>
       </div>
 
-      {/* Footer */}
-      <div className="relative z-10 text-center text-white/80 pb-4">
-        <p className="text-sm">
-          © 2025 Class2Class - Connecting Classrooms for a Better World
-        </p>
+      <div className="relative hidden overflow-hidden bg-gradient-to-br from-[#8f5afc] via-[#6d4ce6] to-[#2f2ba5] lg:flex">
+        <div className="absolute inset-0 opacity-30">
+          <div className="h-full w-full bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_transparent_45%)]" />
+        </div>
+        <div className="absolute inset-0 opacity-15">
+          <div className="h-full w-full bg-[radial-gradient(circle_at_bottom,_rgba(255,255,255,0.25),_transparent_50%)]" />
+        </div>
+        <div className="relative z-10 flex w-full flex-col justify-between p-12 text-white">
+          <div className="space-y-4">
+            <p className="text-xs uppercase tracking-[0.35em] text-white/70">Global partner network</p>
+            <h2 className="text-3xl font-semibold leading-snug">
+              Build meaningful collaborations and bring cross-cultural learning to every classroom you support.
+            </h2>
+          </div>
+
+          <div className="mt-auto">
+            <div className="rounded-2xl bg-white/15 p-6 backdrop-blur-sm">
+              <p className="text-sm leading-relaxed text-white/90">
+                “Working with Class2Class has given our organisation a clear view of how schools progress together.
+                The platform keeps every stakeholder aligned—from coordinators to teachers.”
+              </p>
+              <div className="mt-4">
+                <p className="text-sm font-semibold text-white">Maria Jensen</p>
+                <p className="text-xs uppercase tracking-wide text-white/70">Program Director · UNICEF Denmark</p>
+              </div>
+              <div className="mt-6 flex items-center gap-2 text-white/40">
+                <span className="h-2 w-2 rounded-full bg-white" />
+                <span className="h-2 w-2 rounded-full bg-white/40" />
+                <span className="h-2 w-2 rounded-full bg-white/40" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

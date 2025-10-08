@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -17,6 +17,9 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { ProgramCatalogCard } from '@/components/program/program-catalog-card'
+import { usePrototypeDb } from '@/hooks/use-prototype-db'
+import { buildProgramCatalog } from '@/lib/programs/selectors'
 
 // Mock data for tabs
 const mockProjects = {
@@ -60,77 +63,21 @@ const mockProjects = {
   }))
 }
 
-// Partner projects data - moved from /projects page
-const partnerProjects = [
-  {
-    id: 1,
-    title: "Safe Communities for Children",
-    subtitle: "Ensuring Every Child Feels Heard and Has a Voice",
-    partner: "UNICEF Denmark",
-    partnerLogo: "https://logo.clearbit.com/unicef.org",
-    description: "Students collaborate globally to explore child rights and create safer community spaces through peer-to-peer learning.",
-    image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=500&h=300&fit=crop",
-    stats: {
-      schools: 47,
-      countries: 15,
-      students: 1247,
-      teachers: 89,
-      progress: 68
-    },
-    sdgs: [3, 4, 10, 16, 17],
-    status: "active",
-    startMonth: "September"
-  },
-  {
-    id: 2,
-    title: "LEGO Build the Change",
-    partner: "LEGO Education",
-    partnerLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/LEGO_logo.svg/200px-LEGO_logo.svg.png",
-    description: "Students design and build sustainable city models using LEGO, exploring urban planning, renewable energy, and environmental solutions.",
-    image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=500&h=300&fit=crop",
-    stats: { schools: 28, countries: 10, students: 742 },
-    sdgs: [11, 7, 13],
-    status: "active",
-    progress: 62,
-    startMonth: "October"
-  },
-  {
-    id: 3,
-    title: "Digital Innovation Labs",
-    partner: "Microsoft Education", 
-    partnerLogo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/200px-Microsoft_logo.svg.png",
-    description: "Cross-cultural tech projects fostering digital literacy and innovation.",
-    image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=500&h=300&fit=crop",
-    stats: { schools: 28, countries: 9, students: 672 },
-    sdgs: [4, 8, 9],
-    status: "planning",
-    progress: 15,
-    startMonth: "November"
-  },
-  {
-    id: 4,
-    title: "Global Peace Builders",
-    partner: "UNESCO",
-    partnerLogo: "https://logo.clearbit.com/unesco.org", 
-    description: "Youth-led peace initiatives connecting diverse communities worldwide.",
-    image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=500&h=300&fit=crop",
-    stats: { schools: 41, countries: 18, students: 1034 },
-    sdgs: [16, 17],
-    status: "active", 
-    progress: 82,
-    startMonth: "August"
-  }
-]
-
 export default function DiscoverPage() {
   const [activeTab, setActiveTab] = useState('collaboration')
   const [searchQuery, setSearchQuery] = useState('')
+  const { ready: dataReady, database, reset } = usePrototypeDb()
+
+  const programCatalog = useMemo(
+    () => (database ? buildProgramCatalog(database) : []),
+    [database],
+  )
 
   const tabs = [
     { id: 'collaboration', label: 'Open for collaboration', count: 35 },
     { id: 'ideas', label: 'Project Ideas', count: 87 },
     { id: 'community', label: 'Community projects', count: 175 },
-    { id: 'partners', label: 'Partner projects', count: partnerProjects.length }
+    { id: 'partners', label: 'Partner programs', count: programCatalog.length }
   ]
 
   const renderTabContent = () => {
@@ -198,72 +145,47 @@ export default function DiscoverPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                <h2 className="text-lg font-semibold text-gray-900">Partner projects</h2>
-              </div>
-              <div className="flex items-center gap-3">
-                <select className="text-sm text-gray-600 border border-gray-300 rounded px-3 py-1">
-                  <option>Newest first</option>
-                  <option>Oldest first</option>
-                </select>
+                <h2 className="text-lg font-semibold text-gray-900">Partner programs</h2>
               </div>
             </div>
-            <p className="text-gray-600 text-sm mb-6">
-              Discover projects created by our partner organizations like UNICEF Denmark, WWF, and others.
-            </p>
-            <div className="grid md:grid-cols-3 gap-6">
-              {partnerProjects.map((project) => (
-                <Card key={project.id} className="hover:shadow-lg transition-shadow flex flex-col">
-                  <div className="relative h-40 overflow-hidden rounded-t-lg">
-                    <Image 
-                      src={project.image} 
-                      alt={project.title}
-                      width={500}
-                      height={300}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <CardHeader className="pb-2 flex-shrink-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Image 
-                        src={project.partnerLogo} 
-                        alt="Partner Logo" 
-                        width={24}
-                        height={24}
-                        className="w-6 h-6 rounded"
-                      />
-                      <span className="text-xs text-gray-600">{project.partner}</span>
-                    </div>
-                    <div className="text-xs text-purple-600 font-medium mb-1">
-                      Starting Month: {project.startMonth}
-                    </div>
-                    <CardTitle className="text-lg leading-tight">{project.title}</CardTitle>
-                    {project.subtitle && (
-                      <CardDescription className="text-sm text-gray-600">
-                        {project.subtitle}
-                      </CardDescription>
-                    )}
-                  </CardHeader>
-                  <CardContent className="flex-grow flex flex-col">
-                    <p className="text-sm text-gray-700 mb-4 flex-grow">{project.description}</p>
-                    <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-                      <span>{project.stats.schools} schools</span>
-                      <span>{project.stats.countries} countries</span>
-                      <span>{project.stats.students} students</span>
-                    </div>
-                    <div className="flex gap-2 mt-auto">
-                      <Button variant="outline" className="flex-1">
-                        View Details
+            <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <p className="text-gray-600 text-sm">
+                Explore signature programs crafted by partner organisations. Each program includes templates and real classroom projects you can adapt.
+              </p>
+              <Button
+                variant="ghost"
+                className="self-start text-sm text-purple-600 hover:text-purple-700"
+                onClick={() => reset()}
+                disabled={!dataReady}
+              >
+                Reset demo data
+              </Button>
+            </div>
+            {!dataReady ? (
+              <div className="flex items-center justify-center py-12 text-sm text-gray-500">
+                Loading partner programs…
+              </div>
+            ) : programCatalog.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-6 text-center text-sm text-purple-800">
+                No partner programs are published yet. Check back soon to see new collaborative offerings.
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-3">
+                {programCatalog.map((item) => (
+                  <ProgramCatalogCard
+                    key={item.programId}
+                    item={item}
+                    actions={
+                      <Button variant="outline" className="w-full" asChild>
+                        <Link href={`/discover/programs/${item.programId}`}>
+                          View details
+                        </Link>
                       </Button>
-                      <Link href="/school/onboarding" className="flex-1">
-                        <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-                          Join Project
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    }
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )
       

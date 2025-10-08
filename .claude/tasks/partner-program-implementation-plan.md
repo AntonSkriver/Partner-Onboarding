@@ -74,9 +74,13 @@ This implementation plan details the technical approach to build a multi-layered
 interface Program {
   id: string                          // UUID
   partner_id: string                  // FK to partners
+  display_title: string               // Marketing-ready title e.g. "Save the Children x LEGO: Build the Change"
   name: string
+  marketing_tagline?: string          // Optional hero copy for Discover cards
   description: text
   logo_url?: string
+  supporting_partner_id?: string      // Optional single co-host or sponsor partner FK
+  supporting_partner_role?: string    // 'co_host' | 'sponsor' (prototype keeps it simple with at most one)
 
   // Learning Framework
   project_types: string[]             // ['explore_cultures', 'explore_challenges', 'create_solutions']
@@ -259,6 +263,7 @@ interface ProgramProject {
   id: string
   program_id: string                  // FK to programs
   project_id: string                  // FK to projects (existing table)
+  template_id: string                 // FK to program_project_templates (ties teacher projects back to the template)
 
   created_by: string                  // 'partner' | 'coordinator' | 'teacher'
   created_by_id: string               // FK to respective user type
@@ -266,6 +271,24 @@ interface ProgramProject {
   status: string                      // 'draft' | 'active' | 'completed'
 
   created_at: timestamp
+}
+
+// program_project_templates (templates offered by a program)
+interface ProgramProjectTemplate {
+  id: string
+  program_id: string                  // FK to programs
+  title: string                       // e.g. "Cities of Change"
+  summary: text
+  hero_image_url?: string
+  estimated_duration_weeks: number
+  recommended_start_month?: string
+  subject_focus: string[]             // ['civics', 'stem']
+  sdg_alignment: number[]             // Mirrors program SDGs but can narrow
+  required_materials?: string[]
+  language_support: string[]          // Languages available in template assets
+  created_at: timestamp
+  updated_at: timestamp
+  is_active: boolean
 }
 
 // partner_users (enhances existing structure)
@@ -304,6 +327,13 @@ interface PartnerUser {
   updated_at: timestamp
 }
 ```
+
+#### Program → Template → Teacher Project Alignment
+
+- **Single source of truth:** Partners craft a `Program` with one highlighted supporting partner (co-host or sponsor). The UI composes the hero label (e.g., “Save the Children x LEGO: Build the Change”) from the `display_title`, ensuring branding matches across partner dashboards and Discover.
+- **Template library:** Each program maintains a curated set of `ProgramProjectTemplate` records. Templates carry the instructional scaffold and marketing copy teachers see when browsing Discover.
+- **Teacher projects:** When a teacher launches the experience, the resulting classroom project keeps pointers to both the owning program and the originating template via `program_projects.template_id`. Metrics (active classrooms, participating schools) roll back up to the program automatically.
+- **Shared selectors:** Both the partner Programs tab and the Discover > Programs view should query the same aggregated selector so edits partners make (renaming a template, swapping imagery) propagate instantly to teacher-facing surfaces—no duplicate data shaping.
 
 **Database Migration Strategy:**
 1. Create new tables in Supabase (use migrations for version control)

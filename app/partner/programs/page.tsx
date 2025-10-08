@@ -3,31 +3,23 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import {
-  CalendarDays,
-  Flag,
-  Globe2,
-  Layers,
-  Mail,
-  MapPin,
-  School,
-  Trash2,
-  Users,
-} from 'lucide-react'
+import { CalendarDays, Flag, Globe2, Trash2, Users } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { ProgramCatalogCard } from '@/components/program/program-catalog-card'
 
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import { getCurrentSession } from '@/lib/auth/session'
 import { resolvePartnerContext } from '@/lib/auth/partner-context'
 import {
-  aggregateProgramMetrics,
   buildProgramSummariesForPartner,
+  buildProgramCatalog,
   cascadeDeleteProgram,
   type ProgramSummary,
+  type ProgramCatalogItem,
 } from '@/lib/programs/selectors'
 
 const formatDate = (date: string) => {
@@ -85,10 +77,14 @@ export default function ProgramsIndexPage() {
     })
   }, [database, partnerId])
 
-  const metrics = useMemo(
-    () => aggregateProgramMetrics(programSummaries),
-    [programSummaries],
-  )
+  const catalogByProgramId = useMemo(() => {
+    if (!database) return new Map<string, ProgramCatalogItem>()
+    const entries = buildProgramCatalog(database, { includePrivate: true }).map((item) => [
+      item.programId,
+      item,
+    ] as const)
+    return new Map(entries)
+  }, [database])
 
   const handleDeleteProgram = (programId: string) => {
     if (!database) return
@@ -120,23 +116,6 @@ export default function ProgramsIndexPage() {
     )
   }
 
-  const keyMetrics = [
-    { id: 'programs', label: 'Programs', value: metrics.totalPrograms, icon: Layers },
-    { id: 'active-programs', label: 'Active Programs', value: metrics.activePrograms, icon: Flag },
-    { id: 'co-partners', label: 'Co-Partners', value: metrics.coPartners, icon: Users },
-    { id: 'coordinators', label: 'Coordinators', value: metrics.coordinators, icon: MapPin },
-    { id: 'institutions', label: 'Institutions', value: metrics.institutions, icon: School },
-    { id: 'teachers', label: 'Teachers', value: metrics.teachers, icon: Users },
-    { id: 'students', label: 'Students (est.)', value: metrics.students, icon: Users },
-    { id: 'countries', label: 'Countries', value: metrics.countryCount, icon: Globe2 },
-    {
-      id: 'pending-invitations',
-      label: 'Pending Invitations',
-      value: metrics.pendingInvitations,
-      icon: Mail,
-    },
-  ]
-
   return (
     <div className="min-h-screen bg-gray-50 py-10">
       <div className="max-w-6xl mx-auto px-4 space-y-8">
@@ -162,39 +141,6 @@ export default function ProgramsIndexPage() {
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Program Metrics</CardTitle>
-            <CardDescription>
-              Snapshot of your program ecosystem across coordinators, institutions, and partner
-              invitations.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {keyMetrics.map((metric) => {
-                const Icon = metric.icon
-                return (
-                  <div
-                    key={metric.id}
-                    className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-gray-500">{metric.label}</p>
-                      <Icon className="h-4 w-4 text-purple-500" />
-                    </div>
-                    <p className="mt-2 text-2xl font-semibold text-gray-900">
-                      {typeof metric.value === 'number'
-                        ? metric.value.toLocaleString()
-                        : metric.value}
-                    </p>
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
         {programSummaries.length === 0 ? (
           <Card className="border-dashed border-purple-200 bg-purple-50/60">
             <CardHeader className="text-center space-y-3">
@@ -217,6 +163,7 @@ export default function ProgramsIndexPage() {
               <ProgramCard
                 key={summary.program.id}
                 summary={summary}
+                catalogItem={catalogByProgramId.get(summary.program.id)}
                 onDelete={handleDeleteProgram}
                 deletingProgramId={deletingProgramId}
               />
@@ -230,15 +177,22 @@ export default function ProgramsIndexPage() {
 
 interface ProgramCardProps {
   summary: ProgramSummary
+  catalogItem?: ProgramCatalogItem
   onDelete: (programId: string) => void
   deletingProgramId: string | null
 }
 
-const ProgramCard = ({ summary, onDelete, deletingProgramId }: ProgramCardProps) => {
+const ProgramCard = ({ summary, catalogItem, onDelete, deletingProgramId }: ProgramCardProps) => {
   const { program, metrics } = summary
   const hostPartner = summary.coPartners.find(
     ({ relationship }) => relationship.role === 'host',
   )?.partner
+  const supportingPartner = program.supportingPartnerId
+    ? summary.coPartners.find(
+        ({ relationship }) => relationship.partnerId === program.supportingPartnerId,
+      )?.partner
+    : undefined
+  const marketingCopy = program.marketingTagline ?? program.description
 
   const statusClass =
     statusStyles[program.status] ?? 'bg-gray-100 text-gray-700 border-gray-200'
@@ -247,13 +201,14 @@ const ProgramCard = ({ summary, onDelete, deletingProgramId }: ProgramCardProps)
     <Card>
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-2xl">{program.name}</CardTitle>
+          <div className="flex flex-wrap items-center gap-2">
+            <CardTitle className="text-2xl">{program.displayTitle ?? program.name}</CardTitle>
             <Badge className={statusClass}>{friendly(program.status)}</Badge>
           </div>
-          <CardDescription className="text-base text-gray-700">
-            {program.description}
-          </CardDescription>
+          {program.displayTitle && program.displayTitle !== program.name && (
+            <p className="text-sm text-gray-500">{program.name}</p>
+          )}
+          <CardDescription className="text-base text-gray-700">{marketingCopy}</CardDescription>
           <div className="flex flex-wrap gap-3 text-sm text-gray-600">
             <span className="flex items-center gap-1">
               <CalendarDays className="h-4 w-4 text-purple-500" />
@@ -267,6 +222,19 @@ const ProgramCard = ({ summary, onDelete, deletingProgramId }: ProgramCardProps)
               <span className="flex items-center gap-1">
                 <Users className="h-4 w-4 text-purple-500" />
                 Hosted by {hostPartner.organizationName}
+              </span>
+            )}
+            {supportingPartner && (
+              <span className="flex items-center gap-1">
+                <Globe2 className="h-4 w-4 text-purple-500" />
+                {program.supportingPartnerRole === 'sponsor' ? 'Sponsored by' : 'Co-hosted with'}{' '}
+                {supportingPartner.organizationName}
+              </span>
+            )}
+            {catalogItem?.startMonthLabel && (
+              <span className="flex items-center gap-1">
+                <CalendarDays className="h-4 w-4 text-purple-500" />
+                Teacher launch: {catalogItem.startMonthLabel}
               </span>
             )}
           </div>
@@ -289,18 +257,33 @@ const ProgramCard = ({ summary, onDelete, deletingProgramId }: ProgramCardProps)
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <Metric label="Co-Partners" value={metrics.coPartnerCount} />
           <Metric label="Coordinators" value={metrics.coordinatorCount} />
           <Metric label="Institutions" value={metrics.institutionCount} />
           <Metric label="Teachers" value={metrics.teacherCount} />
           <Metric label="Students (est.)" value={metrics.studentCount.toLocaleString()} />
-          <Metric label="Projects" value={metrics.projectCount} />
+          <Metric label="Active projects" value={metrics.activeProjectCount} />
+          <Metric label="Templates" value={metrics.templateCount} />
+          <Metric label="Total projects" value={metrics.projectCount} />
           <Metric label="Pending invitations" value={metrics.pendingInvitations} />
           <Metric label="Countries" value={metrics.countries.length} />
         </div>
 
         <Separator />
+
+        {catalogItem && (
+          <>
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                Teacher-facing preview
+              </h4>
+              <ProgramCatalogCard item={catalogItem} />
+            </div>
+
+            <Separator />
+          </>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
