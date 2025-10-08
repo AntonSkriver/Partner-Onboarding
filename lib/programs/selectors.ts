@@ -72,6 +72,7 @@ export interface ProgramCatalogItem {
   supportingPartner?: StoredPartner
   supportingRole?: 'co_host' | 'sponsor'
   coverImageUrl?: string
+  logo?: string
   brandColor?: string
   sdgFocus: number[]
   startMonthLabel?: string
@@ -370,8 +371,6 @@ export const buildProgramCatalog = (
 
     const coverImageUrl =
       summary.templates.find((template) => Boolean(template.heroImageUrl))?.heroImageUrl ??
-      program.logo ??
-      hostPartner?.logo ??
       undefined
 
     const recommendedMonth = summary.templates.find(
@@ -393,6 +392,7 @@ export const buildProgramCatalog = (
       supportingPartner: supportingPartner ?? undefined,
       supportingRole: program.supportingPartnerRole,
       coverImageUrl,
+      logo: program.logo,
       brandColor: program.brandColor,
       sdgFocus: program.sdgFocus,
       startMonthLabel,

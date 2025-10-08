@@ -52,7 +52,7 @@ export function ProgramCatalogCard({ item, className, actions }: ProgramCatalogC
   const logoStack = [item.hostPartner, item.supportingPartner].filter(Boolean) as typeof item.hostPartner[]
 
   const stats = [
-    { label: 'Teacher projects', value: item.metrics.activeProjects },
+    { label: 'Open for collaboration', value: item.metrics.activeProjects },
     { label: 'Templates', value: item.metrics.templates },
     { label: 'Countries', value: item.metrics.countries },
   ]
@@ -82,29 +82,39 @@ export function ProgramCatalogCard({ item, className, actions }: ProgramCatalogC
       <CardHeader className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {logoStack.map((partner, index) => (
-              <div
-                key={partner?.id ?? index}
+            {item.logo ? (
+              <Image
+                src={item.logo}
+                alt={`${item.displayTitle} logo`}
+                width={100}
+                height={100}
                 className={cn(
-                  'rounded-full border border-white shadow-sm',
-                  index > 0 && '-ml-2',
+                  'w-auto object-contain',
+                  item.logo.includes('communities-in-focus') ? 'h-9' : 'h-10'
                 )}
-              >
-            {renderPartnerAvatar(
-              partner?.organizationName,
-              partner?.logo,
+              />
+            ) : (
+              <>
+                {logoStack.map((partner, index) => (
+                  <div
+                    key={partner?.id ?? index}
+                    className={cn(
+                      'rounded-full border border-white shadow-sm',
+                      index > 0 && '-ml-2',
+                    )}
+                  >
+                    {renderPartnerAvatar(
+                      partner?.organizationName,
+                      partner?.logo,
+                    )}
+                  </div>
+                ))}
+                <span className="text-xs text-gray-500">
+                  {supportingName ? `${hostName} x ${supportingName}` : hostName}
+                </span>
+              </>
             )}
           </div>
-        ))}
-        <span className="text-xs text-gray-500">
-          {supportingName ? `${hostName} x ${supportingName}` : hostName}
-        </span>
-      </div>
-          {item.startMonthLabel && (
-            <Badge variant="secondary" className="text-xs">
-              Starts {item.startMonthLabel}
-            </Badge>
-          )}
         </div>
 
         <div className="space-y-2">

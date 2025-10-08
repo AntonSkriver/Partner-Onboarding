@@ -222,7 +222,7 @@ export default function DiscoverProgramDetailPage() {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
-            <TabsTrigger value="projects">Teacher projects</TabsTrigger>
+            <TabsTrigger value="projects">Open for collaboration</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6 pt-6">
@@ -318,75 +318,97 @@ export default function DiscoverProgramDetailPage() {
           </TabsContent>
 
           <TabsContent value="templates" className="space-y-6 pt-6">
-            {templates.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center text-sm text-gray-600">
-                  This program hasn&apos;t published reusable templates yet. Once partners add them, they&apos;ll show up here.
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-5 md:grid-cols-2">
-                {templates.map((template) => (
-                  <Card key={template.id} className="flex h-full flex-col border border-purple-100 shadow-sm">
-                    {template.heroImageUrl && (
-                      <div className="relative h-40 w-full overflow-hidden rounded-t-xl">
-                        <Image
-                          src={template.heroImageUrl}
-                          alt={template.title}
-                          fill
-                          sizes="(min-width: 768px) 320px, 100vw"
-                          className="object-cover"
-                        />
-                      </div>
-                    )}
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg text-gray-900">{template.title}</CardTitle>
-                        {template.estimatedDurationWeeks && (
-                          <Badge variant="secondary" className="text-xs">
-                            {template.estimatedDurationWeeks} week{template.estimatedDurationWeeks > 1 ? 's' : ''}
-                          </Badge>
+            <Card>
+              <CardHeader>
+                <CardTitle>Official Programme Templates</CardTitle>
+                <CardDescription>
+                  Curated templates from {hostPartner?.organizationName ?? 'the programme host'} designed to guide classroom activities and learning experiences.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {templates.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-6 text-center text-sm text-purple-800">
+                    This program hasn&apos;t published official templates yet. Once partners add them, they&apos;ll show up here.
+                  </div>
+                ) : (
+                  <div className="grid gap-5 md:grid-cols-2">
+                    {templates.map((template) => (
+                      <Card key={template.id} className="flex h-full flex-col border border-purple-100 shadow-sm">
+                        {template.heroImageUrl && (
+                          <div className="relative h-40 w-full overflow-hidden rounded-t-xl">
+                            <Image
+                              src={template.heroImageUrl}
+                              alt={template.title}
+                              fill
+                              sizes="(min-width: 768px) 320px, 100vw"
+                              className="object-cover"
+                            />
+                          </div>
                         )}
-                      </div>
-                      <CardDescription className="text-sm text-gray-600">
-                        {template.summary}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="mt-auto space-y-3 text-sm text-gray-600">
-                      {template.recommendedStartMonth && (
-                        <div className="flex items-center gap-2">
-                          <CalendarDays className="h-4 w-4 text-purple-500" />
-                          Starts best in {friendlyLabel(template.recommendedStartMonth)}
-                        </div>
-                      )}
-                      <div className="flex flex-wrap gap-2">
-                        {template.subjectFocus.map((subject) => (
-                          <Badge key={subject} variant="outline">
-                            {friendlyLabel(subject)}
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {template.languageSupport.map((language) => (
-                          <Badge key={language} variant="secondary" className="bg-purple-50 text-purple-700">
-                            {language.toUpperCase()}
-                          </Badge>
-                        ))}
-                      </div>
-                      {template.requiredMaterials && template.requiredMaterials.length > 0 && (
-                        <div className="text-xs text-gray-500">
-                          <span className="font-medium text-gray-600">Materials: </span>
-                          {template.requiredMaterials.join(', ')}
-                        </div>
-                      )}
-                      <Button variant="outline" className="w-full">
-                        Preview template
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg text-gray-900">{template.title}</CardTitle>
+                            {template.estimatedDurationWeeks && (
+                              <Badge variant="secondary" className="text-xs">
+                                {template.estimatedDurationWeeks} week{template.estimatedDurationWeeks > 1 ? 's' : ''}
+                              </Badge>
+                            )}
+                          </div>
+                          <CardDescription className="text-sm text-gray-600">
+                            {template.summary}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="mt-auto space-y-3 text-sm text-gray-600">
+                          {template.recommendedStartMonth && (
+                            <div className="flex items-center gap-2">
+                              <CalendarDays className="h-4 w-4 text-purple-500" />
+                              Starts best in {friendlyLabel(template.recommendedStartMonth)}
+                            </div>
+                          )}
+                          <div className="flex flex-wrap gap-2">
+                            {template.subjectFocus.map((subject) => (
+                              <Badge key={subject} variant="outline">
+                                {friendlyLabel(subject)}
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {template.languageSupport.map((language) => (
+                              <Badge key={language} variant="secondary" className="bg-purple-50 text-purple-700">
+                                {language.toUpperCase()}
+                              </Badge>
+                            ))}
+                          </div>
+                          {template.requiredMaterials && template.requiredMaterials.length > 0 && (
+                            <div className="text-xs text-gray-500">
+                              <span className="font-medium text-gray-600">Materials: </span>
+                              {template.requiredMaterials.join(', ')}
+                            </div>
+                          )}
+                          <Button variant="outline" className="w-full">
+                            Preview template
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Successful Classroom Collaboration Templates</CardTitle>
+                <CardDescription>
+                  Inspiring examples from teachers and students who have completed collaborations. Use these as starting points for your own projects.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-6 text-center text-sm text-purple-800">
+                  Teacher-created templates will appear here once classrooms complete their collaborations and share their work as reusable templates.
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="projects" className="space-y-6 pt-6">
