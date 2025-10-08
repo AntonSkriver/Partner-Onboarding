@@ -103,7 +103,7 @@ export default function PartnerLoginPage() {
         organization: 'Global Classroom Lab',
         name: 'Demo Teacher',
       })
-      router.push('/discover')
+      router.push('/school/dashboard')
     }
 
     setIsDemoLoading(null)

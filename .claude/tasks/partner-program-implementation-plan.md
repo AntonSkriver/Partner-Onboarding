@@ -335,6 +335,12 @@ interface PartnerUser {
 - **Teacher projects:** When a teacher launches the experience, the resulting classroom project keeps pointers to both the owning program and the originating template via `program_projects.template_id`. Metrics (active classrooms, participating schools) roll back up to the program automatically.
 - **Shared selectors:** Both the partner Programs tab and the Discover > Programs view should query the same aggregated selector so edits partners make (renaming a template, swapping imagery) propagate instantly to teacher-facing surfaces—no duplicate data shaping.
 
+#### Prototype Programme Seed (Oct 2025 refresh)
+
+- **Build the Change** – Save the Children hosts with LEGO as co-host; focuses on Learning through Play for ages 6–14. Includes Italian Punto Luce centres and a Mexico City creative school, accompanied by “City Guardians” and “Ocean Stewards” templates plus matching teacher projects.
+- **Communities in Focus** – UNICEF hosts with Alm. Brand sponsoring. Centres on design-thinking cycles that strengthen school communities; seeded with Danish and Mexican institutions, empathy/storytelling templates, and sample community action projects.
+- Discover now exposes only these two flagship programmes, and the in-app “Reset demo data” control reseeds `class2class_prototype_db_v4` so stakeholders always experience the refreshed catalogue.
+
 **Database Migration Strategy:**
 1. Create new tables in Supabase (use migrations for version control)
 2. Add Row Level Security (RLS) policies for each table

@@ -50,6 +50,13 @@
 
 ### October 7, 2025
 
+#### 5:20 PM - Discover & Seed Data Refresh ✅
+
+- ✅ Consolidated the prototype catalogue to two flagship programmes: **Build the Change** (Save the Children x LEGO) and **Communities in Focus** (UNICEF x Alm. Brand), replacing the climate and digital bridges demos.
+- ✅ Updated seed data with new partners, coordinators, Italian/Mexican institutions, teachers, templates, invitations, and activity feed entries to mirror the refreshed programmes.
+- ✅ Bumped the prototype storage key to `class2class_prototype_db_v4` so fresh data loads automatically and added in-app reset controls (Discover + partner login) for quick reseeding.
+- ✅ Harmonised partner login/overview with the UNICEF profile so demo sessions land on the correct dashboard context.
+
 #### 4:30 PM - Program Template Hierarchy Clarified ✅
 
 - ✅ Documented the program → template → teacher project relationship so every surface (partner dashboard, Discover, classroom view) reads from the same dataset.
