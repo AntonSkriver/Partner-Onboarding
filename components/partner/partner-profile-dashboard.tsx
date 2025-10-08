@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -28,7 +29,9 @@ import {
   ChevronUp,
   ChevronDown,
   Plus,
-  Target
+  Target,
+  CalendarDays,
+  PenTool
 } from 'lucide-react'
 import { SDGIcon } from '../sdg-icons'
 import { SDG_OPTIONS } from '../../contexts/partner-onboarding-context'
@@ -458,215 +461,118 @@ export function PartnerProfileDashboard({
         </TabsContent>
 
         {/* Programs Tab */}
-        <TabsContent value="programs" className="space-y-4">
+        <TabsContent value="programs" className="space-y-6">
           {programDataLoading ? (
             <Card>
               <CardContent className="p-10 text-center text-sm text-gray-500">
-                Loading program insights…
+                Loading programs…
               </CardContent>
             </Card>
           ) : programSummaries.length > 0 ? (
-            <div className="grid gap-4">
-              {programSummaries.map(({ program, institutions, metrics, coPartners }) => {
-                const isExpanded = expandedPrograms.has(program.id)
-                const visibleInstitutions = isExpanded ? institutions : institutions.slice(0, 2)
-                const supportingPartner = program.supportingPartnerId
-                  ? coPartners.find(
-                      ({ relationship }) => relationship.partnerId === program.supportingPartnerId,
-                    )?.partner
-                  : undefined
-
-                return (
-                  <Card key={program.id} className="hover:shadow-lg transition-shadow">
-                    <CardContent className="space-y-6 p-6">
-                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="font-semibold text-lg text-gray-900">
-                              {program.displayTitle ?? program.name}
-                            </h3>
-                            <Badge variant="outline" className="capitalize">
-                              {program.status}
-                            </Badge>
-                          </div>
-                          {program.displayTitle && program.displayTitle !== program.name && (
-                            <p className="text-xs text-gray-500">{program.name}</p>
-                          )}
-                          <p className="text-sm text-gray-600">
-                            {program.marketingTagline ?? program.description}
-                          </p>
-                          <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-                            {program.projectTypes.map((type) => (
-                              <Badge key={type} variant="secondary" className="bg-purple-50 text-purple-700">
-                                {type.replace(/_/g, ' ')}
-                              </Badge>
-                            ))}
-                            {supportingPartner && (
-                              <Badge variant="outline" className="border-purple-200 text-purple-700">
-                                {program.supportingPartnerRole === 'sponsor' ? 'Sponsor' : 'Co-host'}:{' '}
-                                {supportingPartner.organizationName}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="space-y-1 text-sm text-gray-500 text-left md:text-right">
-                          <div className="font-medium text-gray-700">
-                            {formatDate(program.startDate)} – {formatDate(program.endDate)}
-                          </div>
-                          <div>
-                            {metrics.countries.length} countr{metrics.countries.length === 1 ? 'y' : 'ies'} •{' '}
-                            {metrics.teacherCount} teacher{metrics.teacherCount === 1 ? '' : 's'}
-                          </div>
-                          <div>
-                            Templates {metrics.templateCount} • Active projects {metrics.activeProjectCount}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
-                          <div className="text-xs font-medium text-gray-500 uppercase">Co-Partners</div>
-                          <div className="mt-1 text-lg font-semibold text-gray-900">
-                            {metrics.coPartnerCount}
-                          </div>
-                        </div>
-                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
-                          <div className="text-xs font-medium text-gray-500 uppercase">Coordinators</div>
-                          <div className="mt-1 text-lg font-semibold text-gray-900">
-                            {metrics.coordinatorCount}
-                          </div>
-                        </div>
-                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
-                          <div className="text-xs font-medium text-gray-500 uppercase">Institutions</div>
-                          <div className="mt-1 text-lg font-semibold text-gray-900">
-                            {metrics.institutionCount}
-                          </div>
-                        </div>
-                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
-                          <div className="text-xs font-medium text-gray-500 uppercase">Teachers</div>
-                          <div className="mt-1 text-lg font-semibold text-gray-900">
-                            {metrics.teacherCount}
-                          </div>
-                        </div>
-                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
-                          <div className="text-xs font-medium text-gray-500 uppercase">Students (est.)</div>
-                          <div className="mt-1 text-lg font-semibold text-gray-900">
-                            {metrics.studentCount.toLocaleString()}
-                          </div>
-                        </div>
-                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
-                          <div className="text-xs font-medium text-gray-500 uppercase">Active projects</div>
-                          <div className="mt-1 text-lg font-semibold text-gray-900">
-                            {metrics.activeProjectCount}
-                          </div>
-                        </div>
-                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
-                          <div className="text-xs font-medium text-gray-500 uppercase">Templates</div>
-                          <div className="mt-1 text-lg font-semibold text-gray-900">
-                            {metrics.templateCount}
-                          </div>
-                        </div>
-                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
-                          <div className="text-xs font-medium text-gray-500 uppercase">Pending invites</div>
-                          <div className="mt-1 text-lg font-semibold text-gray-900">
-                            {metrics.pendingInvitations}
-                          </div>
-                        </div>
-                        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-center">
-                          <div className="text-xs font-medium text-gray-500 uppercase">Countries</div>
-                          <div className="mt-1 text-lg font-semibold text-gray-900">
-                            {metrics.countries.length}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-end gap-2">
-                        <Button size="sm" variant="outline" asChild>
-                          <Link href={`/partner/programs/${program.id}`}>Open overview</Link>
-                        </Button>
-                        <Button size="sm" variant="outline" asChild>
-                          <Link href={`/partner/programs/${program.id}/edit`}>Edit program</Link>
-                        </Button>
-                      </div>
-
-                      {institutions.length > 0 && (
-                        <div className="border-t pt-4">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleProgramDetails(program.id)}
-                            className="flex items-center gap-2 mb-3 text-sm font-medium text-gray-700 hover:text-purple-600"
-                          >
-                            <School className="h-4 w-4" />
-                            Participating institutions ({institutions.length})
-                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                          </Button>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {visibleInstitutions.map((institution) => (
-                              <div key={institution.id} className="border rounded-lg p-3 space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <div>
-                                    <h4 className="font-medium text-sm text-gray-900">{institution.name}</h4>
-                                    <p className="text-xs text-gray-500">
-                                      {institution.city ? `${institution.city}, ` : ''}
-                                      {institution.country}
-                                    </p>
-                                  </div>
-                                  <Badge variant="outline" className="capitalize">
-                                    {institution.status}
-                                  </Badge>
-                                </div>
-                                <div className="text-sm text-gray-600 space-y-1">
-                                  <p className="flex items-center gap-1">
-                                    <Users className="w-3 h-3" />
-                                    {institution.teacherCount ?? 0} teachers • {institution.studentCount ?? 0} students
-                                  </p>
-                                  {institution.contactEmail && (
-                                    <p className="flex items-center gap-1">
-                                      <Mail className="w-3 h-3" />
-                                      <a
-                                        href={`mailto:${institution.contactEmail}`}
-                                        className="text-purple-600 hover:text-purple-700"
-                                      >
-                                        {institution.contactEmail}
-                                      </a>
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          {institutions.length > 2 && !isExpanded && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleProgramDetails(program.id)}
-                              className="mt-3 w-full text-sm text-purple-600 hover:text-purple-700"
-                            >
-                              View all institutions
-                            </Button>
-                          )}
+            <div className="space-y-6">
+              {programSummaries.map(({ program, metrics }) => (
+                <Card key={program.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div className="flex gap-4 flex-1">
+                      {program.logo && (
+                        <div className="flex-shrink-0">
+                          <Image
+                            src={program.logo}
+                            alt={program.displayTitle ?? program.name}
+                            width={80}
+                            height={80}
+                            className="h-16 w-auto object-contain rounded-lg border border-gray-200 bg-white p-2"
+                          />
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
-                )
-              })}
+                      <div className="space-y-2 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <CardTitle className="text-xl">{program.displayTitle ?? program.name}</CardTitle>
+                          <Badge variant="outline" className="capitalize">
+                            {program.status}
+                          </Badge>
+                        </div>
+                        {program.displayTitle && program.displayTitle !== program.name && (
+                          <p className="text-xs text-gray-500">{program.name}</p>
+                        )}
+                        <CardDescription className="text-sm">
+                          {program.marketingTagline ?? program.description}
+                        </CardDescription>
+                        <div className="flex flex-wrap gap-3 text-xs text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <CalendarDays className="h-3 w-3 text-purple-500" />
+                            {formatDate(program.startDate)} – {formatDate(program.endDate)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3 text-purple-500" />
+                            {metrics.countries.length} {metrics.countries.length === 1 ? 'country' : 'countries'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                      <Button size="sm" variant="outline" asChild>
+                        <Link href={`/partner/programs/${program.id}`}>View Details</Link>
+                      </Button>
+                      <Button size="sm" variant="outline" asChild>
+                        <Link href={`/partner/programs/${program.id}/edit`}>Edit</Link>
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                      <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <School className="h-3 w-3 text-purple-500" />
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Institutions</p>
+                        </div>
+                        <p className="text-xl font-bold text-gray-900">{metrics.institutionCount}</p>
+                      </div>
+                      <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <Users className="h-3 w-3 text-purple-500" />
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Teachers</p>
+                        </div>
+                        <p className="text-xl font-bold text-gray-900">{metrics.teacherCount}</p>
+                      </div>
+                      <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <Users className="h-3 w-3 text-purple-500" />
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Students</p>
+                        </div>
+                        <p className="text-xl font-bold text-gray-900">{metrics.studentCount.toLocaleString()}</p>
+                      </div>
+                      <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <Target className="h-3 w-3 text-purple-500" />
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Active Projects</p>
+                        </div>
+                        <p className="text-xl font-bold text-gray-900">{metrics.activeProjectCount}</p>
+                      </div>
+                      <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <PenTool className="h-3 w-3 text-purple-500" />
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Templates</p>
+                        </div>
+                        <p className="text-xl font-bold text-gray-900">{metrics.templateCount}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           ) : (
             <Card>
               <CardContent className="p-10 text-center space-y-4">
-                <Users className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <Users className="w-12 h-12 text-gray-400 mx-auto" />
                 <h3 className="text-lg font-medium text-gray-900">No Programs Yet</h3>
                 <p className="text-gray-500">
-                  Create your first program to start collaborating with partner schools.
+                  Create your first program to start collaborating with schools worldwide.
                 </p>
-                <Button className="bg-blue-600 hover:bg-blue-700" asChild>
+                <Button className="bg-purple-600 hover:bg-purple-700" asChild>
                   <Link href="/partner/programs/create">
                     <Plus className="w-4 h-4 mr-2" />
-                    Create New Program
+                    Create Program
                   </Link>
                 </Button>
               </CardContent>
@@ -900,10 +806,17 @@ export function PartnerProfileDashboard({
             {/* Program Management */}
             <Card>
               <CardHeader>
-                <CardTitle>Program Management</CardTitle>
-                <CardDescription>
-                  Manage your active programs and monitor engagement
-                </CardDescription>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle>Program Management</CardTitle>
+                    <CardDescription>
+                      Manage your active programs and monitor engagement
+                    </CardDescription>
+                  </div>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/partner/programs">View All Programs</Link>
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {programDataLoading ? (
@@ -940,11 +853,6 @@ export function PartnerProfileDashboard({
                         </div>
                       </div>
                     ))}
-                    <div className="flex justify-end">
-                      <Button variant="link" className="text-purple-600 hover:text-purple-700" asChild>
-                        <Link href="/partner/programs">Open Programs workspace →</Link>
-                      </Button>
-                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-8">

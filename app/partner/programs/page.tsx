@@ -2,13 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { CalendarDays, Flag, Globe2, Trash2, Users } from 'lucide-react'
+import { CalendarDays, Flag, Globe2, Trash2, Users, Search, School, Layers, type LucideIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
 import { ProgramCatalogCard } from '@/components/program/program-catalog-card'
 
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
@@ -52,6 +54,8 @@ export default function ProgramsIndexPage() {
   const router = useRouter()
   const [session, setSession] = useState(() => getCurrentSession())
   const [deletingProgramId, setDeletingProgramId] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
 
   const { ready: dataReady, database, deleteRecord } = usePrototypeDb()
 
@@ -70,12 +74,33 @@ export default function ProgramsIndexPage() {
     [database, session],
   )
 
-  const programSummaries = useMemo(() => {
+  const allProgramSummaries = useMemo(() => {
     if (!database || !partnerId) return []
     return buildProgramSummariesForPartner(database, partnerId, {
       includeRelatedPrograms: true,
     })
   }, [database, partnerId])
+
+  const programSummaries = useMemo(() => {
+    let filtered = allProgramSummaries
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((summary) => summary.program.status === statusFilter)
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter((summary) =>
+        summary.program.displayTitle?.toLowerCase().includes(query) ||
+        summary.program.name.toLowerCase().includes(query) ||
+        summary.program.description.toLowerCase().includes(query)
+      )
+    }
+
+    return filtered
+  }, [allProgramSummaries, statusFilter, searchQuery])
 
   const catalogByProgramId = useMemo(() => {
     if (!database) return new Map<string, ProgramCatalogItem>()
@@ -141,6 +166,54 @@ export default function ProgramsIndexPage() {
           </div>
         </div>
 
+        {allProgramSummaries.length > 0 && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <Input
+                    placeholder="Search programs..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant={statusFilter === 'all' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setStatusFilter('all')}
+                  >
+                    All
+                  </Button>
+                  <Button
+                    variant={statusFilter === 'active' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setStatusFilter('active')}
+                  >
+                    Active
+                  </Button>
+                  <Button
+                    variant={statusFilter === 'draft' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setStatusFilter('draft')}
+                  >
+                    Draft
+                  </Button>
+                  <Button
+                    variant={statusFilter === 'completed' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setStatusFilter('completed')}
+                  >
+                    Completed
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {programSummaries.length === 0 ? (
           <Card className="border-dashed border-purple-200 bg-purple-50/60">
             <CardHeader className="text-center space-y-3">
@@ -200,15 +273,27 @@ const ProgramCard = ({ summary, catalogItem, onDelete, deletingProgramId }: Prog
   return (
     <Card>
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <CardTitle className="text-2xl">{program.displayTitle ?? program.name}</CardTitle>
-            <Badge className={statusClass}>{friendly(program.status)}</Badge>
-          </div>
-          {program.displayTitle && program.displayTitle !== program.name && (
-            <p className="text-sm text-gray-500">{program.name}</p>
+        <div className="flex gap-4">
+          {program.logo && (
+            <div className="flex-shrink-0">
+              <Image
+                src={program.logo}
+                alt={program.displayTitle ?? program.name}
+                width={80}
+                height={80}
+                className="h-16 w-auto object-contain rounded-lg border border-gray-200 bg-white p-2"
+              />
+            </div>
           )}
-          <CardDescription className="text-base text-gray-700">{marketingCopy}</CardDescription>
+          <div className="space-y-2 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle className="text-2xl">{program.displayTitle ?? program.name}</CardTitle>
+              <Badge className={statusClass}>{friendly(program.status)}</Badge>
+            </div>
+            {program.displayTitle && program.displayTitle !== program.name && (
+              <p className="text-sm text-gray-500">{program.name}</p>
+            )}
+            <CardDescription className="text-base text-gray-700">{marketingCopy}</CardDescription>
           <div className="flex flex-wrap gap-3 text-sm text-gray-600">
             <span className="flex items-center gap-1">
               <CalendarDays className="h-4 w-4 text-purple-500" />
@@ -239,9 +324,10 @@ const ProgramCard = ({ summary, catalogItem, onDelete, deletingProgramId }: Prog
             )}
           </div>
         </div>
+        </div>
         <div className="flex flex-col gap-2 md:flex-row md:items-center">
           <Link href={`/partner/programs/${program.id}`}>
-            <Button variant="outline">View program</Button>
+            <Button variant="outline">View details</Button>
           </Link>
           <Link href={`/partner/programs/${program.id}/edit`}>
             <Button variant="outline">Edit</Button>
@@ -258,32 +344,14 @@ const ProgramCard = ({ summary, catalogItem, onDelete, deletingProgramId }: Prog
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <Metric label="Co-Partners" value={metrics.coPartnerCount} />
-          <Metric label="Coordinators" value={metrics.coordinatorCount} />
-          <Metric label="Institutions" value={metrics.institutionCount} />
-          <Metric label="Teachers" value={metrics.teacherCount} />
-          <Metric label="Students (est.)" value={metrics.studentCount.toLocaleString()} />
-          <Metric label="Active projects" value={metrics.activeProjectCount} />
-          <Metric label="Templates" value={metrics.templateCount} />
-          <Metric label="Total projects" value={metrics.projectCount} />
-          <Metric label="Pending invitations" value={metrics.pendingInvitations} />
-          <Metric label="Countries" value={metrics.countries.length} />
+          <Metric label="Institutions" value={metrics.institutionCount} icon={School} />
+          <Metric label="Teachers" value={metrics.teacherCount} icon={Users} />
+          <Metric label="Students (est.)" value={metrics.studentCount.toLocaleString()} icon={Users} />
+          <Metric label="Countries" value={metrics.countries.length} icon={Globe2} />
+          <Metric label="Active projects" value={metrics.activeProjectCount} icon={Layers} />
         </div>
 
         <Separator />
-
-        {catalogItem && (
-          <>
-            <div className="space-y-3">
-              <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                Teacher-facing preview
-              </h4>
-              <ProgramCatalogCard item={catalogItem} />
-            </div>
-
-            <Separator />
-          </>
-        )}
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
@@ -329,9 +397,12 @@ const ProgramCard = ({ summary, catalogItem, onDelete, deletingProgramId }: Prog
   )
 }
 
-const Metric = ({ label, value }: { label: string; value: number | string }) => (
-  <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-    <p className="text-xs uppercase tracking-wide text-gray-500">{label}</p>
-    <p className="mt-2 text-xl font-semibold text-gray-900">{value}</p>
+const Metric = ({ label, value, icon: Icon }: { label: string; value: number | string; icon?: LucideIcon }) => (
+  <div className="rounded-lg border border-gray-200 bg-white p-4 hover:shadow-sm transition-shadow">
+    <div className="flex items-center gap-2">
+      {Icon && <Icon className="h-4 w-4 text-purple-500" />}
+      <p className="text-xs font-medium uppercase tracking-wide text-gray-600">{label}</p>
+    </div>
+    <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
   </div>
 )
