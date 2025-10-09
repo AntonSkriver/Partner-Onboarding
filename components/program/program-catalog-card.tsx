@@ -6,11 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { ProgramCatalogItem } from '@/lib/programs/selectors'
+import { Button } from '@/components/ui/button'
 
 interface ProgramCatalogCardProps {
   item: ProgramCatalogItem
   className?: string
   actions?: ReactNode
+  membershipStatus?: 'member' | 'available' | 'invite-only'
+  onJoin?: () => void
 }
 
 const renderPartnerAvatar = (name?: string, logo?: string) => {
@@ -41,21 +44,25 @@ const renderPartnerAvatar = (name?: string, logo?: string) => {
   )
 }
 
-const formatCount = (value: number | undefined): string => {
-  if (!value) return '0'
-  return value.toLocaleString()
-}
-
-export function ProgramCatalogCard({ item, className, actions }: ProgramCatalogCardProps) {
+export function ProgramCatalogCard({
+  item,
+  className,
+  actions,
+  membershipStatus,
+  onJoin,
+}: ProgramCatalogCardProps) {
   const hostName = item.hostPartner?.organizationName ?? 'Partner'
   const supportingName = item.supportingPartner?.organizationName
   const logoStack = [item.hostPartner, item.supportingPartner].filter(Boolean) as typeof item.hostPartner[]
 
-  const stats = [
-    { label: 'Open for collaboration', value: item.metrics.activeProjects },
-    { label: 'Templates', value: item.metrics.templates },
-    { label: 'Countries', value: item.metrics.countries },
-  ]
+  const membershipBadge =
+    membershipStatus === 'member'
+      ? { label: 'You\'re enrolled', className: 'bg-purple-600 text-white' }
+      : membershipStatus === 'invite-only'
+        ? { label: 'Invite required', className: 'bg-amber-100 text-amber-700' }
+        : membershipStatus === 'available'
+          ? { label: 'Open to join', className: 'bg-green-100 text-green-700' }
+          : null
 
   return (
     <Card className={cn('flex h-full flex-col overflow-hidden', className)}>
@@ -79,8 +86,8 @@ export function ProgramCatalogCard({ item, className, actions }: ProgramCatalogC
         )}
       </div>
 
-      <CardHeader className="space-y-3">
-        <div className="flex items-center justify-between">
+      <CardHeader className="space-y-4">
+        <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
             {item.logo ? (
               <Image
@@ -115,6 +122,17 @@ export function ProgramCatalogCard({ item, className, actions }: ProgramCatalogC
               </>
             )}
           </div>
+          <div className="flex flex-col items-end gap-1 text-xs">
+            <Badge
+              variant="outline"
+              className={item.isPublic ? 'border-green-200 bg-green-50 text-green-700' : 'border-purple-200 bg-purple-50 text-purple-700'}
+            >
+              {item.isPublic ? 'Public program' : 'Invite-only'}
+            </Badge>
+            {membershipBadge && (
+              <Badge className={membershipBadge.className}>{membershipBadge.label}</Badge>
+            )}
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -130,15 +148,19 @@ export function ProgramCatalogCard({ item, className, actions }: ProgramCatalogC
       </CardHeader>
 
       <CardContent className="mt-auto space-y-4">
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          {stats.map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="font-semibold text-gray-900">{formatCount(stat.value)}</div>
-              <div>{stat.label}</div>
-            </div>
-          ))}
+        <div className="flex flex-col gap-2">
+          {actions}
+          {item.isPublic && onJoin && membershipStatus !== 'member' && (
+            <Button className="w-full bg-purple-600 text-white hover:bg-purple-700" onClick={onJoin}>
+              Join program
+            </Button>
+          )}
+          {!item.isPublic && membershipStatus !== 'member' && !actions && (
+            <Button className="w-full" variant="ghost" disabled>
+              Invite required
+            </Button>
+          )}
         </div>
-        {actions}
       </CardContent>
     </Card>
   )

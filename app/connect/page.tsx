@@ -500,7 +500,7 @@ export default function ConnectPage() {
                   <LinkIcon className="w-4 h-4" />
                   <span className="text-sm">Connect</span>
                 </Link>
-                <Link href="/projects" className="flex items-center gap-2 text-gray-700 hover:text-purple-600">
+                <Link href="/teacher/projects" className="flex items-center gap-2 text-gray-700 hover:text-purple-600">
                   <FolderOpen className="w-4 h-4" />
                   <span className="text-sm">My Projects</span>
                 </Link>

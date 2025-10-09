@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -31,7 +32,8 @@ import {
   Plus,
   Target,
   CalendarDays,
-  PenTool
+  PenTool,
+  LogIn,
 } from 'lucide-react'
 import { SDGIcon } from '../sdg-icons'
 import { SDG_OPTIONS } from '../../contexts/partner-onboarding-context'
@@ -43,6 +45,7 @@ import {
   type ProgramSummary,
 } from '@/lib/programs/selectors'
 import { Database } from '@/lib/types/database'
+import { startTeacherPreviewSession } from '@/lib/auth/session'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 
@@ -59,6 +62,7 @@ export function PartnerProfileDashboard({
   isOwnProfile = false,
   initialTab = 'overview',
 }: PartnerProfileDashboardProps) {
+  const router = useRouter()
   const [analytics, setAnalytics] = useState<any[]>([])
   const [resources, setResources] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -206,6 +210,11 @@ export function PartnerProfileDashboard({
     })
   }
 
+  const handleTeacherPreview = () => {
+    startTeacherPreviewSession()
+    router.push('/teacher/dashboard')
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -249,11 +258,19 @@ export function PartnerProfileDashboard({
           </div>
         </div>
         
-        {isOwnProfile && onEdit && (
-          <Button onClick={onEdit} variant="outline">
-            <Edit className="w-4 h-4 mr-2" />
-            Edit Profile
-          </Button>
+        {isOwnProfile && (
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button onClick={handleTeacherPreview} variant="secondary" className="bg-purple-600 text-white hover:bg-purple-700">
+              <LogIn className="w-4 h-4 mr-2" />
+              Log in as teacher
+            </Button>
+            {onEdit && (
+              <Button onClick={onEdit} variant="outline">
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Profile
+              </Button>
+            )}
+          </div>
         )}
       </div>
 

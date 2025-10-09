@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { PartnerProfileDashboard } from '@/components/partner/partner-profile-dashboard'
 import { PartnerProfileForm } from '@/components/partner/partner-profile-form'
 import { OrganizationAPI } from '@/lib/api/organizations'
@@ -13,7 +13,7 @@ import { useSearchParams } from 'next/navigation'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 
-export default function PartnerProfilePage() {
+function PartnerProfileContent() {
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
@@ -190,5 +190,23 @@ export default function PartnerProfilePage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function PartnerProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+            <h2 className="text-lg font-semibold text-gray-900">Loading Profile</h2>
+            <p className="text-gray-600">Please wait while we load your organization profile...</p>
+          </div>
+        </div>
+      }
+    >
+      <PartnerProfileContent />
+    </Suspense>
   )
 }

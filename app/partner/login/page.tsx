@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { createSession, clearSession } from '@/lib/auth/session'
+import { createSession, clearSession, startTeacherPreviewSession } from '@/lib/auth/session'
 import { resetPrototypeDb } from '@/lib/storage/prototype-db'
 import { seedPrototypeDb } from '@/lib/storage/seeds'
 
@@ -25,7 +25,7 @@ type LoginData = z.infer<typeof loginSchema>
 export default function PartnerLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isDemoLoading, setIsDemoLoading] = useState<'partner' | 'school' | null>(null)
+  const [isDemoLoading, setIsDemoLoading] = useState<'partner' | 'school' | 'teacher' | null>(null)
   const [isResetting, setIsResetting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -76,7 +76,7 @@ export default function PartnerLoginPage() {
       } else {
         setError('Partner account not found. Please check your credentials or sign up for a new partner account.')
       }
-    } catch (_err) {
+    } catch {
       setError('Login failed. Please try again.')
     } finally {
       setIsLoading(false)
@@ -109,6 +109,13 @@ export default function PartnerLoginPage() {
     setIsDemoLoading(null)
   }
 
+  const handleTeacherPreview = () => {
+    setIsDemoLoading('teacher')
+    clearSession()
+    startTeacherPreviewSession()
+    router.push('/teacher/dashboard')
+  }
+
   const handleResetPrototype = () => {
     setIsResetting(true)
     try {
@@ -139,7 +146,7 @@ export default function PartnerLoginPage() {
               Sign in to manage programs, invitations, and school partnerships across your network.
             </p>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <Button
                 variant="outline"
                 className="h-12 border border-purple-200 bg-white text-purple-700 hover:bg-purple-50"
@@ -155,6 +162,14 @@ export default function PartnerLoginPage() {
                 disabled={Boolean(isDemoLoading)}
               >
                 {isDemoLoading === 'school' ? 'Loading...' : 'Continue as School'}
+              </Button>
+              <Button
+                variant="outline"
+                className="h-12 border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100"
+                onClick={handleTeacherPreview}
+                disabled={isDemoLoading === 'teacher'}
+              >
+                {isDemoLoading === 'teacher' ? 'Loading...' : 'Continue as Teacher'}
               </Button>
             </div>
 
@@ -250,11 +265,17 @@ export default function PartnerLoginPage() {
                 </Button>
               </div>
 
-              <div className="text-sm text-gray-500">
-                Looking for teacher or student access?{' '}
-                <Link href="/sign-in" className="text-purple-600 hover:text-purple-700">
-                  Use the main login
-                </Link>
+              <div className="space-y-2 text-sm text-gray-500">
+                <p>Looking for teacher or student access? Use the quick actions above to jump straight into their experience.</p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="px-0 text-purple-600 hover:text-purple-700"
+                  onClick={handleTeacherPreview}
+                  disabled={isDemoLoading === 'teacher'}
+                >
+                  Continue as Teacher
+                </Button>
               </div>
 
               <div className="text-xs text-gray-400">
