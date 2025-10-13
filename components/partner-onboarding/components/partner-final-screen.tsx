@@ -164,17 +164,6 @@ export function PartnerFinalScreen({ onPrevious }: PartnerFinalScreenProps) {
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
         </Link>
-        
-        <Link href="/connect">
-          <Button 
-            variant="outline" 
-            size="lg" 
-            className="w-full border-purple-200 text-purple-600 hover:bg-purple-50 py-4 text-lg rounded-xl"
-          >
-            Start Connecting with Schools
-            <Users className="w-5 h-5 ml-2" />
-          </Button>
-        </Link>
       </div>
 
       {/* Support Information */}

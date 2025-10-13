@@ -27,6 +27,7 @@ import {
   XCircle,
   TrendingUp,
   School,
+  GraduationCap,
   ChevronUp,
   ChevronDown,
   Plus,
@@ -34,6 +35,8 @@ import {
   CalendarDays,
   PenTool,
   LogIn,
+  UserPlus,
+  Send,
 } from 'lucide-react'
 import { SDGIcon } from '../sdg-icons'
 import { SDG_OPTIONS } from '../../contexts/partner-onboarding-context'
@@ -53,7 +56,7 @@ interface PartnerProfileDashboardProps {
   organization: Organization
   onEdit?: () => void
   isOwnProfile?: boolean
-  initialTab?: 'overview' | 'programs' | 'resources' | 'analytics' | 'dashboard'
+  initialTab?: 'overview' | 'programs' | 'resources' | 'analytics' | 'network'
 }
 
 export function PartnerProfileDashboard({
@@ -68,6 +71,10 @@ export function PartnerProfileDashboard({
   const [loading, setLoading] = useState(false)
   const [expandedPrograms, setExpandedPrograms] = useState(new Set())
   const [activeTab, setActiveTab] = useState(initialTab)
+  const [countryCoordinators, setCountryCoordinators] = useState<Array<{id: string, name: string, country: string, email: string}>>([])
+  const [educationalInstitutions, setEducationalInstitutions] = useState<Array<{id: string, name: string, country: string, category: string, pointOfContact: string, email: string}>>([])
+  const [showInviteCoordinatorDialog, setShowInviteCoordinatorDialog] = useState(false)
+  const [showInviteInstitutionDialog, setShowInviteInstitutionDialog] = useState(false)
   useEffect(() => {
     setActiveTab(initialTab)
   }, [initialTab])
@@ -148,8 +155,66 @@ export function PartnerProfileDashboard({
         }
       ]
 
+      const mockCoordinators = [
+        {
+          id: 'coord-1',
+          name: 'Maria Garcia',
+          country: 'Mexico',
+          email: 'maria.garcia@unicef.org'
+        },
+        {
+          id: 'coord-2',
+          name: 'Lars Nielsen',
+          country: 'Denmark',
+          email: 'lars.nielsen@unicef.dk'
+        },
+        {
+          id: 'coord-3',
+          name: 'Giovanni Rossi',
+          country: 'Italy',
+          email: 'giovanni.rossi@unicef.it'
+        }
+      ]
+
+      const mockInstitutions = [
+        {
+          id: 'inst-1',
+          name: 'Ørestad Gymnasium',
+          country: 'Denmark',
+          category: 'School',
+          pointOfContact: 'Anne Larsen',
+          email: 'anne@orestad.dk'
+        },
+        {
+          id: 'inst-2',
+          name: 'Copenhagen Public Library',
+          country: 'Denmark',
+          category: 'Library',
+          pointOfContact: 'Michael Jensen',
+          email: 'michael@cphlib.dk'
+        },
+        {
+          id: 'inst-3',
+          name: 'Guadalajara Cultural Center',
+          country: 'Mexico',
+          category: 'Municipality Center',
+          pointOfContact: 'Carmen Rodriguez',
+          email: 'carmen@guadalajara.mx'
+        },
+        {
+          id: 'inst-4',
+          name: 'Liceo Scientifico Roma',
+          country: 'Italy',
+          category: 'School',
+          pointOfContact: 'Francesco Bianchi',
+          email: 'francesco@liceoroma.it'
+        }
+      ]
+
       setAnalytics(mockAnalytics)
       setResources(mockResources)
+      setCountryCoordinators(mockCoordinators)
+      setEducationalInstitutions(mockInstitutions)
     } catch (error) {
       console.error('Error loading organization data:', error)
     } finally {
@@ -260,7 +325,7 @@ export function PartnerProfileDashboard({
         
         {isOwnProfile && (
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <Button onClick={handleTeacherPreview} variant="secondary" className="bg-purple-600 text-white hover:bg-purple-700">
+            <Button onClick={handleTeacherPreview}>
               <LogIn className="w-4 h-4 mr-2" />
               Log in as teacher
             </Button>
@@ -279,9 +344,9 @@ export function PartnerProfileDashboard({
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="programs">Programs</TabsTrigger>
+          {isOwnProfile && <TabsTrigger value="network">Network</TabsTrigger>}
           <TabsTrigger value="resources">Resources</TabsTrigger>
           {isOwnProfile && <TabsTrigger value="analytics">Analytics</TabsTrigger>}
-          {isOwnProfile && <TabsTrigger value="dashboard">Dashboard</TabsTrigger>}
         </TabsList>
 
         {/* Overview Tab */}
@@ -479,6 +544,18 @@ export function PartnerProfileDashboard({
 
         {/* Programs Tab */}
         <TabsContent value="programs" className="space-y-6">
+          {/* Create Program Button - shown when there are programs */}
+          {isOwnProfile && programSummaries.length > 0 && (
+            <div className="flex justify-end">
+              <Button asChild>
+                <Link href="/partner/programs/create">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Program
+                </Link>
+              </Button>
+            </div>
+          )}
+
           {programDataLoading ? (
             <Card>
               <CardContent className="p-10 text-center text-sm text-gray-500">
@@ -537,13 +614,13 @@ export function PartnerProfileDashboard({
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                       <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
                         <div className="flex items-center justify-center gap-1 mb-1">
-                          <School className="h-3 w-3 text-purple-500" />
-                          <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Institutions</p>
+                          <Target className="h-3 w-3 text-purple-500" />
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Active Projects</p>
                         </div>
-                        <p className="text-xl font-bold text-gray-900">{metrics.institutionCount}</p>
+                        <p className="text-xl font-bold text-gray-900">{metrics.activeProjectCount}</p>
                       </div>
                       <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
                         <div className="flex items-center justify-center gap-1 mb-1">
@@ -554,24 +631,17 @@ export function PartnerProfileDashboard({
                       </div>
                       <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
                         <div className="flex items-center justify-center gap-1 mb-1">
-                          <Users className="h-3 w-3 text-purple-500" />
+                          <GraduationCap className="h-3 w-3 text-purple-500" />
                           <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Students</p>
                         </div>
                         <p className="text-xl font-bold text-gray-900">{metrics.studentCount.toLocaleString()}</p>
                       </div>
                       <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
                         <div className="flex items-center justify-center gap-1 mb-1">
-                          <Target className="h-3 w-3 text-purple-500" />
-                          <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Active Projects</p>
+                          <School className="h-3 w-3 text-purple-500" />
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Institutions</p>
                         </div>
-                        <p className="text-xl font-bold text-gray-900">{metrics.activeProjectCount}</p>
-                      </div>
-                      <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <PenTool className="h-3 w-3 text-purple-500" />
-                          <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Templates</p>
-                        </div>
-                        <p className="text-xl font-bold text-gray-900">{metrics.templateCount}</p>
+                        <p className="text-xl font-bold text-gray-900">{metrics.institutionCount}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -599,6 +669,18 @@ export function PartnerProfileDashboard({
 
         {/* Resources Tab */}
         <TabsContent value="resources" className="space-y-4">
+          {/* Add Resources Button - shown when there are resources */}
+          {isOwnProfile && resources.length > 0 && (
+            <div className="flex justify-end">
+              <Button asChild>
+                <Link href="/partner/content/upload">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Resources
+                </Link>
+              </Button>
+            </div>
+          )}
+
           {resources.length > 0 ? (
             <div className="grid gap-4">
               {resources.map((resource) => (
@@ -643,251 +725,402 @@ export function PartnerProfileDashboard({
         {/* Analytics Tab (for own profile only) */}
         {isOwnProfile && (
           <TabsContent value="analytics" className="space-y-6">
-            {analytics.length > 0 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Analytics cards would go here */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4" />
-                      Quarterly Impact
-                    </CardTitle>
-                    <CardDescription>
-                      Your organization's impact metrics
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {getLatestMetrics() && (
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <div className="text-2xl font-bold">{getLatestMetrics().schoolsOnboarded}</div>
-                            <div className="text-sm text-gray-600">Schools Onboarded</div>
-                          </div>
-                          <div>
-                            <div className="text-2xl font-bold">{getLatestMetrics().studentsReached}</div>
-                            <div className="text-sm text-gray-600">Students Reached</div>
-                          </div>
-                          <div>
-                            <div className="text-2xl font-bold">{getLatestMetrics().teachersActive}</div>
-                            <div className="text-sm text-gray-600">Active Teachers</div>
-                          </div>
-                          <div>
-                            <div className="text-2xl font-bold">{getLatestMetrics().projectsThisQuarter}</div>
-                            <div className="text-sm text-gray-600">Projects This Quarter</div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Additional analytics cards */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Export Data</CardTitle>
-                    <CardDescription>
-                      Download your organization's data for reporting
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <Button variant="outline" className="w-full">
-                      Export Quarterly Report
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      Export School Data (CSV)
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      Export Program Metrics
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            ) : (
+            {/* Key Metrics Overview */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+              {/* Active Projects */}
               <Card>
-                <CardContent className="p-6 text-center">
-                  <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="font-medium text-gray-900 mb-2">No Analytics Data</h3>
-                  <p className="text-gray-500">
-                    Analytics data will appear here once your organization starts participating in programs.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        )}
-
-        {/* Dashboard Tab */}
-        {isOwnProfile && (
-          <TabsContent value="dashboard" className="space-y-6">
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    Quick Actions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button className="w-full justify-start" variant="outline" asChild>
-                    <Link href="/partner/programs/create">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create New Program
-                    </Link>
-                  </Button>
-                  <Button className="w-full justify-start" variant="outline" asChild>
-                    <Link href="/partner/schools/invite">
-                      <School className="w-4 h-4 mr-2" />
-                      Invite Schools
-                    </Link>
-                  </Button>
-                  <Button className="w-full justify-start" variant="outline" asChild>
-                    <Link href="/partner/content/upload">
-                      <BookOpen className="w-4 h-4 mr-2" />
-                      Upload Resources
-                    </Link>
-                  </Button>
+                <CardContent className="p-4 text-center">
+                  <Target className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-gray-900">{programMetrics.activeProjects}</div>
+                  <div className="text-xs text-gray-600 mt-1">Active Projects</div>
                 </CardContent>
               </Card>
 
-              {/* Recent Activity */}
+              {/* Finished Projects */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    Recent Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                      <div className="font-medium">New school joined</div>
-                      <div className="text-gray-600">Ørestad Gymnasium - 2 hours ago</div>
-                    </div>
-                    <div className="text-sm">
-                      <div className="font-medium">Program updated</div>
-                      <div className="text-gray-600">Children's Rights Across Cultures - 1 day ago</div>
-                    </div>
-                    <div className="text-sm">
-                      <div className="font-medium">Resource uploaded</div>
-                      <div className="text-gray-600">Human Rights Toolkit - 3 days ago</div>
-                    </div>
-                  </div>
+                <CardContent className="p-4 text-center">
+                  <CheckCircle className="w-6 h-6 text-green-600 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-gray-900">{programMetrics.completedProjects}</div>
+                  <div className="text-xs text-gray-600 mt-1">Finished Projects</div>
                 </CardContent>
               </Card>
 
-              {/* Organization Stats */}
+              {/* Teachers */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4" />
-                    Organization Stats
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-2xl font-bold text-blue-600">
-                          {programSummaries.length}
-                        </div>
-                        <div className="text-sm text-gray-600">Active Programs</div>
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold text-green-600">
-                          {programMetrics.countryCount}
-                        </div>
-                        <div className="text-sm text-gray-600">Countries</div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 pt-2 border-t">
-                      <div>
-                        <div className="text-xl font-bold text-purple-600">
-                          {programMetrics.institutions}
-                        </div>
-                        <div className="text-sm text-gray-600">Institutions</div>
-                      </div>
-                      <div>
-                        <div className="text-xl font-bold text-orange-600">
-                          {programMetrics.students.toLocaleString()}
-                        </div>
-                        <div className="text-sm text-gray-600">Students</div>
-                      </div>
-                    </div>
-                  </div>
+                <CardContent className="p-4 text-center">
+                  <Users className="w-6 h-6 text-purple-600 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-gray-900">{programMetrics.teachers}</div>
+                  <div className="text-xs text-gray-600 mt-1">Teachers</div>
+                </CardContent>
+              </Card>
+
+              {/* Students */}
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <GraduationCap className="w-6 h-6 text-orange-600 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-gray-900">{programMetrics.students.toLocaleString()}</div>
+                  <div className="text-xs text-gray-600 mt-1">Students</div>
+                </CardContent>
+              </Card>
+
+              {/* Institutions */}
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <School className="w-6 h-6 text-indigo-600 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-gray-900">{programMetrics.institutions}</div>
+                  <div className="text-xs text-gray-600 mt-1">Institutions</div>
+                </CardContent>
+              </Card>
+
+              {/* Programs */}
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <BookOpen className="w-6 h-6 text-pink-600 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-gray-900">{programSummaries.length}</div>
+                  <div className="text-xs text-gray-600 mt-1">Programs</div>
+                </CardContent>
+              </Card>
+
+              {/* Country Reach */}
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Globe className="w-6 h-6 text-teal-600 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-gray-900">{programMetrics.countryCount}</div>
+                  <div className="text-xs text-gray-600 mt-1">Countries</div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Program Management */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle>Program Management</CardTitle>
-                    <CardDescription>
-                      Manage your active programs and monitor engagement
-                    </CardDescription>
-                  </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href="/partner/programs">View All Programs</Link>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {programDataLoading ? (
-                  <div className="flex items-center justify-center py-8 text-sm text-gray-500">
-                    Loading program data…
-                  </div>
-                ) : programSummaries.length > 0 ? (
+            {/* Additional Analytics Cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Program Performance */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5" />
+                    Program Performance
+                  </CardTitle>
+                  <CardDescription>
+                    Top performing programs by student engagement
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-4">
-                    {programSummaries.map(({ program, metrics }) => (
-                      <div
-                        key={program.id}
-                        className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between p-4 border rounded-lg"
-                      >
-                        <div className="flex-1 space-y-1">
-                          <div className="font-medium text-gray-900">{program.name}</div>
-                          <div className="text-sm text-gray-600">
-                            {program.status} • {metrics.institutionCount} institution{metrics.institutionCount === 1 ? '' : 's'} • {metrics.teacherCount} teacher{metrics.teacherCount === 1 ? '' : 's'}
+                    {programSummaries.slice(0, 3).map(({ program, metrics }, index) => (
+                      <div key={program.id} className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-semibold text-sm">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900 text-sm">
+                            {program.displayTitle ?? program.name}
                           </div>
-                          <div className="text-xs text-gray-500">
-                            Timeline: {formatDate(program.startDate)} – {formatDate(program.endDate)}
+                          <div className="text-xs text-gray-600">
+                            {metrics.studentCount} students • {metrics.institutionCount} institutions
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" asChild>
-                            <Link href={`/partner/programs/${program.id}`}>
-                              View Details
-                            </Link>
-                          </Button>
-                          <Button size="sm" variant="outline" asChild>
-                            <Link href={`/partner/programs/${program.id}/edit`}>
-                              Manage
-                            </Link>
-                          </Button>
+                        <div className="text-right">
+                          <div className="text-sm font-semibold text-green-600">
+                            {metrics.activeProjectCount} active
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Export Data */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Export Data</CardTitle>
+                  <CardDescription>
+                    Download your organization's data for reporting
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button variant="outline" className="w-full justify-start">
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Export Analytics Report
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <School className="w-4 h-4 mr-2" />
+                    Export Institution Data (CSV)
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <Users className="w-4 h-4 mr-2" />
+                    Export Participant Data
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        )}
+
+        {/* Network Tab */}
+        {isOwnProfile && (
+          <TabsContent value="network" className="space-y-6">
+            {/* Country Coordinators Section */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Country Coordinators
+                    </CardTitle>
+                    <CardDescription>
+                      Manage your organization's country coordinators
+                    </CardDescription>
+                  </div>
+                  <Button onClick={() => setShowInviteCoordinatorDialog(true)}>
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Invite Coordinator
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {countryCoordinators.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">Name</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">Country</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">Email</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {countryCoordinators.map((coordinator) => (
+                          <tr key={coordinator.id} className="border-b hover:bg-gray-50">
+                            <td className="py-3 px-4">{coordinator.name}</td>
+                            <td className="py-3 px-4">
+                              <Badge variant="secondary">{coordinator.country}</Badge>
+                            </td>
+                            <td className="py-3 px-4 text-sm text-gray-600">{coordinator.email}</td>
+                            <td className="py-3 px-4">
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="outline">
+                                  <Mail className="w-3 h-3 mr-1" />
+                                  Contact
+                                </Button>
+                                <Button size="sm" variant="outline">
+                                  Edit
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 ) : (
                   <div className="text-center py-8">
                     <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="font-medium text-gray-900 mb-2">No Active Programs</h3>
+                    <h3 className="font-medium text-gray-900 mb-2">No Country Coordinators</h3>
                     <p className="text-gray-500 mb-4">
-                      Create your first program to start connecting with schools worldwide.
+                      Invite country coordinators to help manage your organization's regional presence.
                     </p>
-                    <Button className="bg-blue-600 hover:bg-blue-700" asChild>
-                      <Link href="/partner/programs/create">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create Program
-                      </Link>
+                    <Button onClick={() => setShowInviteCoordinatorDialog(true)}>
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Invite First Coordinator
                     </Button>
                   </div>
                 )}
               </CardContent>
             </Card>
+
+            {/* Educational Institutions Section */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <School className="w-4 h-4" />
+                      Educational Institutions
+                    </CardTitle>
+                    <CardDescription>
+                      Schools, libraries, municipality centers and other educational partners
+                    </CardDescription>
+                  </div>
+                  <Button onClick={() => setShowInviteInstitutionDialog(true)}>
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Invite Institution
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {educationalInstitutions.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">Name</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">Country</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">Category</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">Point of Contact</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {educationalInstitutions.map((institution) => (
+                          <tr key={institution.id} className="border-b hover:bg-gray-50">
+                            <td className="py-3 px-4 font-medium">{institution.name}</td>
+                            <td className="py-3 px-4">
+                              <Badge variant="secondary">{institution.country}</Badge>
+                            </td>
+                            <td className="py-3 px-4">
+                              <Badge variant="outline">{institution.category}</Badge>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="text-sm">
+                                <div className="font-medium">{institution.pointOfContact}</div>
+                                <div className="text-gray-600">{institution.email}</div>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="outline">
+                                  <Mail className="w-3 h-3 mr-1" />
+                                  Contact
+                                </Button>
+                                <Button size="sm" variant="outline">
+                                  View
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <School className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="font-medium text-gray-900 mb-2">No Educational Institutions</h3>
+                    <p className="text-gray-500 mb-4">
+                      Connect with schools, libraries, and other educational institutions.
+                    </p>
+                    <Button onClick={() => setShowInviteInstitutionDialog(true)}>
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Invite First Institution
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Invitation Dialogs Placeholder */}
+            {showInviteCoordinatorDialog && (
+              <Card className="border-purple-200 bg-purple-50">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold">Invite Country Coordinator</h3>
+                      <p className="text-sm text-gray-600 mt-1">Send an invitation to a country coordinator</p>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => setShowInviteCoordinatorDialog(false)}>
+                      ✕
+                    </Button>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        placeholder="Coordinator name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <input
+                        type="email"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        placeholder="coordinator@email.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        placeholder="Country"
+                      />
+                    </div>
+                    <Button className="w-full">
+                      <Send className="w-4 h-4 mr-2" />
+                      Send Invitation
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {showInviteInstitutionDialog && (
+              <Card className="border-purple-200 bg-purple-50">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold">Invite Educational Institution</h3>
+                      <p className="text-sm text-gray-600 mt-1">Send an invitation to an educational institution</p>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => setShowInviteInstitutionDialog(false)}>
+                      ✕
+                    </Button>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Institution Name</label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        placeholder="School or institution name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                      <select className="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <option>School</option>
+                        <option>Library</option>
+                        <option>Municipality Center</option>
+                        <option>Cultural Center</option>
+                        <option>Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        placeholder="Country"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Point of Contact</label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        placeholder="Contact person name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
+                      <input
+                        type="email"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        placeholder="contact@institution.edu"
+                      />
+                    </div>
+                    <Button className="w-full">
+                      <Send className="w-4 h-4 mr-2" />
+                      Send Invitation
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         )}
       </Tabs>

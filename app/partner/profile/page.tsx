@@ -20,13 +20,13 @@ function PartnerProfileContent() {
   const [error, setError] = useState<string | null>(null)
   const searchParams = useSearchParams()
   const tabParam = searchParams.get('tab')
-  const allowedTabs = new Set(['overview', 'programs', 'resources', 'analytics', 'dashboard'])
+  const allowedTabs = new Set(['overview', 'programs', 'resources', 'analytics', 'network'])
   const initialTab = (tabParam && allowedTabs.has(tabParam) ? tabParam : 'overview') as
     | 'overview'
     | 'programs'
     | 'resources'
     | 'analytics'
-    | 'dashboard'
+    | 'network'
 
   useEffect(() => {
     loadOrganizationProfile()

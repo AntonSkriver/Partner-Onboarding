@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { usePrototypeDb } from '@/hooks/use-prototype-db'
+import { buildProgramSummariesForPartner } from '@/lib/programs/selectors'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -37,6 +39,8 @@ const resourceSchema = z.object({
   targetAudience: z.array(z.string()).min(1, 'Select at least one audience'),
   language: z.string().min(1, 'Language is required'),
   isPublic: z.boolean(),
+  programAssignment: z.enum(['all', 'specific']),
+  specificPrograms: z.array(z.string()).optional(),
   file: z.any().optional(),
   url: z.string().url().optional(),
   tags: z.array(z.string()).default([])
@@ -92,6 +96,25 @@ export default function UploadContentPage() {
   const [uploadTab, setUploadTab] = useState('file')
   const [tagInput, setTagInput] = useState('')
   const [customTags, setCustomTags] = useState<string[]>([])
+  const [selectedPrograms, setSelectedPrograms] = useState<string[]>([])
+
+  const { ready: prototypeReady, database } = usePrototypeDb()
+
+  // Get partner's programs
+  const partnerRecord = useMemo(() => {
+    if (!database) return null
+    // In a real app, get the actual partner from the session
+    return database.partners.length > 0 ? database.partners[0] : null
+  }, [database])
+
+  const programSummaries = useMemo(() => {
+    if (!prototypeReady || !database || !partnerRecord) {
+      return []
+    }
+    return buildProgramSummariesForPartner(database, partnerRecord.id, {
+      includeRelatedPrograms: true,
+    })
+  }, [prototypeReady, database, partnerRecord])
 
   const form = useForm<ResourceData>({
     resolver: zodResolver(resourceSchema),
@@ -103,12 +126,24 @@ export default function UploadContentPage() {
       targetAudience: [],
       language: 'English',
       isPublic: false,
+      programAssignment: 'all',
+      specificPrograms: [],
       tags: []
     },
   })
 
   const watchType = form.watch('type')
   const isWebsite = watchType === 'website'
+  const watchProgramAssignment = form.watch('programAssignment')
+
+  const handleProgramToggle = (programId: string) => {
+    const newSelection = selectedPrograms.includes(programId)
+      ? selectedPrograms.filter(id => id !== programId)
+      : [...selectedPrograms, programId]
+
+    setSelectedPrograms(newSelection)
+    form.setValue('specificPrograms', newSelection)
+  }
 
   const handleSDGToggle = (sdgId: string) => {
     const newSelection = selectedSDGs.includes(sdgId)
@@ -169,9 +204,9 @@ export default function UploadContentPage() {
               Your educational resource has been added to your content bank and is now available to your partner schools.
             </p>
             <div className="space-y-2">
-              <Link href="/partner/dashboard">
+              <Link href="/partner/profile?tab=resources">
                 <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                  Back to Dashboard
+                  Back to Resources
                 </Button>
               </Link>
               <Button variant="outline" onClick={() => setUploadComplete(false)}>
@@ -191,10 +226,10 @@ export default function UploadContentPage() {
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Link href="/partner/dashboard">
+              <Link href="/partner/profile">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Dashboard
+                  Back to Profile
                 </Button>
               </Link>
               <div>
@@ -333,6 +368,149 @@ export default function UploadContentPage() {
                     />
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Program Assignment */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Program Assignment *</CardTitle>
+                <CardDescription>
+                  Assign this resource to specific programs or make it available to all programs
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="programAssignment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="space-y-3">
+                        <div
+                          className={`p-4 rounded-lg border cursor-pointer transition-colors ${
+                            field.value === 'all'
+                              ? 'border-purple-500 bg-purple-50'
+                              : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                          }`}
+                          onClick={() => {
+                            field.onChange('all')
+                            setSelectedPrograms([])
+                            form.setValue('specificPrograms', [])
+                          }}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="font-medium text-gray-900">All Programs</div>
+                              <p className="text-sm text-gray-600 mt-1">
+                                Make this resource available across all your programs (e.g., getting started guides, general educational materials)
+                              </p>
+                            </div>
+                            <div
+                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                                field.value === 'all'
+                                  ? 'border-purple-500 bg-purple-500'
+                                  : 'border-gray-300'
+                              }`}
+                            >
+                              {field.value === 'all' && (
+                                <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`p-4 rounded-lg border cursor-pointer transition-colors ${
+                            field.value === 'specific'
+                              ? 'border-purple-500 bg-purple-50'
+                              : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                          }`}
+                          onClick={() => field.onChange('specific')}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="font-medium text-gray-900">Specific Programs</div>
+                              <p className="text-sm text-gray-600 mt-1">
+                                Assign to specific programs only (e.g., program-specific activity guides, specialized content)
+                              </p>
+                            </div>
+                            <div
+                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                                field.value === 'specific'
+                                  ? 'border-purple-500 bg-purple-500'
+                                  : 'border-gray-300'
+                              }`}
+                            >
+                              {field.value === 'specific' && (
+                                <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {watchProgramAssignment === 'specific' && (
+                  <div className="space-y-3 pt-2">
+                    <label className="text-sm font-medium text-gray-700">Select Programs *</label>
+                    {programSummaries.length > 0 ? (
+                      <div className="grid grid-cols-1 gap-2">
+                        {programSummaries.map(({ program }) => (
+                          <div
+                            key={program.id}
+                            className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                              selectedPrograms.includes(program.id)
+                                ? 'border-purple-500 bg-purple-50'
+                                : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                            }`}
+                            onClick={() => handleProgramToggle(program.id)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-900">
+                                  {program.displayTitle ?? program.name}
+                                </div>
+                                <p className="text-xs text-gray-600 mt-0.5">
+                                  {program.status === 'active' ? 'Active' : 'Inactive'} • {program.description?.substring(0, 60)}...
+                                </p>
+                              </div>
+                              <div
+                                className={`w-4 h-4 rounded border flex items-center justify-center ml-3 flex-shrink-0 ${
+                                  selectedPrograms.includes(program.id)
+                                    ? 'border-purple-500 bg-purple-500'
+                                    : 'border-gray-300'
+                                }`}
+                              >
+                                {selectedPrograms.includes(program.id) && (
+                                  <CheckCircle className="w-3 h-3 text-white" />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-6 border border-gray-200 rounded-lg bg-gray-50">
+                        <p className="text-sm text-gray-600">No programs available.</p>
+                        <Link href="/partner/programs/create">
+                          <Button variant="link" size="sm" className="mt-2">
+                            Create your first program
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
+                    {selectedPrograms.length > 0 && (
+                      <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-800">
+                          <strong>{selectedPrograms.length}</strong> program{selectedPrograms.length > 1 ? 's' : ''} selected
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -530,16 +708,8 @@ export default function UploadContentPage() {
               </CardContent>
             </Card>
 
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Your uploaded resources will be available to schools in your partner network. 
-                Public resources will be available to all Class2Class users.
-              </AlertDescription>
-            </Alert>
-
             <div className="flex gap-4 pt-4">
-              <Link href="/partner/dashboard" className="flex-1">
+              <Link href="/partner/profile?tab=resources" className="flex-1">
                 <Button variant="outline" className="w-full">
                   Cancel
                 </Button>

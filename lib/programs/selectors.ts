@@ -40,6 +40,7 @@ export interface ProgramSummaryMetrics {
   coPartnerCount: number
   projectCount: number
   activeProjectCount: number
+  completedProjectCount: number
   templateCount: number
   pendingInvitations: number
   countries: string[]
@@ -55,6 +56,7 @@ export interface PartnerProgramMetrics {
   students: number
   projects: number
   activeProjects: number
+  completedProjects: number
   templates: number
   pendingInvitations: number
   countryCount: number
@@ -133,6 +135,7 @@ const computeMetrics = (
     coPartnerCount: acceptedCoPartners.length,
     projectCount: projects.length,
     activeProjectCount: projects.filter((project) => project.status === 'active').length,
+    completedProjectCount: projects.filter((project) => project.status === 'completed').length,
     templateCount: templates.length,
     pendingInvitations,
     countries: Array.from(countries),
@@ -267,6 +270,7 @@ export const aggregateProgramMetrics = (
       students: 0,
       projects: 0,
       activeProjects: 0,
+      completedProjects: 0,
       templates: 0,
       pendingInvitations: 0,
       countryCount: 0,
@@ -281,6 +285,7 @@ export const aggregateProgramMetrics = (
   let students = 0
   let projects = 0
   let activeProjects = 0
+  let completedProjects = 0
   let templates = 0
   let pendingInvitations = 0
 
@@ -292,6 +297,7 @@ export const aggregateProgramMetrics = (
     students += summary.metrics.studentCount
     projects += summary.metrics.projectCount
     activeProjects += summary.metrics.activeProjectCount
+    completedProjects += summary.metrics.completedProjectCount
     templates += summary.metrics.templateCount
     pendingInvitations += summary.metrics.pendingInvitations
 
@@ -312,6 +318,7 @@ export const aggregateProgramMetrics = (
     students,
     projects,
     activeProjects,
+    completedProjects,
     templates,
     pendingInvitations,
     countryCount: countries.size,
