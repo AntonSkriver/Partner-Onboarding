@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft,
@@ -29,9 +28,6 @@ import {
   getCurrentSession,
   type UserSession,
 } from '@/lib/auth/session'
-
-const DEFAULT_PROJECT_IMAGE =
-  'https://images.unsplash.com/photo-1585366119957-e9730b6d0f05?w=800&h=480&fit=crop'
 
 const friendlyLabel = (value: string): string =>
   value
@@ -128,16 +124,6 @@ export default function DiscoverProgramDetailPage() {
     if (!summary) return []
     return summary.projects.filter((project) => viewerTeacherIdSet.has(project.createdById))
   }, [summary, viewerTeacherIdSet])
-
-  const openProjects = useMemo(() => {
-    if (!summary) return []
-    return summary.projects.filter((project) => project.status === 'active')
-  }, [summary])
-
-  const sharedProjects = useMemo(
-    () => openProjects.filter((project) => !viewerTeacherIdSet.has(project.createdById)),
-    [openProjects, viewerTeacherIdSet],
-  )
 
   if (!params?.programId) {
     return null
@@ -456,221 +442,84 @@ export default function DiscoverProgramDetailPage() {
           </TabsContent>
 
           <TabsContent value="projects" className="space-y-6 pt-6">
-            {isMember ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>My projects in this program</CardTitle>
-                  <CardDescription>
-                    Continue collaborating with partner classrooms or launch new activities using the guided AI flow.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {myProjects.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/70 p-6 text-center text-sm text-purple-700">
-                      You haven&apos;t created a project for this program yet. Use the “Create project” button on the dashboard to get started.
-                    </div>
-                  ) : (
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {myProjects.map((project) => {
-                        const template = project.templateId
-                          ? templates.find((entry) => entry.id === project.templateId)
-                          : undefined
-                        const createdAt = formatRelative(project.createdAt)
-                        return (
-                          <Card key={project.id} className="border border-purple-100">
-                            <CardHeader className="space-y-1">
-                              <CardTitle className="text-base text-gray-900">
-                                {template?.title ?? project.projectId.replaceAll('-', ' ')}
-                              </CardTitle>
-                              <CardDescription className="text-xs text-gray-500">
-                                Status: {friendlyLabel(project.status)}
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm text-gray-600">
-                              <p>
-                                {template?.summary ??
-                                  'Custom project defined with the AI assistant and aligned to partner expectations.'}
-                              </p>
-                              <div className="flex items-center justify-between text-xs text-gray-500">
-                                <span>Updated {createdAt ?? 'recently'}</span>
-                                <Button size="sm" variant="outline">
-                                  Continue
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        )
-                      })}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="border-dashed border-purple-200 bg-purple-50/70">
-                <CardContent className="p-6 text-sm text-purple-700">
-                  Join this program to create projects with partner-specific guidance, required evidence, and recommended collaboration approaches.
-                </CardContent>
-              </Card>
-            )}
-
-            <Card>
-              <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <CardTitle>Open for collaboration</CardTitle>
-                  <CardDescription>
-                    Projects currently visible to other program members. Request to join or explore their approach for inspiration.
-                  </CardDescription>
+        {isMember && (
+          <Card>
+            <CardHeader>
+              <CardTitle>My projects in this program</CardTitle>
+              <CardDescription>
+                Continue collaborating with partner classrooms or launch new activities using the guided AI flow.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {myProjects.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/70 p-6 text-center text-sm text-purple-700">
+                  You haven&apos;t created a project for this program yet. Use the “Create project” button on the dashboard to get started.
                 </div>
-                <Badge variant="outline" className="text-xs text-purple-600">
-                  {sharedProjects.length} open projects
-                </Badge>
-              </CardHeader>
-              <CardContent>
-                {sharedProjects.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-6 text-center text-sm text-purple-800">
-                    No classrooms have launched this program yet in the prototype. Once teachers activate a template, you&apos;ll see their projects here.
-                  </div>
-                ) : (
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {sharedProjects.map((project) => {
-                      const template = project.templateId
-                        ? templates.find((entry) => entry.id === project.templateId)
-                        : undefined
-                      const projectImage = project.coverImageUrl ?? template?.heroImageUrl ?? DEFAULT_PROJECT_IMAGE
-                      const startLabel = template?.recommendedStartMonth
-                        ? friendlyLabel(template.recommendedStartMonth)
-                        : launchMonth ?? 'Ongoing'
-                      const createdAt = formatRelative(project.createdAt)
-                      const description =
-                        template?.summary ??
-                        'Classroom collaboration inviting partner schools to join. Review the outline and request participation.'
-                      const title =
-                        template?.title ??
-                        `Teacher project (${friendlyLabel(project.createdByType)})`
-
-                      return (
-                        <Card key={project.id} className="flex h-full flex-col overflow-hidden border border-gray-200 shadow-sm">
-                          <div className="relative h-40 w-full">
-                            <Image
-                              src={projectImage}
-                              alt={title}
-                              fill
-                              sizes="(min-width: 1024px) 320px, 100vw"
-                              className="object-cover"
-                            />
-                          </div>
-                          <CardHeader className="space-y-2">
-                            <div className="flex items-center justify-between text-xs text-purple-600">
-                              <span>Starting Month: {startLabel}</span>
-                              <Badge variant="outline" className="text-xs">
-                                Collaboration
-                              </Badge>
-                            </div>
-                            <CardTitle className="text-lg text-gray-900">{title}</CardTitle>
-                            <CardDescription className="line-clamp-3 text-sm text-gray-600">
-                              {description}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="mt-auto space-y-3 text-sm text-gray-600">
-                            <p>
-                              Published by {friendlyLabel(project.createdByType)}
-                              {createdAt ? ` • ${createdAt}` : ''}
-                            </p>
-                            <Button variant="outline" className="w-full">
-                              Request to join
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      )
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Program guidance and AI prompts</CardTitle>
-                <CardDescription>
-                  These learning pathways shape the AI definition agent when you start a project. They&apos;re tailored to the partner&apos;s pedagogy.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {templates.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-6 text-center text-sm text-purple-800">
-                    This program hasn&apos;t published guidance yet. Your AI assistant will rely on the general program brief.
-                  </div>
-                ) : (
-                  <div className="grid gap-5 md:grid-cols-2">
-                    {templates.map((template) => (
-                      <Card key={template.id} className="flex h-full flex-col border border-purple-100 shadow-sm">
-                        {template.heroImageUrl && (
-                          <div className="relative h-40 w-full overflow-hidden rounded-t-xl">
-                            <Image
-                              src={template.heroImageUrl}
-                              alt={template.title}
-                              fill
-                              sizes="(min-width: 768px) 320px, 100vw"
-                              className="object-cover"
-                            />
-                          </div>
-                        )}
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg text-gray-900">{template.title}</CardTitle>
-                            {template.estimatedDurationWeeks && (
-                              <Badge variant="secondary" className="text-xs">
-                                {template.estimatedDurationWeeks} week{template.estimatedDurationWeeks > 1 ? 's' : ''}
-                              </Badge>
-                            )}
-                          </div>
-                          <CardDescription className="text-sm text-gray-600">
-                            {template.summary}
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {myProjects.map((project) => {
+                    const template = project.templateId
+                      ? templates.find((entry) => entry.id === project.templateId)
+                      : undefined
+                    const createdAt = formatRelative(project.createdAt)
+                    return (
+                      <Card key={project.id} className="border border-purple-100">
+                        <CardHeader className="space-y-1">
+                          <CardTitle className="text-base text-gray-900">
+                            {template?.title ?? project.projectId.replaceAll('-', ' ')}
+                          </CardTitle>
+                          <CardDescription className="text-xs text-gray-500">
+                            Status: {friendlyLabel(project.status)}
                           </CardDescription>
                         </CardHeader>
-                        <CardContent className="mt-auto space-y-3 text-sm text-gray-600">
-                          {template.recommendedStartMonth && (
-                            <div className="flex items-center gap-2">
-                              <CalendarDays className="h-4 w-4 text-purple-500" />
-                              Suggested start: {friendlyLabel(template.recommendedStartMonth)}
-                            </div>
-                          )}
-                          <div className="flex flex-wrap gap-2">
-                            {template.subjectFocus.map((subject) => (
-                              <Badge key={subject} variant="outline">
-                                {friendlyLabel(subject)}
-                              </Badge>
-                            ))}
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {template.languageSupport.map((language) => (
-                              <Badge key={language} variant="secondary" className="bg-purple-50 text-purple-700">
-                                {language.toUpperCase()}
-                              </Badge>
-                            ))}
+                        <CardContent className="space-y-3 text-sm text-gray-600">
+                          <p>
+                            {template?.summary ??
+                              'Custom project defined with the AI assistant and aligned to partner expectations.'}
+                          </p>
+                          <div className="flex items-center justify-between text-xs text-gray-500">
+                            <span>Updated {createdAt ?? 'recently'}</span>
+                            <Button size="sm" variant="outline">
+                              Continue
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Shared success stories</CardTitle>
-                <CardDescription>
-                  Teacher-created playbooks will appear here when classrooms publish their outcomes as reusable templates.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-6 text-center text-sm text-purple-800">
-                  Once projects conclude, hosts can promote them into shareable exemplars for other schools to reuse.
+                    )
+                  })}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <Card className="overflow-hidden border border-gray-200 bg-white shadow-sm">
+          <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400">
+            <div className="absolute inset-0 opacity-30">
+              <div className="absolute top-10 -left-20 h-40 w-40 rounded-full bg-white/40 blur-3xl" />
+              <div className="absolute -top-10 right-20 h-60 w-60 rounded-full bg-yellow-300/30 blur-3xl" />
+              <div className="absolute bottom-0 right-10 h-40 w-40 rounded-full bg-pink-300/40 blur-2xl" />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+            <div className="relative z-10 flex h-full flex-col justify-end p-6 text-white">
+              <h3 className="text-xl font-bold drop-shadow-lg">Bring this program to life in your classroom</h3>
+              <p className="mt-2 max-w-xl text-sm text-white/95 drop-shadow">
+                Launch your own Build the Change collaboration and help students design playful solutions for thriving communities.
+              </p>
+            </div>
+          </div>
+          <CardContent className="p-6 text-sm text-gray-600">
+            <p>
+              Start with your classroom&apos;s goals, choose the partners you want to collaborate with, and let students prototype ideas that matter to them.
+            </p>
+          </CardContent>
+          <div className="flex items-center justify-end border-t border-gray-200 bg-gray-50 px-6 py-4">
+            <Button className="bg-purple-600 text-white hover:bg-purple-700" asChild>
+              <Link href="/teacher/projects">Create your project</Link>
+            </Button>
+          </div>
+        </Card>
+      </TabsContent>
         </Tabs>
       </div>
     </div>
