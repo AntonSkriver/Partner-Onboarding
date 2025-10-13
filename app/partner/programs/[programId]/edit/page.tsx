@@ -205,7 +205,7 @@ export default function EditProgramPage() {
             </CardDescription>
           </CardHeader>
           <CardFooter className="justify-center">
-            <Link href="/partner/programs">
+            <Link href="/partner/profile?tab=programs">
               <Button variant="outline">Back to programs</Button>
             </Link>
           </CardFooter>

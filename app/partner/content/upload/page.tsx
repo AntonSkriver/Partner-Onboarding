@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import { buildProgramSummariesForPartner } from '@/lib/programs/selectors'
+import { getCurrentSession } from '@/lib/auth/session'
+import { resolvePartnerContext } from '@/lib/auth/partner-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -97,15 +99,19 @@ export default function UploadContentPage() {
   const [tagInput, setTagInput] = useState('')
   const [customTags, setCustomTags] = useState<string[]>([])
   const [selectedPrograms, setSelectedPrograms] = useState<string[]>([])
+  const [session, setSession] = useState(() => getCurrentSession())
 
   const { ready: prototypeReady, database } = usePrototypeDb()
 
-  // Get partner's programs
-  const partnerRecord = useMemo(() => {
-    if (!database) return null
-    // In a real app, get the actual partner from the session
-    return database.partners.length > 0 ? database.partners[0] : null
-  }, [database])
+  useEffect(() => {
+    setSession(getCurrentSession())
+  }, [])
+
+  const partnerContext = useMemo(
+    () => resolvePartnerContext(session, database ?? null),
+    [database, session],
+  )
+  const partnerRecord = partnerContext.partnerRecord
 
   const programSummaries = useMemo(() => {
     if (!prototypeReady || !database || !partnerRecord) {

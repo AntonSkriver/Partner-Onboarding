@@ -1,138 +1,81 @@
 'use client'
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowLeft,
   CalendarDays,
   CheckCircle,
-  Loader2,
-  Flag,
+  GraduationCap,
   Layers,
   MapPin,
   School,
-  Share2,
-  Plus,
-  Check,
-  X,
   Users,
+  FolderOpen,
+  FileText,
 } from 'lucide-react'
-
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import { getCurrentSession } from '@/lib/auth/session'
-import { resolvePartnerContext } from '@/lib/auth/partner-context'
+import { findProgramSummaryById, type ProgramSummary } from '@/lib/programs/selectors'
 import {
-  findProgramSummaryById,
-  type ProgramSummary,
-} from '@/lib/programs/selectors'
-import {
-  friendlyLabel,
-  COUNTRY_OPTIONS,
-} from '../shared'
-import type {
-  CoPartnerPermissions,
-  CoPartnerRole,
-  ProgramInvitation,
-} from '@/lib/types/program'
-import type {
-  PrototypeDatabase,
-  PrototypeRecord,
-  PrototypeTableKey,
-  CreateInput,
-  UpdateInput,
-} from '@/lib/storage/prototype-db'
-
-const formatDate = (date: string) => {
-  try {
-    return new Date(date).toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  } catch {
-    return date
-  }
-}
-
-const formatRelativeTime = (timestamp: string) => {
-  const date = new Date(timestamp)
-  if (Number.isNaN(date.getTime())) {
-    return timestamp
-  }
-
-  const diffMs = Date.now() - date.getTime()
-  const diffMinutes = Math.floor(diffMs / 60000)
-
-  if (diffMinutes < 1) return 'just now'
-  if (diffMinutes < 60) {
-    return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`
-  }
-
-  const diffHours = Math.floor(diffMinutes / 60)
-  if (diffHours < 24) {
-    return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`
-  }
-
-  const diffDays = Math.floor(diffHours / 24)
-  if (diffDays < 7) {
-    return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`
-  }
-
-  const diffWeeks = Math.floor(diffDays / 7)
-  if (diffWeeks < 4) {
-    return `${diffWeeks} week${diffWeeks === 1 ? '' : 's'} ago`
-  }
-
-  return date.toLocaleDateString()
-}
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 
 const statusStyles: Record<string, string> = {
-  draft: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  active: 'bg-green-50 text-green-700 border-green-200',
-  completed: 'bg-blue-50 text-blue-700 border-blue-200',
-  archived: 'bg-gray-100 text-gray-600 border-gray-200',
+  draft: 'bg-yellow-100 text-yellow-700',
+  active: 'bg-green-100 text-green-700',
+  completed: 'bg-blue-100 text-blue-700',
+  archived: 'bg-gray-100 text-gray-600',
 }
 
-export default function ProgramDetailPage() {
+const metricItems = (summary: ProgramSummary) => [
+  {
+    label: 'Active projects',
+    value: summary.metrics.activeProjectCount,
+    icon: <Layers className="h-4 w-4 text-purple-500" />,
+  },
+  {
+    label: 'Finished projects',
+    value: summary.metrics.completedProjectCount,
+    icon: <CheckCircle className="h-4 w-4 text-purple-500" />,
+  },
+  {
+    label: 'Teachers',
+    value: summary.metrics.teacherCount,
+    icon: <Users className="h-4 w-4 text-purple-500" />,
+  },
+  {
+    label: 'Students',
+    value: summary.metrics.studentCount.toLocaleString(),
+    icon: <GraduationCap className="h-4 w-4 text-purple-500" />,
+  },
+  {
+    label: 'Institutions',
+    value: summary.metrics.institutionCount,
+    icon: <School className="h-4 w-4 text-purple-500" />,
+  },
+  {
+    label: 'Countries',
+    value: summary.metrics.countries.length,
+    icon: <MapPin className="h-4 w-4 text-purple-500" />,
+  },
+]
+
+export default function PartnerProgramDetailPage() {
   const router = useRouter()
   const params = useParams<{ programId: string }>()
   const [session, setSession] = useState(() => getCurrentSession())
-  const { ready: dataReady, database, createRecord, updateRecord, refresh } = usePrototypeDb()
+  const { ready, database } = usePrototypeDb()
 
   useEffect(() => {
     setSession(getCurrentSession())
@@ -144,24 +87,24 @@ export default function ProgramDetailPage() {
     }
   }, [router, session])
 
-  const partnerContext = useMemo(
-    () => resolvePartnerContext(session, database ?? null),
-    [database, session],
-  )
-  const { partnerRecord } = partnerContext
-
   const summary = useMemo(() => {
     if (!database || !params?.programId) return null
     return findProgramSummaryById(database, params.programId)
   }, [database, params?.programId])
 
-  if (!session || !dataReady) {
+  if (!session || !ready) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center space-y-3 text-gray-600">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto" />
-          <p>Loading program details…</p>
-        </div>
+        <Card className="w-full max-w-sm text-center">
+          <CardHeader>
+            <CardTitle className="text-base font-semibold text-gray-900">
+              Loading program experience…
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pb-6 text-sm text-gray-600">
+            Please wait while we prepare your program overview.
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -169,1325 +112,342 @@ export default function ProgramDetailPage() {
   if (!summary) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <Card className="max-w-lg w-full text-center space-y-4">
+        <Card className="w-full max-w-lg text-center space-y-4">
           <CardHeader>
             <CardTitle className="text-2xl">Program not found</CardTitle>
             <CardDescription>
-              We couldn&apos;t locate that program in the prototype data store. It may have been
-              deleted or you may have followed an outdated link.
+              The requested program isn&apos;t available in the prototype data. It may have been
+              removed or you may have followed an outdated link.
             </CardDescription>
           </CardHeader>
-          <CardFooter className="justify-center">
-            <Link href="/partner/programs">
-              <Button variant="outline">Back to programs</Button>
-            </Link>
-          </CardFooter>
+          <CardContent>
+            <Button variant="outline" asChild>
+              <Link href="/partner/profile?tab=programs">Back to programs</Link>
+            </Button>
+          </CardContent>
         </Card>
       </div>
     )
   }
 
-  return (
-    <ProgramDetail
-      summary={summary}
-      partnerName={partnerRecord?.organizationName}
-      partnerContext={partnerContext}
-      database={database}
-      createRecord={createRecord}
-      updateRecord={updateRecord}
-      refresh={refresh}
-    />
-  )
-}
-
-interface ProgramDetailProps {
-  summary: ProgramSummary
-  partnerName?: string
-  partnerContext: ReturnType<typeof resolvePartnerContext>
-  database: PrototypeDatabase | null
-  createRecord: <K extends PrototypeTableKey>(table: K, data: CreateInput<K>) => PrototypeRecord<K>
-  updateRecord: <K extends PrototypeTableKey>(table: K, id: string, updates: UpdateInput<K>) => PrototypeRecord<K> | undefined
-  refresh: () => void
-}
-
-const CO_PARTNER_INVITE_ROLES = ['co_host', 'sponsor', 'advisor', 'supporter'] as const
-
-const DEFAULT_CO_PARTNER_PERMISSIONS: Record<CoPartnerRole, CoPartnerPermissions> = {
-  host: {
-    canEditProgram: true,
-    canInviteCoordinators: true,
-    canViewAllData: true,
-    canManageProjects: true,
-    canRemoveParticipants: true,
-  },
-  co_host: {
-    canEditProgram: true,
-    canInviteCoordinators: true,
-    canViewAllData: true,
-    canManageProjects: true,
-    canRemoveParticipants: false,
-  },
-  sponsor: {
-    canEditProgram: false,
-    canInviteCoordinators: false,
-    canViewAllData: true,
-    canManageProjects: false,
-    canRemoveParticipants: false,
-  },
-  advisor: {
-    canEditProgram: false,
-    canInviteCoordinators: true,
-    canViewAllData: true,
-    canManageProjects: false,
-    canRemoveParticipants: false,
-  },
-  supporter: {
-    canEditProgram: false,
-    canInviteCoordinators: false,
-    canViewAllData: true,
-    canManageProjects: false,
-    canRemoveParticipants: false,
-  },
-}
-
-const coPartnerInviteSchema = z.object({
-  partnerId: z.string().min(1, 'Select a partner organisation'),
-  recipientName: z.string().min(2, 'Provide a contact name'),
-  recipientEmail: z.string().email('Enter a valid email address'),
-  role: z.enum(CO_PARTNER_INVITE_ROLES, {
-    errorMap: () => ({ message: 'Select a collaboration role' }),
-  }),
-  customMessage: z.string().max(600, 'Keep the message under 600 characters').optional(),
-})
-
-type CoPartnerInviteFormValues = z.infer<typeof coPartnerInviteSchema>
-
-const getDefaultPermissionsForRole = (role: CoPartnerRole): CoPartnerPermissions =>
-  DEFAULT_CO_PARTNER_PERMISSIONS[role] ?? DEFAULT_CO_PARTNER_PERMISSIONS.supporter
-
-const getPartnerIdFromInvitation = (invitation: ProgramInvitation): string | null => {
-  if (typeof invitation.metadata !== 'object' || invitation.metadata === null) {
-    return null
-  }
-
-  const candidate = (invitation.metadata as { partnerId?: unknown }).partnerId
-  return typeof candidate === 'string' ? candidate : null
-}
-
-const coordinatorInviteSchema = z.object({
-  firstName: z.string().min(2, 'Provide a first name'),
-  lastName: z.string().min(2, 'Provide a last name'),
-  email: z.string().email('Enter a valid email address'),
-  country: z.string().min(2, 'Select a country'),
-  region: z.string().optional(),
-  customMessage: z.string().max(600, 'Keep the message under 600 characters').optional(),
-})
-
-type CoordinatorInviteFormValues = z.infer<typeof coordinatorInviteSchema>
-
-const ProgramDetail = ({
-  summary,
-  partnerName,
-  partnerContext,
-  database,
-  createRecord,
-  updateRecord,
-  refresh,
-}: ProgramDetailProps) => {
-  const { program, metrics } = summary
-  const statusClass =
-    statusStyles[program.status] ?? 'bg-gray-100 text-gray-700 border-gray-200'
-  const hostRelationship = summary.coPartners.find(
-    ({ relationship }) => relationship.role === 'host',
-  )
-  const hostName =
-    hostRelationship?.partner?.organizationName ?? partnerName ?? 'Host organisation'
-
-  const [isInviteDialogOpen, setInviteDialogOpen] = useState(false)
-  const [isSendingInvite, setIsSendingInvite] = useState(false)
-  const [updatingCoPartnerInvitationId, setUpdatingCoPartnerInvitationId] = useState<string | null>(null)
-  const [isCoordinatorDialogOpen, setCoordinatorDialogOpen] = useState(false)
-  const [isSendingCoordinatorInvite, setIsSendingCoordinatorInvite] = useState(false)
-  const [updatingCoordinatorInvitationId, setUpdatingCoordinatorInvitationId] = useState<string | null>(null)
-
-  const inviterId = partnerContext.partnerUser?.id ?? 'partner-user-prototype-system'
-
-  const existingPartnerIds = useMemo(() => {
-    const ids = new Set<string>()
-    ids.add(program.partnerId)
-    summary.coPartners.forEach(({ relationship }) => ids.add(relationship.partnerId))
-    return ids
-  }, [program.partnerId, summary.coPartners])
-
-  const availablePartners = useMemo(() => {
-    if (!database) return []
-    return database.partners.filter((partner) => !existingPartnerIds.has(partner.id))
-  }, [database, existingPartnerIds])
-
-  const inviteForm = useForm<CoPartnerInviteFormValues>({
-    resolver: zodResolver(coPartnerInviteSchema),
-    defaultValues: {
-      partnerId: '',
-      recipientName: '',
-      recipientEmail: '',
-      role: 'co_host',
-      customMessage: '',
-    },
-  })
-
-  const allowedCoordinatorCountries = useMemo(() => {
-    const countrySet = new Set(program.countriesInScope)
-    const filtered = COUNTRY_OPTIONS.filter((option) => countrySet.has(option.code))
-    return filtered.length > 0 ? filtered : COUNTRY_OPTIONS
-  }, [program.countriesInScope])
-
-  const coordinatorForm = useForm<CoordinatorInviteFormValues>({
-    resolver: zodResolver(coordinatorInviteSchema),
-    defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      country: allowedCoordinatorCountries[0]?.code ?? '',
-      region: '',
-      customMessage: '',
-    },
-  })
-
-  const selectedPartnerId = inviteForm.watch('partnerId')
-  const selectedPartner = useMemo(
-    () => availablePartners.find((partner) => partner.id === selectedPartnerId) ?? null,
-    [availablePartners, selectedPartnerId],
-  )
-
-  useEffect(() => {
-    if (!selectedPartner) return
-    inviteForm.setValue('recipientName', selectedPartner.organizationName, {
-      shouldDirty: false,
-    })
-    if (selectedPartner.contactEmail) {
-      inviteForm.setValue('recipientEmail', selectedPartner.contactEmail, {
-        shouldDirty: false,
-      })
-    }
-  }, [inviteForm, selectedPartner])
-
-  useEffect(() => {
-    if (!isCoordinatorDialogOpen) return
-    coordinatorForm.reset({
-      firstName: '',
-      lastName: '',
-      email: '',
-      country: allowedCoordinatorCountries[0]?.code ?? '',
-      region: '',
-      customMessage: '',
-    })
-  }, [isCoordinatorDialogOpen, allowedCoordinatorCountries, coordinatorForm])
-
-  const sortedCoPartners = useMemo(
-    () =>
-      summary.coPartners
-        .slice()
-        .sort((a, b) => a.relationship.role.localeCompare(b.relationship.role)),
-    [summary.coPartners],
-  )
-  const sortedCoordinators = useMemo(
-    () => summary.coordinators.slice().sort((a, b) => a.country.localeCompare(b.country)),
-    [summary.coordinators],
-  )
-  const sortedInstitutions = useMemo(
-    () =>
-      summary.institutions.slice().sort((a, b) => a.country.localeCompare(b.country)),
-    [summary.institutions],
-  )
-  const sortedActivities = useMemo(
-    () =>
-      summary.activities
-        .slice()
-        .sort((a, b) => new Date(b.timestamp).valueOf() - new Date(a.timestamp).valueOf()),
-    [summary.activities],
-  )
-  const coPartnerInvitations = useMemo(
-    () => summary.invitations.filter((invitation) => invitation.invitationType === 'co_partner'),
-    [summary.invitations],
-  )
-  const coordinatorInvitations = useMemo(
-    () => summary.invitations.filter((invitation) => invitation.invitationType === 'coordinator'),
-    [summary.invitations],
-  )
-  const sortedInvitations = useMemo(
-    () =>
-      summary.invitations
-        .slice()
-        .sort((a, b) => new Date(b.sentAt).valueOf() - new Date(a.sentAt).valueOf()),
-    [summary.invitations],
-  )
-  const pendingCoPartnerInvitations = useMemo(
-    () => coPartnerInvitations.filter((invitation) => invitation.status === 'pending'),
-    [coPartnerInvitations],
-  )
-  const pendingCoordinatorInvitations = useMemo(
-    () => coordinatorInvitations.filter((invitation) => invitation.status === 'pending'),
-    [coordinatorInvitations],
-  )
-
-  const handleDialogOpenChange = (open: boolean) => {
-    setInviteDialogOpen(open)
-
-    if (!open) {
-      inviteForm.reset({
-        partnerId: '',
-        recipientName: '',
-        recipientEmail: '',
-        role: 'co_host',
-        customMessage: '',
-      })
-      return
-    }
-
-    if (availablePartners.length > 0) {
-      const [first] = availablePartners
-      inviteForm.setValue('partnerId', first.id, { shouldDirty: false })
-      inviteForm.setValue('role', 'co_host', { shouldDirty: false })
-      inviteForm.setValue('recipientName', first.organizationName, { shouldDirty: false })
-      if (first.contactEmail) {
-        inviteForm.setValue('recipientEmail', first.contactEmail, { shouldDirty: false })
-      }
-    }
-  }
-
-  const handleCoordinatorDialogOpenChange = (open: boolean) => {
-    setCoordinatorDialogOpen(open)
-
-    if (!open) {
-      coordinatorForm.reset({
-        firstName: '',
-        lastName: '',
-        email: '',
-        country: allowedCoordinatorCountries[0]?.code ?? '',
-        region: '',
-        customMessage: '',
-      })
-    }
-  }
-
-  const handleSendInvite = inviteForm.handleSubmit((values) => {
-    if (!database) return
-    const partner = database.partners.find((entry) => entry.id === values.partnerId)
-    if (!partner) {
-      inviteForm.setError('partnerId', { message: 'Select a valid partner' })
-      return
-    }
-
-    setIsSendingInvite(true)
-    try {
-      const now = new Date()
-      const nowIso = now.toISOString()
-      const expiresAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString()
-      const proposedPermissions = getDefaultPermissionsForRole(values.role as CoPartnerRole)
-      const token = `c2c_invite_${program.id}_${now.getTime().toString(36)}`
-
-      createRecord('invitations', {
-        programId: program.id,
-        invitationType: 'co_partner',
-        recipientEmail: values.recipientEmail,
-        recipientName: values.recipientName,
-        sentBy: inviterId,
-        sentByType: 'partner',
-        customMessage: values.customMessage?.trim() ? values.customMessage.trim() : undefined,
-        token,
-        expiresAt,
-        status: 'pending',
-        sentAt: nowIso,
-        createdAt: nowIso,
-        updatedAt: nowIso,
-        proposedRole: values.role as CoPartnerRole,
-        proposedPermissions,
-        metadata: {
-          partnerId: partner.id,
-          partnerOrganization: partner.organizationName,
-        },
-      })
-
-      const existingRelationship = database.programPartners.find(
-        (relationship) =>
-          relationship.programId === program.id && relationship.partnerId === partner.id,
-      )
-
-      if (existingRelationship) {
-        updateRecord('programPartners', existingRelationship.id, {
-          role: values.role as CoPartnerRole,
-          permissions: proposedPermissions,
-          invitedBy: inviterId,
-          invitedAt: nowIso,
-          status: 'invited',
-        })
-      } else {
-        createRecord('programPartners', {
-          programId: program.id,
-          partnerId: partner.id,
-          role: values.role as CoPartnerRole,
-          permissions: proposedPermissions,
-          invitedBy: inviterId,
-          invitedAt: nowIso,
-          status: 'invited',
-          createdAt: nowIso,
-          updatedAt: nowIso,
-        })
-      }
-
-      refresh()
-      handleDialogOpenChange(false)
-    } catch (error) {
-      console.error('Failed to create co-partner invitation', error)
-    } finally {
-      setIsSendingInvite(false)
-    }
-  })
-
-  const handleSendCoordinatorInvite = coordinatorForm.handleSubmit((values) => {
-    if (!database) return
-
-    setIsSendingCoordinatorInvite(true)
-    try {
-      const now = new Date()
-      const nowIso = now.toISOString()
-      const expiresAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString()
-      const token = `c2c_invite_COORD_${program.id}_${now.getTime().toString(36)}`
-
-      const coordinatorRecord = createRecord('coordinators', {
-        programId: program.id,
-        userId: values.email.toLowerCase(),
-        country: values.country,
-        region: values.region?.trim() || undefined,
-        email: values.email,
-        firstName: values.firstName,
-        lastName: values.lastName,
-        phoneNumber: undefined,
-        status: 'invited',
-        invitedBy: inviterId,
-        invitedAt: nowIso,
-        createdAt: nowIso,
-        updatedAt: nowIso,
-      })
-
-      createRecord('invitations', {
-        programId: program.id,
-        invitationType: 'coordinator',
-        recipientEmail: values.email,
-        recipientName: `${values.firstName} ${values.lastName}`.trim(),
-        sentBy: inviterId,
-        sentByType: 'partner',
-        customMessage: values.customMessage?.trim() ? values.customMessage.trim() : undefined,
-        token,
-        expiresAt,
-        status: 'pending',
-        sentAt: nowIso,
-        createdAt: nowIso,
-        updatedAt: nowIso,
-        assignedCountry: values.country,
-        assignedRegion: values.region?.trim() || undefined,
-        metadata: {
-          coordinatorId: coordinatorRecord.id,
-          country: values.country,
-          region: values.region,
-          firstName: values.firstName,
-          lastName: values.lastName,
-        },
-      })
-
-      refresh()
-      setCoordinatorDialogOpen(false)
-      coordinatorForm.reset({
-        firstName: '',
-        lastName: '',
-        email: '',
-        country: allowedCoordinatorCountries[0]?.code ?? '',
-        region: '',
-        customMessage: '',
-      })
-    } catch (error) {
-      console.error('Failed to create coordinator invitation', error)
-    } finally {
-      setIsSendingCoordinatorInvite(false)
-    }
-  })
-
-  const handleCoPartnerInvitationStatusChange = (
-    invitation: ProgramInvitation,
-    nextStatus: 'accepted' | 'declined',
-  ) => {
-    setUpdatingCoPartnerInvitationId(invitation.id)
-    try {
-      const nowIso = new Date().toISOString()
-      updateRecord('invitations', invitation.id, {
-        status: nextStatus,
-        respondedAt: nowIso,
-        viewedAt: invitation.viewedAt ?? nowIso,
-      })
-
-      const partnerId = getPartnerIdFromInvitation(invitation)
-      if (!partnerId) {
-        refresh()
-        return
-      }
-
-      const relationship = database?.programPartners.find(
-        (entry) => entry.programId === program.id && entry.partnerId === partnerId,
-      )
-
-      const role = invitation.proposedRole ?? (relationship?.role ?? 'co_host')
-      const permissions =
-        invitation.proposedPermissions ?? getDefaultPermissionsForRole(role)
-
-      if (relationship) {
-        const updates: UpdateInput<'programPartners'> = {
-          role,
-          permissions,
-          status: nextStatus === 'accepted' ? 'accepted' : 'declined',
-        }
-        if (nextStatus === 'accepted') {
-          updates.acceptedAt = nowIso
-        }
-        updateRecord('programPartners', relationship.id, updates)
-      } else if (nextStatus === 'accepted') {
-        createRecord('programPartners', {
-          programId: program.id,
-          partnerId,
-          role,
-          permissions,
-          invitedBy: inviterId,
-          invitedAt: invitation.sentAt,
-          status: 'accepted',
-          acceptedAt: nowIso,
-          createdAt: invitation.sentAt,
-          updatedAt: nowIso,
-        })
-      }
-
-      refresh()
-    } catch (error) {
-      console.error('Failed to update invitation status', error)
-    } finally {
-      setUpdatingCoPartnerInvitationId(null)
-    }
-  }
-
-  const handleCoordinatorInvitationStatusChange = (
-    invitation: ProgramInvitation,
-    nextStatus: 'accepted' | 'declined',
-  ) => {
-    setUpdatingCoordinatorInvitationId(invitation.id)
-    try {
-      const nowIso = new Date().toISOString()
-      updateRecord('invitations', invitation.id, {
-        status: nextStatus,
-        respondedAt: nowIso,
-        viewedAt: invitation.viewedAt ?? nowIso,
-      })
-
-      const coordinatorId =
-        typeof invitation.metadata === 'object' && invitation.metadata
-          ? (invitation.metadata as { coordinatorId?: unknown }).coordinatorId
-          : undefined
-
-      if (typeof coordinatorId === 'string' && coordinatorId) {
-        const coordinatorUpdates: UpdateInput<'coordinators'> = {
-          status: nextStatus === 'accepted' ? 'active' : 'inactive',
-        }
-        if (nextStatus === 'accepted') {
-          coordinatorUpdates.acceptedAt = nowIso
-        }
-        updateRecord('coordinators', coordinatorId, coordinatorUpdates)
-      }
-
-      refresh()
-    } catch (error) {
-      console.error('Failed to update coordinator invitation', error)
-    } finally {
-      setUpdatingCoordinatorInvitationId(null)
-    }
-  }
-
-  const canInviteCoPartner = availablePartners.length > 0
-  const canInviteCoordinator = allowedCoordinatorCountries.length > 0
+  const statusBadgeClass = statusStyles[summary.program.status] ?? 'bg-gray-100 text-gray-600'
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
-      <div className="max-w-6xl mx-auto px-4 space-y-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <Link href="/partner/programs" className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700">
-              <ArrowLeft className="h-4 w-4" />
+    <div className="min-h-screen bg-gray-50 pb-16">
+      <div className="mx-auto w-full max-w-5xl px-4 py-10">
+        <div className="mb-6 flex items-center justify-between">
+          <Button variant="ghost" size="sm" asChild className="px-0 text-purple-600 hover:text-purple-700">
+            <Link href="/partner/profile?tab=programs">
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Back to programs
             </Link>
-            <div className="mt-3 flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-gray-900">{program.name}</h1>
-              <Badge className={statusClass}>{friendlyLabel(program.status)}</Badge>
-            </div>
-            <p className="text-gray-600 mt-2 max-w-3xl">{program.description}</p>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Link href={`/partner/programs/${program.id}/edit`}>
-              <Button variant="outline">Edit program</Button>
-            </Link>
-            <Button className="bg-purple-600 hover:bg-purple-700" disabled>
-              <Share2 className="mr-2 h-4 w-4" />
-              Invite participants (coming soon)
+          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/partner/programs/${summary.program.id}/edit`}>Edit program</Link>
             </Button>
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Program snapshot</CardTitle>
-            <CardDescription>
-              Live metrics from the prototype store so stakeholders can test dashboards before the
-              production build.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <KeyMetric icon={Layers} label="Co-Partners" value={metrics.coPartnerCount} />
-              <KeyMetric icon={Users} label="Coordinators" value={metrics.coordinatorCount} />
-              <KeyMetric icon={School} label="Institutions" value={metrics.institutionCount} />
-              <KeyMetric
-                icon={Users}
-                label="Teachers"
-                value={metrics.teacherCount}
-              />
-              <KeyMetric
-                icon={Users}
-                label="Students (est.)"
-                value={metrics.studentCount.toLocaleString()}
-              />
-              <KeyMetric icon={Layers} label="Projects" value={metrics.projectCount} />
-              <KeyMetric icon={Flag} label="Active invitations" value={metrics.pendingInvitations} />
-              <KeyMetric icon={MapPin} label="Countries" value={metrics.countries.length} />
+        <Card className="mb-8 border border-gray-200 shadow-sm">
+          <CardContent className="space-y-4 p-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <CardTitle className="text-2xl text-gray-900">
+                    {summary.program.displayTitle ?? summary.program.name}
+                  </CardTitle>
+                  <Badge className={statusBadgeClass}>
+                    {summary.program.status.replace('-', ' ')}
+                  </Badge>
+                </div>
+                {summary.program.displayTitle && summary.program.displayTitle !== summary.program.name && (
+                  <p className="text-xs text-gray-500">{summary.program.name}</p>
+                )}
+                <p className="max-w-2xl text-sm text-gray-600">
+                  {summary.program.marketingTagline ?? summary.program.description}
+                </p>
+                <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+                  <span className="inline-flex items-center gap-1">
+                    <CalendarDays className="h-3.5 w-3.5 text-purple-500" />
+                    {formatDate(summary.program.startDate)} – {formatDate(summary.program.endDate)}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5 text-purple-500" />
+                    {summary.metrics.countries.length}{' '}
+                    {summary.metrics.countries.length === 1 ? 'country' : 'countries'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              {metricItems(summary).map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-lg border border-gray-200 bg-white p-3 text-center"
+                >
+                  <div className="mb-1 flex items-center justify-center gap-1 text-xs text-gray-500 uppercase tracking-wide">
+                    {item.icon}
+                    {item.label}
+                  </div>
+                  <p className="text-lg font-semibold text-gray-900">{item.value}</p>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 md:grid-cols-[2fr,1fr]">
-          <Card>
-            <CardHeader>
-              <CardTitle>Program design</CardTitle>
-              <CardDescription>
-                Configuration the production team will replicate in Supabase during the backend
-                build.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                <span className="flex items-center gap-1">
-                  <CalendarDays className="h-4 w-4 text-purple-500" />
-                  {formatDate(program.startDate)} – {formatDate(program.endDate)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Users className="h-4 w-4 text-purple-500" />
-                  Hosted by {hostName}
-                </span>
-              </div>
-              <Separator />
-              <DetailGroup title="Learning goals">
-                <p className="text-sm text-gray-700 leading-relaxed">{program.learningGoals}</p>
-              </DetailGroup>
-              <DetailGroup title="Project types">
-                <div className="flex flex-wrap gap-2">
-                  {program.projectTypes.map((type) => (
-                    <Badge key={type} variant="secondary">
-                      {friendlyLabel(type)}
-                    </Badge>
-                  ))}
-                </div>
-              </DetailGroup>
-              <DetailGroup title="Pedagogical frameworks">
-                <div className="flex flex-wrap gap-2">
-                  {program.pedagogicalFramework.map((framework) => (
-                    <Badge key={framework} variant="secondary">
-                      {friendlyLabel(framework)}
-                    </Badge>
-                  ))}
-                </div>
-              </DetailGroup>
-              <DetailGroup title="Target age ranges">
-                <div className="flex flex-wrap gap-2">
-                  {program.targetAgeRanges.map((range) => (
-                    <Badge key={range} variant="outline">
-                      {range.replace('-', '–')}
-                    </Badge>
-                  ))}
-                </div>
-              </DetailGroup>
-              <DetailGroup title="Countries in scope">
-                <div className="flex flex-wrap gap-2">
-                  {program.countriesInScope.map((country) => (
-                    <Badge key={country} variant="outline">
-                      {country}
-                    </Badge>
-                  ))}
-                </div>
-              </DetailGroup>
-            </CardContent>
-          </Card>
+        <ProgramTabs summary={summary} />
+      </div>
+    </div>
+  )
+}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Prototype notes</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm text-gray-700">
-              <p>
-                This page mirrors the production-ready specification in the implementation plan. All
-                data is stored in localStorage so stakeholders can test flows without touching
-                Supabase.
-              </p>
-              <p>
-                The future engineering team will rebuild these views with real authentication,
-                invitation tokens, and analytics once we hand off the prototype.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+function ProgramTabs({ summary }: { summary: ProgramSummary }) {
+  const [tab, setTab] = useState<'overview' | 'participants' | 'projects' | 'resources'>('overview')
+  const hostPartner = summary.coPartners.find(({ relationship }) => relationship.role === 'host')
+  const supportingPartner = summary.program.supportingPartnerId
+    ? summary.coPartners.find(({ relationship }) => relationship.partnerId === summary.program.supportingPartnerId)
+    : undefined
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Co-partners</CardTitle>
-              <CardDescription>
-                Partner organisations collaborating on this program. Invite flow will be wired next.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {sortedCoPartners.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-4 text-sm text-purple-700">
-                  No co-partners yet. The invitation flow prototype will create relationships here.
-                </div>
-              ) : (
-                sortedCoPartners.map(({ relationship, partner }) => (
-                  <div
-                    key={relationship.id}
-                    className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {partner?.organizationName ?? 'Partner pending'}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Role: {friendlyLabel(relationship.role)}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={
-                          relationship.status === 'accepted' ? 'default' : 'outline'
-                        }
-                      >
-                        {friendlyLabel(relationship.status)}
-                      </Badge>
-                    </div>
-                    <p className="mt-3 text-sm text-gray-600">
-                      Invited {formatDate(relationship.invitedAt)} ·{' '}
-                      {relationship.permissions.canInviteCoordinators
-                        ? 'Can invite coordinators'
-                        : 'Cannot invite coordinators'}
-                    </p>
-                  </div>
-                ))
-              )}
-              {pendingCoPartnerInvitations.length > 0 && (
-                <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-4">
-                  <p className="text-sm font-medium text-purple-900">Pending invitations</p>
-                  <div className="mt-3 space-y-3 text-sm text-purple-800">
-                    {pendingCoPartnerInvitations.map((invitation) => (
-                      <div key={invitation.id} className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-purple-900">
-                            {invitation.recipientName ?? invitation.recipientEmail}
-                          </p>
-                          <p>
-                            Sent {formatDate(invitation.sentAt)} · Role{' '}
-                            {friendlyLabel(invitation.proposedRole ?? 'co_host')}
-                          </p>
-                        </div>
-                        <Badge variant="outline">Awaiting response</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter>
-              <Dialog open={isInviteDialogOpen} onOpenChange={handleDialogOpenChange}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" disabled={!canInviteCoPartner}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Invite co-partner
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Invite a co-partner</DialogTitle>
-                    <DialogDescription>
-                      Send a prototype invitation to an existing partner organisation. The invite is
-                      stored locally so upcoming flows can simulate acceptance.
-                    </DialogDescription>
-                  </DialogHeader>
-                  {canInviteCoPartner ? (
-                    <Form {...inviteForm}>
-                      <form className="space-y-4" onSubmit={handleSendInvite}>
-                        <FormField
-                          control={inviteForm.control}
-                          name="partnerId"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Select partner</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Choose a partner" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {availablePartners.map((partner) => (
-                                    <SelectItem key={partner.id} value={partner.id}>
-                                      {partner.organizationName}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+  const hostName = hostPartner?.partner?.organizationName ?? 'Host organisation'
+  const supportingName = supportingPartner?.partner?.organizationName ?? '—'
 
-                        <FormField
-                          control={inviteForm.control}
-                          name="role"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Collaboration role</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select a role" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {CO_PARTNER_INVITE_ROLES.map((role) => (
-                                    <SelectItem key={role} value={role}>
-                                      {friendlyLabel(role)}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+  return (
+    <Tabs value={tab} onValueChange={(value) => setTab(value as typeof tab)} className="space-y-6">
+      <TabsList>
+        <TabsTrigger value="overview">Overview</TabsTrigger>
+        <TabsTrigger value="participants">Participants</TabsTrigger>
+        <TabsTrigger value="projects">Projects</TabsTrigger>
+        <TabsTrigger value="resources">Resources</TabsTrigger>
+      </TabsList>
 
-                        <FormField
-                          control={inviteForm.control}
-                          name="recipientName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Recipient name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Pat Jensen" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={inviteForm.control}
-                          name="recipientEmail"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Recipient email</FormLabel>
-                              <FormControl>
-                                <Input type="email" placeholder="pat@example.org" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={inviteForm.control}
-                          name="customMessage"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Personal message (optional)</FormLabel>
-                              <FormControl>
-                                <Textarea
-                                  rows={4}
-                                  placeholder="Share context for why you’re inviting this partner."
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <DialogFooter>
-                          <Button
-                            type="button"
-                            variant="outline"
-                          onClick={() => handleDialogOpenChange(false)}
-                          >
-                            Cancel
-                          </Button>
-                          <Button type="submit" disabled={isSendingInvite}>
-                            {isSendingInvite ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Sending…
-                              </>
-                            ) : (
-                              <>
-                                <Share2 className="mr-2 h-4 w-4" />
-                                Send invite
-                              </>
-                            )}
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </Form>
-                  ) : (
-                    <div className="rounded-md border border-dashed border-purple-200 bg-purple-50/60 p-4 text-sm text-purple-700">
-                      All known partners are already connected to this program. Add more partners to
-                      the prototype seeds to invite additional organisations.
-                    </div>
-                  )}
-                </DialogContent>
-              </Dialog>
-            </CardFooter>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Coordinator coverage</CardTitle>
-              <CardDescription>
-                Country coordinators linked to this program. Invite regional leads to help onboard
-                institutions within their territory.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {sortedCoordinators.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-4 text-sm text-purple-700">
-                  No coordinators yet. Use the invitation flow below to assign coverage.
-                </div>
-              ) : (
-                sortedCoordinators.map((coordinator) => (
-                  <div
-                    key={coordinator.id}
-                    className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {coordinator.firstName} {coordinator.lastName}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {coordinator.email} · {coordinator.country}
-                          {coordinator.region ? `, ${coordinator.region}` : ''}
-                        </p>
-                      </div>
-                      <Badge variant={coordinator.status === 'active' ? 'default' : 'outline'}>
-                        {friendlyLabel(coordinator.status)}
-                      </Badge>
-                    </div>
-                    <p className="mt-3 text-sm text-gray-600">
-                      Invited {formatDate(coordinator.invitedAt)}
-                      {coordinator.acceptedAt ? ` · Accepted ${formatDate(coordinator.acceptedAt)}` : ''}
-                    </p>
-                  </div>
-                ))
-              )}
-
-              {pendingCoordinatorInvitations.length > 0 && (
-                <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-4">
-                  <p className="text-sm font-medium text-purple-900">Pending coordinator invitations</p>
-                  <div className="mt-3 space-y-3 text-sm text-purple-800">
-                    {pendingCoordinatorInvitations.map((invitation) => (
-                      <div key={invitation.id} className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-purple-900">
-                            {invitation.recipientName ?? invitation.recipientEmail}
-                          </p>
-                          <p>
-                            Sent {formatDate(invitation.sentAt)} · Country{' '}
-                            {invitation.assignedCountry ?? '—'}
-                          </p>
-                        </div>
-                        <Badge variant="outline">Awaiting response</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter>
-              <Dialog open={isCoordinatorDialogOpen} onOpenChange={handleCoordinatorDialogOpenChange}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" disabled={!canInviteCoordinator}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Invite coordinator
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Invite a country coordinator</DialogTitle>
-                    <DialogDescription>
-                      Invite a regional lead to manage institutions for this program. The prototype will store the invite locally so you can simulate acceptance.
-                    </DialogDescription>
-                  </DialogHeader>
-                  {canInviteCoordinator ? (
-                    <Form {...coordinatorForm}>
-                      <form className="space-y-4" onSubmit={handleSendCoordinatorInvite}>
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <FormField
-                          control={coordinatorForm.control}
-                          name="firstName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>First name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Jordan" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={coordinatorForm.control}
-                          name="lastName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Last name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Nguyen" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <FormField
-                        control={coordinatorForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input type="email" placeholder="coordinator@example.org" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <FormField
-                          control={coordinatorForm.control}
-                          name="country"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Country</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select country" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {allowedCoordinatorCountries.map((country) => (
-                                    <SelectItem key={country.code} value={country.code}>
-                                      {country.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={coordinatorForm.control}
-                          name="region"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Region / State (optional)</FormLabel>
-                              <FormControl>
-                                <Input placeholder="California" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <FormField
-                        control={coordinatorForm.control}
-                        name="customMessage"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Personal message (optional)</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                rows={4}
-                                placeholder="Share context for why you’re inviting this coordinator."
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => handleCoordinatorDialogOpenChange(false)}>
-                          Cancel
-                        </Button>
-                        <Button type="submit" disabled={isSendingCoordinatorInvite}>
-                          {isSendingCoordinatorInvite ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Sending…
-                            </>
-                          ) : (
-                            <>
-                              <Share2 className="mr-2 h-4 w-4" />
-                              Send invite
-                            </>
-                          )}
-                        </Button>
-                      </DialogFooter>
-                      </form>
-                    </Form>
-                  ) : (
-                    <div className="rounded-md border border-dashed border-purple-200 bg-purple-50/60 p-4 text-sm text-purple-700">
-                      Add countries to the program scope to enable coordinator invitations.
-                    </div>
-                  )}
-                </DialogContent>
-              </Dialog>
-            </CardFooter>
-          </Card>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Institutions</CardTitle>
-              <CardDescription>
-                Schools and learning centres connected through coordinators. Future flows will allow
-                editing inside this view.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {sortedInstitutions.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-4 text-sm text-purple-700">
-                  No institutions recorded yet. Coordinator flows will populate this list when we
-                  wire them up.
-                </div>
-              ) : (
-                sortedInstitutions.map((institution) => (
-                  <div
-                    key={institution.id}
-                    className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-900">{institution.name}</p>
-                        <p className="text-sm text-gray-500">
-                          {institution.city ? `${institution.city}, ` : ''}
-                          {institution.country} · Invited {formatDate(institution.invitedAt)}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={institution.status === 'active' ? 'default' : 'outline'}
-                      >
-                        {friendlyLabel(institution.status)}
-                      </Badge>
-                    </div>
-                    <p className="mt-3 text-sm text-gray-600">
-                      Students: {institution.studentCount.toLocaleString()}
-                      {institution.teacherCount
-                        ? ` · Teachers: ${institution.teacherCount.toLocaleString()}`
-                        : ''}
-                    </p>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Invitations</CardTitle>
-              <CardDescription>
-                Unified invitation records for co-partners, coordinators, institutions, and teachers.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {sortedInvitations.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-4 text-sm text-purple-700">
-                  No invitations sent yet. The upcoming flows will create entries here from the
-                  prototype store.
-                </div>
-              ) : (
-                sortedInvitations.map((invitation) => {
-                  const isCoPartnerInvite = invitation.invitationType === 'co_partner'
-                  const isCoordinatorInvite = invitation.invitationType === 'coordinator'
-                  const isPending = invitation.status === 'pending'
-                  const isUpdating = isCoordinatorInvite
-                    ? updatingCoordinatorInvitationId === invitation.id
-                    : updatingCoPartnerInvitationId === invitation.id
-
-                  return (
-                    <div
-                      key={invitation.id}
-                      className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {invitation.recipientName ?? invitation.recipientEmail}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {friendlyLabel(invitation.invitationType)} · Sent {formatDate(invitation.sentAt)}
-                          </p>
-                          {isCoordinatorInvite && (
-                            <p className="text-xs text-gray-500">
-                              Assigned country: {invitation.assignedCountry ?? '—'}
-                              {invitation.assignedRegion ? ` · Region: ${invitation.assignedRegion}` : ''}
-                            </p>
-                          )}
-                          {isCoPartnerInvite && invitation.proposedRole && (
-                            <p className="text-xs text-gray-500">
-                              Proposed role: {friendlyLabel(invitation.proposedRole)}
-                            </p>
-                          )}
-                        </div>
-                        <Badge
-                          variant={invitation.status === 'pending' ? 'secondary' : 'outline'}
-                        >
-                          {friendlyLabel(invitation.status)}
-                        </Badge>
-                      </div>
-                      <p className="mt-3 text-sm text-gray-600">
-                        Token: {invitation.token} · Expires {formatDate(invitation.expiresAt)}
-                      </p>
-                      {isPending && (isCoPartnerInvite || isCoordinatorInvite) && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <Button
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700"
-                            onClick={() =>
-                              isCoordinatorInvite
-                                ? handleCoordinatorInvitationStatusChange(invitation, 'accepted')
-                                : handleCoPartnerInvitationStatusChange(invitation, 'accepted')
-                            }
-                            disabled={isUpdating}
-                          >
-                            {isUpdating ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <Check className="mr-2 h-4 w-4" />
-                            )}
-                            Mark accepted
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-red-600 border-red-200 hover:bg-red-50"
-                            onClick={() =>
-                              isCoordinatorInvite
-                                ? handleCoordinatorInvitationStatusChange(invitation, 'declined')
-                                : handleCoPartnerInvitationStatusChange(invitation, 'declined')
-                            }
-                            disabled={isUpdating}
-                          >
-                            {isUpdating ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <X className="mr-2 h-4 w-4" />
-                            )}
-                            Mark declined
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
+      <TabsContent value="overview" className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Recent activity</CardTitle>
+            <CardTitle>Program snapshot</CardTitle>
             <CardDescription>
-              Prototype-only feed that shows how program events will render once Supabase activity
-              streams are wired.
+              Key context your partner team shares with coordinators and invited schools.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {sortedActivities.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-4 text-sm text-purple-700">
-                Activity will appear here once coordinators, institutions, and teachers interact
-                with the program in the prototype.
-              </div>
+          <CardContent className="space-y-4 text-sm text-gray-600">
+            <p>{summary.program.description}</p>
+            <Separator />
+            <div className="grid gap-4 md:grid-cols-2">
+              <OverviewField label="Host organisation" value={hostName} />
+              <OverviewField label="Supporting partner" value={supportingName} />
+              <OverviewField label="Pedagogical frameworks" value={summary.program.pedagogicalFramework.map((item) => item.replace(/_/g, ' ')).join(', ')} />
+              <OverviewField label="Age focus" value={summary.program.targetAgeRanges.join(', ')} />
+              <OverviewField label="SDG focus" value={summary.program.sdgFocus.map((sdg) => `SDG ${sdg}`).join(', ')} />
+              <OverviewField label="Countries" value={summary.metrics.countries.join(', ')} />
+            </div>
+          </CardContent>
+        </Card>
+
+        {summary.institutions.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Highlighted institutions</CardTitle>
+              <CardDescription>
+                A quick look at schools currently participating in this program. View the Network tab for full details.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3 md:grid-cols-2">
+              {summary.institutions.slice(0, 4).map((institution) => (
+                <div key={institution.id} className="rounded-lg border border-gray-200 bg-white p-4">
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-gray-900">{institution.name}</p>
+                    <Badge variant="outline" className="capitalize">{institution.status}</Badge>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {institution.country}{institution.region ? ` • ${institution.region}` : ''}
+                  </p>
+                  <p className="mt-3 text-xs text-gray-500">
+                    {institution.studentCount.toLocaleString()} students
+                    {institution.teacherCount ? ` • ${institution.teacherCount} teachers` : ''}
+                  </p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="participants" className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Institutions</CardTitle>
+            <CardDescription>{summary.institutions.length} institutions are connected to this program.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {summary.institutions.length === 0 ? (
+              <EmptyState icon={<School className="h-6 w-6 text-purple-500" />} title="No institutions yet" description="Invite schools from the Network tab to populate this list." />
             ) : (
-              sortedActivities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-                >
-                  <CheckCircle className="h-5 w-5 text-purple-500 mt-1" />
-                  <div>
-                    <p className="text-sm text-gray-800">{activity.description}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {activity.actorName} · {formatRelativeTime(activity.timestamp)}
-                    </p>
+              summary.institutions.map((institution) => (
+                <div key={institution.id} className="rounded-lg border border-gray-200 bg-white p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">{institution.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {institution.country}{institution.region ? ` • ${institution.region}` : ''}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="capitalize">{institution.status}</Badge>
+                  </div>
+                  <div className="mt-3 grid gap-3 text-xs text-gray-500 sm:grid-cols-3">
+                    <span>{institution.studentCount.toLocaleString()} students</span>
+                    <span>{institution.educationLevels.join(', ')}</span>
+                    <span>{institution.languages.join(', ')}</span>
                   </div>
                 </div>
               ))
             )}
           </CardContent>
         </Card>
-      </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Country coordinators</CardTitle>
+            <CardDescription>{summary.coordinators.length} coordinators manage onboarding and support.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {summary.coordinators.length === 0 ? (
+              <EmptyState icon={<Users className="h-6 w-6 text-purple-500" />} title="No coordinators yet" description="Assign coordinators from the Network tab when you&apos;re ready." />
+            ) : (
+              summary.coordinators.map((coordinator) => (
+                <div key={coordinator.id} className="rounded-lg border border-gray-200 bg-white p-4">
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-gray-900">
+                      {coordinator.firstName} {coordinator.lastName}
+                    </p>
+                    <Badge variant="outline" className="capitalize">{coordinator.status}</Badge>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {coordinator.country}{coordinator.region ? ` • ${coordinator.region}` : ''}
+                  </p>
+                  <p className="mt-2 text-xs text-gray-500">{coordinator.email}</p>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="projects" className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Program projects</CardTitle>
+            <CardDescription>
+              Track active and completed classroom collaborations within this program.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {summary.projects.length === 0 ? (
+              <EmptyState icon={<Layers className="h-6 w-6 text-purple-500" />} title="No projects yet" description="Once teachers launch projects they will appear here." />
+            ) : (
+              summary.projects.map((project) => {
+                const template = project.templateId
+                  ? summary.templates.find((entry) => entry.id === project.templateId)
+                  : undefined
+                const status = project.status
+                const statusClass = status === 'active'
+                  ? 'bg-green-100 text-green-700'
+                  : status === 'completed'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-gray-100 text-gray-600'
+
+                return (
+                  <div key={project.id} className="rounded-lg border border-gray-200 bg-white p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {template?.title ?? project.projectId.replaceAll('-', ' ')}
+                        </p>
+                        <p className="text-xs text-gray-500">Created {new Date(project.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <Badge className={statusClass}>{status}</Badge>
+                    </div>
+                    <p className="mt-3 text-sm text-gray-600">
+                      {template?.summary ?? 'Teacher-defined project aligned to the program approach.'}
+                    </p>
+                  </div>
+                )
+              })
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="resources" className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Program resources</CardTitle>
+            <CardDescription>
+              Templates and materials available to teachers running this program.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {summary.templates.length === 0 ? (
+              <EmptyState icon={<FolderOpen className="h-6 w-6 text-purple-500" />} title="No templates yet" description="Upload learning resources or guided templates from the Resources tab." />
+            ) : (
+              summary.templates.map((template) => (
+                <div key={template.id} className="rounded-lg border border-gray-200 bg-white p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{template.title}</p>
+                      <p className="text-xs text-gray-500">Estimated {template.estimatedDurationWeeks} week(s) • {template.languageSupport.join(', ').toUpperCase()}</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <FileText className="mr-2 h-4 w-4" />
+                      Preview
+                    </Button>
+                  </div>
+                  <p className="mt-3 text-sm text-gray-600">{template.summary}</p>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
+  )
+}
+
+function OverviewField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</p>
+      <p className="mt-1 text-sm text-gray-700">{value || '—'}</p>
     </div>
   )
 }
 
-const KeyMetric = ({
-  icon: Icon,
-  label,
-  value,
+function EmptyState({
+  icon,
+  title,
+  description,
 }: {
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
-  label: string
-  value: number | string
-}) => (
-  <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-    <div className="flex items-center justify-between">
-      <p className="text-sm text-gray-500">{label}</p>
-      <Icon className="h-4 w-4 text-purple-500" />
+  icon: ReactNode
+  title: string
+  description: string
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-600">
+      <div className="rounded-full bg-white p-2 shadow-sm">{icon}</div>
+      <p className="font-medium text-gray-900">{title}</p>
+      <p className="text-xs text-gray-500">{description}</p>
     </div>
-    <p className="mt-2 text-2xl font-semibold text-gray-900">
-      {typeof value === 'number' ? value.toLocaleString() : value}
-    </p>
-  </div>
-)
+  )
+}
 
-const DetailGroup = ({ title, children }: { title: string; children: ReactNode }) => (
-  <div className="space-y-2">
-    <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">{title}</h4>
-    {children}
-  </div>
-)
+function formatDate(value?: string | null) {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.valueOf())) return value
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
