@@ -494,18 +494,26 @@ export default function DiscoverProgramDetailPage() {
         )}
 
         <Card className="overflow-hidden border border-gray-200 bg-white shadow-sm">
-          <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400">
-            <div className="absolute inset-0 opacity-30">
-              <div className="absolute top-10 -left-20 h-40 w-40 rounded-full bg-white/40 blur-3xl" />
-              <div className="absolute -top-10 right-20 h-60 w-60 rounded-full bg-yellow-300/30 blur-3xl" />
-              <div className="absolute bottom-0 right-10 h-40 w-40 rounded-full bg-pink-300/40 blur-2xl" />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-            <div className="relative z-10 flex h-full flex-col justify-end p-6 text-white">
-              <h3 className="text-xl font-bold drop-shadow-lg">Bring this program to life in your classroom</h3>
-              <p className="mt-2 max-w-xl text-sm text-white/95 drop-shadow">
-                Launch your own Build the Change collaboration and help students design playful solutions for thriving communities.
-              </p>
+          <div className="relative h-64 w-full overflow-hidden bg-gray-900">
+            {/* Background Image */}
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: 'url(/images/park-background.jpg)',
+                backgroundPosition: 'center 68%'
+              }}
+            />
+            {/* Very Subtle Purple Overlay */}
+            <div className="absolute inset-0 bg-purple-600/10" />
+            {/* Dark overlay on bottom half only */}
+            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
+            <div className="relative z-10 flex h-full flex-col justify-end p-6">
+              <div>
+                <h3 className="text-xl font-bold text-white drop-shadow-lg">Bring this program to life in your classroom</h3>
+                <p className="mt-2 max-w-xl text-sm text-white/95 drop-shadow">
+                  Launch your own Build the Change collaboration and help students design playful solutions for thriving communities.
+                </p>
+              </div>
             </div>
           </div>
           <CardContent className="p-6 text-sm text-gray-600">

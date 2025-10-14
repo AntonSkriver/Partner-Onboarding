@@ -42,10 +42,10 @@ const mockProjects = {
     },
     {
       id: 3,
-      title: "Women&apos;s Equality Day",
+      title: "Community Building Together",
       subtitle: "",
       startMonth: "August",
-      image: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=500&h=300&fit=crop", 
+      image: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=500&h=300&fit=crop",
       description: "This project is designed to engage students both creatively and intellectually..."
     }
   ],
