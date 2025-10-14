@@ -13,6 +13,7 @@ import {
   GraduationCap,
   Sparkles,
   FolderKanban,
+  Link as LinkIcon,
 } from 'lucide-react'
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -118,73 +119,165 @@ export default function TeacherDashboardPage() {
 
   return (
     <div className="space-y-10">
-      <Card className="overflow-hidden border-0 bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-500 text-white shadow-xl">
-        <CardContent className="p-8">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-3">
-              <p className="text-sm uppercase tracking-wide text-purple-100">Welcome back</p>
-              <h1 className="text-3xl font-semibold leading-tight">
-                Hi, {session.name ?? 'Teacher'} — here is what is happening in your programs today.
-              </h1>
-              <p className="max-w-2xl text-base text-purple-100">
-                Keep collaborating with partner classrooms, launch new projects with our guided AI
-                flow, and track the progress of every program you belong to.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {programSummaries.length > 0 ? (
-                  programSummaries.map((summary) => (
-                    <Badge key={summary.program.id} variant="secondary" className="bg-white/15 text-white">
-                      {summary.program.displayTitle ?? summary.program.name}
-                    </Badge>
-                  ))
-                ) : (
-                  <Badge variant="secondary" className="bg-white/15 text-white">
-                    No active program memberships yet
-                  </Badge>
-                )}
+      {/* Header Section */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-semibold text-gray-900">
+            Hi, {session.name ?? 'Teacher'}
+          </h1>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <LinkIcon className="h-5 w-5 text-purple-600" />
+              <div className="text-center">
+                <p className="text-2xl font-semibold text-gray-900">{peerConnections}</p>
+                <p className="text-xs text-gray-600">Connections</p>
               </div>
             </div>
-            <div className="grid gap-4 rounded-2xl bg-white/10 p-5 text-sm text-purple-50">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-purple-200">Programs</p>
-                <p className="text-2xl font-semibold">{programSummaries.length}</p>
+            <div className="flex items-center gap-2">
+              <FolderKanban className="h-5 w-5 text-purple-600" />
+              <div className="text-center">
+                <p className="text-2xl font-semibold text-gray-900">{teacherProjects.length}</p>
+                <p className="text-xs text-gray-600">Projects</p>
               </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-purple-200">Projects</p>
-                <p className="text-2xl font-semibold">{teacherProjects.length}</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-purple-200">Connections</p>
-                <p className="text-2xl font-semibold">{peerConnections}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5 text-purple-600" />
+              <div className="text-center">
+                <p className="text-2xl font-semibold text-gray-900">{studentsReached}</p>
+                <p className="text-xs text-gray-600">Students</p>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <QuickActionCard
-          icon={<Compass className="h-5 w-5 text-purple-600" />}
-          title="Discover partner programs"
-          description="Explore curated programs from UNICEF, LEGO and other partners."
-          actionLabel="Browse programs"
-          href="/teacher/discover"
-        />
-        <QuickActionCard
-          icon={<Layers className="h-5 w-5 text-purple-600" />}
-          title="My programs"
-          description="Review participants, resources and program updates."
-          actionLabel="Open programs"
-          href="#my-programs"
-        />
-        <QuickActionCard
-          icon={<Sparkles className="h-5 w-5 text-purple-600" />}
-          title="Create program project"
-          description="Use the AI-guided definition flow tailored to your program."
-          actionLabel="Start a project"
-          href="/teacher/discover"
-        />
-      </section>
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">Your Global Learning Hub</h2>
+          <p className="text-sm text-gray-600">Everything you need for global classroom success.</p>
+        </div>
+
+        {/* Grid of Cards - Original Style */}
+        <div className="grid gap-4 md:grid-cols-3">
+          {/* My Connections */}
+          <Card className="border-purple-100 bg-gradient-to-br from-purple-50 to-white">
+            <CardContent className="space-y-4 p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
+                <LinkIcon className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">My Connections</h3>
+                <p className="text-sm text-gray-600">View and manage your global educator network.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" className="px-0 text-sm text-purple-600 hover:text-purple-700">
+                  Learn More
+                </Button>
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white" size="sm">
+                  Connect
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* My Projects */}
+          <Card className="border-purple-100 bg-gradient-to-br from-purple-50 to-white">
+            <CardContent className="space-y-4 p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
+                <FolderKanban className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">My Projects</h3>
+                <p className="text-sm text-gray-600">Create and manage your global collaboration projects.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" className="px-0 text-sm text-purple-600 hover:text-purple-700">
+                  Learn More
+                </Button>
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white" size="sm" asChild>
+                  <Link href="/teacher/projects">Go to projects</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* My Students */}
+          <Card className="border-purple-100 bg-gradient-to-br from-purple-50 to-white">
+            <CardContent className="space-y-4 p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
+                <GraduationCap className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">My Students</h3>
+                <p className="text-sm text-gray-600">Invite and manage your students and classrooms.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" className="px-0 text-sm text-purple-600 hover:text-purple-700">
+                  Learn More
+                </Button>
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white" size="sm">
+                  Manage
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Be Inspired */}
+          <Card className="border-purple-100 bg-gradient-to-br from-purple-50 to-white">
+            <CardContent className="space-y-4 p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
+                <Sparkles className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Be Inspired</h3>
+                <p className="text-sm text-gray-600">Explore innovative global projects.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white" size="sm" asChild>
+                  <Link href="#discover">Explore</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Join Projects */}
+          <Card className="border-purple-100 bg-gradient-to-br from-purple-50 to-white">
+            <CardContent className="space-y-4 p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
+                <Layers className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Join projects</h3>
+                <p className="text-sm text-gray-600">Explore projects you can request to join.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white" size="sm" asChild>
+                  <Link href="#discover">Explore</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* View Resources */}
+          <Card className="border-purple-100 bg-gradient-to-br from-purple-50 to-white">
+            <CardContent className="space-y-4 p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
+                <Activity className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">View Resources</h3>
+                <p className="text-sm text-gray-600">Explore resources you can use in your collaboration projects.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" className="px-0 text-sm text-purple-600 hover:text-purple-700">
+                  Learn More
+                </Button>
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white" size="sm">
+                  Explore
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       <section id="my-programs" className="space-y-4">
         <div>
@@ -317,17 +410,17 @@ export default function TeacherDashboardPage() {
         )}
       </section>
 
-      <section className="space-y-4">
+      <section id="discover" className="space-y-4">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Open collaborations in your programs</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Discover</h2>
             <p className="text-sm text-gray-600">
-              Join classrooms currently inviting partners or explore what other teachers are building.
+              Explore projects, programs, and resources from educators around the world.
             </p>
           </div>
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/teacher/discover">
-              View all collaborations
+            <Link href="/discover">
+              View all
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
@@ -341,7 +434,7 @@ export default function TeacherDashboardPage() {
           </Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
-            {openCollaborations.map((project) => {
+            {openCollaborations.slice(0, 3).map((project) => {
               const summary = programSummaries.find((program) => program.program.id === project.programId)
               const template = summary?.templates.find((entry) => entry.id === project.templateId)
               return (
@@ -382,75 +475,7 @@ export default function TeacherDashboardPage() {
         )}
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="h-4 w-4 text-purple-600" />
-              Students in your network
-            </CardTitle>
-            <CardDescription>
-              This sums the student population for the schools connected to your programs.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-3xl font-semibold text-gray-900">{studentsReached.toLocaleString()}</div>
-            <p className="text-sm text-gray-600">
-              Track impact as you invite additional classes or launch program-specific activities.
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FolderKanban className="h-4 w-4 text-purple-600" />
-              Saved resources
-            </CardTitle>
-            <CardDescription>
-              Templates and guides from your partner programs.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-4 text-sm text-purple-700">
-              Access program resources from the Overview tab of each program. They appear here once you mark them as favourites.
-            </div>
-            <Button variant="outline" size="sm">
-              Browse resources
-            </Button>
-          </CardContent>
-        </Card>
-      </section>
     </div>
-  )
-}
-
-interface QuickActionCardProps {
-  icon: React.ReactNode
-  title: string
-  description: string
-  actionLabel: string
-  href: string
-}
-
-function QuickActionCard({ icon, title, description, actionLabel, href }: QuickActionCardProps) {
-  return (
-    <Card className="border-gray-200 shadow-sm">
-      <CardContent className="space-y-4 p-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100">
-          {icon}
-        </div>
-        <div>
-          <h3 className="text-base font-semibold text-gray-900">{title}</h3>
-          <p className="text-sm text-gray-600">{description}</p>
-        </div>
-        <Button variant="ghost" className="px-0 text-sm text-purple-600 hover:text-purple-700" asChild>
-          <Link href={href}>
-            {actionLabel}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-      </CardContent>
-    </Card>
   )
 }
 
