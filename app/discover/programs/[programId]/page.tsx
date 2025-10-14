@@ -234,18 +234,10 @@ export default function DiscoverProgramDetailPage() {
               </div>
             </div>
             <div className="rounded-xl border border-purple-100 bg-white/70 p-5 shadow-sm backdrop-blur">
-              <div className="space-y-3">
-                {launchMonth && (
-                  <div className="inline-flex rounded-lg bg-purple-50 px-3 py-2 text-sm font-medium text-purple-700">
-                    Suggested start: {launchMonth}
-                  </div>
-                )}
-                <div className="grid gap-4 sm:grid-cols-4">
-                  <QuickFact label="Templates" value={templates.length} />
-                  <QuickFact label="Active projects" value={summary.metrics.activeProjectCount} />
-                  <QuickFact label="Institutions" value={summary.metrics.institutionCount} />
-                  <QuickFact label="Learners (est.)" value={summary.metrics.studentCount.toLocaleString()} />
-                </div>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <QuickFact label="Active projects" value={summary.metrics.activeProjectCount} />
+                <QuickFact label="Institutions" value={summary.metrics.institutionCount} />
+                <QuickFact label="Learners (est.)" value={summary.metrics.studentCount.toLocaleString()} />
               </div>
             </div>
           </CardContent>
@@ -334,13 +326,13 @@ export default function DiscoverProgramDetailPage() {
                     <CardContent className="space-y-1 p-4">
                       <div className="flex items-center gap-2 text-purple-600">
                         <School className="h-4 w-4" />
-                        <span className="text-sm font-semibold">Schools</span>
+                        <span className="text-sm font-semibold">Educational institutions</span>
                       </div>
                       <p className="text-2xl font-semibold text-gray-900">
                         {summary.metrics.institutionCount}
                       </p>
                       <p className="text-xs text-gray-500">
-                        Partner schools collaborating across the network.
+                        Partner institutions collaborating across the network.
                       </p>
                     </CardContent>
                   </Card>
@@ -364,7 +356,7 @@ export default function DiscoverProgramDetailPage() {
                   <CardHeader>
                     <CardTitle>Participating institutions</CardTitle>
                     <CardDescription>
-                      Schools currently connected to this program in the prototype data set.
+                      Educational institutions currently connected to this program in the prototype data set.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
