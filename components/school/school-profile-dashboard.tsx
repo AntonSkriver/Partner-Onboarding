@@ -20,6 +20,7 @@ import {
   CalendarDays,
   CheckCircle,
   Download,
+  Edit,
   FileText,
   Globe,
   Mail,
@@ -36,13 +37,17 @@ import {
   ChevronUp,
   GraduationCap,
 } from 'lucide-react'
+import { SDGIcon } from '@/components/sdg-icons'
+import { SDG_OPTIONS } from '@/contexts/partner-onboarding-context'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import {
   aggregateProgramMetrics,
   buildProgramSummary,
+  buildProgramCatalog,
   type ProgramSummary,
 } from '@/lib/programs/selectors'
 import type { ProgramProject } from '@/lib/types/program'
+import { ProgramCatalogCard } from '@/components/program/program-catalog-card'
 
 interface SchoolProfile {
   id: string
@@ -180,6 +185,31 @@ export function SchoolProfileDashboard({
   }, [prototypeReady, database, normalizedSchoolName, normalizedCity, normalizedCountry])
 
   const programMetrics = useMemo(() => aggregateProgramMetrics(programSummaries), [programSummaries])
+
+  const programCatalog = useMemo(() => {
+    if (!prototypeReady || !database) return []
+    const allCatalog = buildProgramCatalog(database)
+    // Filter to only show programs the school is part of, or public programs
+    const matchingInstitutions = database.institutions.filter((institution) => {
+      const name = institution.name?.trim().toLowerCase()
+      const city = institution.city?.trim().toLowerCase()
+      const country = institution.country?.trim().toLowerCase()
+
+      const nameMatch = normalizedSchoolName && name === normalizedSchoolName
+      const cityMatch =
+        normalizedCity &&
+        city === normalizedCity &&
+        (!normalizedCountry || country === normalizedCountry)
+
+      return nameMatch || cityMatch
+    })
+
+    const programIds = new Set(matchingInstitutions.map((institution) => institution.programId))
+
+    return allCatalog.filter((item) =>
+      programIds.has(item.programId) || item.isPublic
+    )
+  }, [prototypeReady, database, normalizedSchoolName, normalizedCity, normalizedCountry])
 
   const teachers = useMemo<TeacherEntry[]>(() => {
     const seen = new Map<string, TeacherEntry>()
@@ -455,31 +485,27 @@ export function SchoolProfileDashboard({
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-start justify-between">
-        <div className="flex items-start gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500/20 via-purple-400/10 to-purple-600/30 text-purple-700">
-            <School className="h-8 w-8" />
-          </div>
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold text-gray-900">{school.name}</h1>
+        <div className="flex items-start space-x-4">
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <h1 className="text-2xl font-bold">{school.name}</h1>
               <Badge className="bg-purple-100 text-purple-700">
-                <School className="mr-1 h-3 w-3" />
+                <School className="w-4 h-4 mr-1" />
                 School Profile
               </Badge>
             </div>
-            <p className="max-w-2xl text-sm text-gray-600">
+            <p className="text-gray-600 max-w-2xl">
               {school.description || `${school.type} in ${school.location}`}
             </p>
-            <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
-              <span className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                <span>
-                  {school.city}, {school.country}
-                </span>
+            <div className="flex items-center space-x-4 text-sm text-gray-500">
+              <span className="flex items-center space-x-1">
+                <MapPin className="w-4 h-4" />
+                <span>{school.city}, {school.country}</span>
               </span>
-              <span className="flex items-center gap-1">
-                <Globe className="h-4 w-4" />
+              <span className="flex items-center space-x-1">
+                <Globe className="w-4 h-4" />
                 <span>{school.languages.join(', ')}</span>
               </span>
             </div>
@@ -487,9 +513,10 @@ export function SchoolProfileDashboard({
         </div>
 
         {isOwnProfile && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             {onEdit && (
               <Button onClick={onEdit} variant="outline">
+                <Edit className="w-4 h-4 mr-2" />
                 Edit Profile
               </Button>
             )}
@@ -512,8 +539,8 @@ export function SchoolProfileDashboard({
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  Contact
+                  <Mail className="w-4 h-4" />
+                  Contact Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
@@ -522,12 +549,12 @@ export function SchoolProfileDashboard({
                   <p className="text-gray-500">Primary contact</p>
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
-                  <Mail className="h-3 w-3" />
+                  <Mail className="w-3 h-3" />
                   <span>{school.contactEmail}</span>
                 </div>
                 {school.contactPhone && (
                   <div className="flex items-center gap-2 text-gray-600">
-                    <Phone className="h-3 w-3" />
+                    <Phone className="w-3 h-3" />
                     <span>{school.contactPhone}</span>
                   </div>
                 )}
@@ -537,7 +564,7 @@ export function SchoolProfileDashboard({
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <School className="h-4 w-4" />
+                  <School className="w-4 h-4" />
                   School Snapshot
                 </CardTitle>
               </CardHeader>
@@ -570,65 +597,100 @@ export function SchoolProfileDashboard({
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4" />
-                  Impact Overview
+                  <BarChart3 className="w-4 h-4" />
+                  Quick Stats
                 </CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4 text-center">
-                <div className="rounded-md border border-purple-100 bg-purple-50/60 p-3">
-                  <p className="text-2xl font-bold text-purple-700">{programMetrics.totalPrograms}</p>
-                  <p className="text-xs text-gray-600">Programs</p>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {programMetrics.totalPrograms}
+                    </div>
+                    <div className="text-sm text-gray-600">Active Programs</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {programMetrics.activeProjects}
+                    </div>
+                    <div className="text-sm text-gray-600">Active Projects</div>
+                  </div>
                 </div>
-                <div className="rounded-md border border-purple-100 bg-purple-50/60 p-3">
-                  <p className="text-2xl font-bold text-purple-700">{programMetrics.activeProjects}</p>
-                  <p className="text-xs text-gray-600">Active Projects</p>
-                </div>
-                <div className="rounded-md border border-purple-100 bg-purple-50/60 p-3">
-                  <p className="text-2xl font-bold text-purple-700">{programMetrics.countryCount}</p>
-                  <p className="text-xs text-gray-600">Countries</p>
-                </div>
-                <div className="rounded-md border border-purple-100 bg-purple-50/60 p-3">
-                  <p className="text-2xl font-bold text-purple-700">{school.sdgFocus.length}</p>
-                  <p className="text-xs text-gray-600">SDGs</p>
+
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                  <div>
+                    <div className="text-xl font-bold text-purple-600">
+                      {programMetrics.teachers}
+                    </div>
+                    <div className="text-sm text-gray-600">Teachers</div>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold text-orange-600">
+                      {programMetrics.students.toLocaleString()}
+                    </div>
+                    <div className="text-sm text-gray-600">Students</div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
+            {/* SDG Focus */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Tag className="h-5 w-5 text-purple-600" />
-                  Learning Interests
+                  <Target className="h-4 w-4" />
+                  UN SDG Focus
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {school.interests.map((interest) => (
-                    <Badge key={interest} variant="secondary">
-                      {interest}
-                    </Badge>
-                  ))}
-                </div>
+                {school.sdgFocus.length > 0 ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                    {school.sdgFocus.map((sdgString) => {
+                      const sdgId = typeof sdgString === 'string' ? Number.parseInt(sdgString, 10) : sdgString
+                      const sdg = SDG_OPTIONS.find(s => s.id === sdgId)
+                      return sdg ? (
+                        <div key={sdgId} className="flex flex-col items-center">
+                          <SDGIcon
+                            number={sdgId}
+                            size="md"
+                            showTitle={false}
+                            className="w-16 h-16 object-cover rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                          />
+                          <p className="text-xs text-gray-600 text-center mt-1 leading-tight">
+                            {sdg.title}
+                          </p>
+                        </div>
+                      ) : null
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">No SDG focus areas specified</p>
+                )}
               </CardContent>
             </Card>
 
+            {/* Thematic Areas */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-purple-600" />
-                  SDG Focus
+                  <Tag className="h-4 w-4" />
+                  Thematic Areas
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {school.sdgFocus.map((sdg) => (
-                    <Badge key={sdg} className="bg-purple-100 text-purple-700">
-                      SDG {sdg}
-                    </Badge>
-                  ))}
-                </div>
+                {school.interests.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {school.interests.map((interest) => (
+                      <Badge key={interest} variant="outline">
+                        {interest}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">No thematic areas specified</p>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -639,7 +701,7 @@ export function SchoolProfileDashboard({
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Programs your school joins</h3>
               <p className="text-sm text-gray-600">
-                Stay aligned with the partner profile experience while tracking your collaborations.
+                Explore partner programs and join collaborative projects worldwide.
               </p>
             </div>
             <Button className="bg-purple-600 hover:bg-purple-700" asChild>
@@ -656,7 +718,7 @@ export function SchoolProfileDashboard({
                 Loading programs…
               </CardContent>
             </Card>
-          ) : programSummaries.length === 0 ? (
+          ) : programCatalog.length === 0 ? (
             <Card className="border-dashed border-purple-200">
               <CardContent className="flex flex-col items-center justify-center gap-4 py-12 text-center">
                 <BookOpen className="h-12 w-12 text-purple-300" />
@@ -672,188 +734,38 @@ export function SchoolProfileDashboard({
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-6">
-              {programSummaries.map((summary) => {
-                const { program, metrics } = summary
-                const isExpanded = expandedPrograms.has(program.id)
-                const heroTemplate = summary.templates.find((template) => Boolean(template.heroImageUrl))
-                const programVisual = program.logo ?? heroTemplate?.heroImageUrl ?? null
-
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {programCatalog.map((item) => {
+                // Check if school is already a member
+                const isMember = programSummaries.some(s => s.program.id === item.programId)
                 return (
-                  <Card key={program.id} className="overflow-hidden border border-purple-100 transition-shadow hover:shadow-md">
-                    {heroTemplate?.heroImageUrl && (
-                      <div className="relative h-32 w-full">
-                        <div
-                          className="absolute inset-0 bg-cover bg-center"
-                          style={{ backgroundImage: `url(${heroTemplate.heroImageUrl})` }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/50 via-purple-700/20 to-black/30" />
-                        <div className="absolute bottom-3 left-3 flex items-center gap-2 text-xs font-medium text-white drop-shadow">
-                          <Badge className="bg-white/20 text-white backdrop-blur-sm">Program spotlight</Badge>
-                          <span>{program.displayTitle ?? program.name}</span>
-                        </div>
-                      </div>
-                    )}
-                    <CardHeader className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                      <div className="flex flex-1 gap-4">
-                        {programVisual && (
-                          <div className="flex-shrink-0">
-                            <Image
-                              src={programVisual}
-                              alt={program.displayTitle ?? program.name}
-                              width={80}
-                              height={80}
-                              className="h-16 w-16 rounded-lg border border-purple-100 object-cover shadow-sm"
-                            />
-                          </div>
+                  <ProgramCatalogCard
+                    key={item.programId}
+                    item={item}
+                    membershipStatus={isMember ? 'member' : item.isPublic ? 'available' : 'invite-only'}
+                    actions={
+                      <>
+                        <Button variant="outline" className="w-full" asChild>
+                          <Link href={`/discover/programs/${item.programId}`}>View Details</Link>
+                        </Button>
+                        {!isMember && item.isPublic && (
+                          <Button className="w-full bg-purple-600 hover:bg-purple-700" asChild>
+                            <Link href={`/discover/programs/${item.programId}?join=1`}>
+                              <Plus className="w-4 h-4 mr-2" />
+                              Join Program
+                            </Link>
+                          </Button>
                         )}
-                        <div className="space-y-2 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <CardTitle className="text-xl">
-                              {program.displayTitle ?? program.name}
-                            </CardTitle>
-                            <Badge variant="outline" className="capitalize">
-                              {program.status}
-                            </Badge>
-                          </div>
-                          {program.displayTitle && program.displayTitle !== program.name && (
-                            <p className="text-xs text-gray-500">{program.name}</p>
-                          )}
-                          <CardDescription>
-                            {program.marketingTagline ?? program.description}
-                          </CardDescription>
-                          <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600">
-                            <span className="flex items-center gap-1">
-                              <CalendarDays className="h-3 w-3 text-purple-500" />
-                              {formatDateRange(program.startDate, program.endDate)}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Users className="h-3 w-3 text-purple-500" />
-                              {metrics.teacherCount} teachers
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <School className="h-3 w-3 text-purple-500" />
-                              {metrics.institutionCount} schools
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/discover/programs/${program.id}`}>View program</Link>
-                        </Button>
-                        <Button size="sm" className="bg-purple-600 hover:bg-purple-700" asChild>
-                          <Link href={`/discover/programs/${program.id}?join=1`}>Go to program workspace</Link>
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                        <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
-                          <div className="mb-1 flex items-center justify-center gap-1">
-                            <Target className="h-3 w-3 text-purple-500" />
-                            <p className="text-xs font-medium uppercase tracking-wide text-gray-600">
-                              Active Projects
-                            </p>
-                          </div>
-                          <p className="text-xl font-bold text-gray-900">{metrics.activeProjectCount}</p>
-                        </div>
-                        <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
-                          <div className="mb-1 flex items-center justify-center gap-1">
-                            <GraduationCap className="h-3 w-3 text-purple-500" />
-                            <p className="text-xs font-medium uppercase tracking-wide text-gray-600">
-                              Students
-                            </p>
-                          </div>
-                          <p className="text-xl font-bold text-gray-900">
-                            {metrics.studentCount.toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
-                          <div className="mb-1 flex items-center justify-center gap-1">
-                            <Globe className="h-3 w-3 text-purple-500" />
-                            <p className="text-xs font-medium uppercase tracking-wide text-gray-600">
-                              Countries
-                            </p>
-                          </div>
-                          <p className="text-xl font-bold text-gray-900">{metrics.countries.length}</p>
-                        </div>
-                        <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
-                          <div className="mb-1 flex items-center justify-center gap-1">
-                            <BookOpen className="h-3 w-3 text-purple-500" />
-                            <p className="text-xs font-medium uppercase tracking-wide text-gray-600">
-                              Templates
-                            </p>
-                          </div>
-                          <p className="text-xl font-bold text-gray-900">{metrics.templateCount}</p>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      <div className="flex flex-wrap items-center gap-2">
-                        {program.sdgFocus.slice(0, 4).map((sdg) => (
-                          <Badge key={sdg} className="bg-purple-100 text-purple-700">
-                            SDG {sdg}
-                          </Badge>
-                        ))}
-                      </div>
-
-                      <div className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => toggleProgramExpansion(program.id)}>
-                          {isExpanded ? (
-                            <>
-                              Hide details
-                              <ChevronUp className="ml-1 h-4 w-4" />
-                            </>
-                          ) : (
-                            <>
-                              Show participation details
-                              <ChevronDown className="ml-1 h-4 w-4" />
-                            </>
-                          )}
-                        </Button>
-                      </div>
-
-                      {isExpanded && (
-                        <div className="space-y-6 rounded-lg border border-purple-100 bg-purple-50/40 p-4">
-                          <div className="grid gap-4 md:grid-cols-2">
-                            <div>
-                              <h4 className="text-sm font-semibold text-gray-900">
-                                Your teachers in this program
-                              </h4>
-                              <ul className="mt-2 space-y-1 text-sm text-gray-600">
-                                {summary.teachers.slice(0, 4).map((teacher) => (
-                                  <li key={teacher.id}>
-                                    {teacher.firstName} {teacher.lastName ?? ''} ·{' '}
-                                    {teacher.subject ?? 'Teacher'} ({teacher.status})
-                                  </li>
-                                ))}
-                                {summary.teachers.length === 0 && (
-                                  <li>No teachers connected yet.</li>
-                                )}
-                              </ul>
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-semibold text-gray-900">
-                                Partner schools you collaborate with
-                              </h4>
-                              <ul className="mt-2 space-y-1 text-sm text-gray-600">
-                                {summary.institutions.slice(0, 4).map((institution) => (
-                                  <li key={institution.id}>
-                                    {institution.name} · {institution.country}
-                                  </li>
-                                ))}
-                                {summary.institutions.length === 0 && (
-                                  <li>Invite partner schools to unlock shared projects.</li>
-                                )}
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                        {isMember && (
+                          <Button className="w-full bg-purple-600 hover:bg-purple-700" asChild>
+                            <Link href={`/discover/programs/${item.programId}?join=1`}>
+                              Go to Workspace
+                            </Link>
+                          </Button>
+                        )}
+                      </>
+                    }
+                  />
                 )
               })}
             </div>
@@ -955,13 +867,14 @@ export function SchoolProfileDashboard({
 
                     {project.sdgAlignment && project.sdgAlignment.length > 0 && (
                       <div className="flex flex-wrap gap-2">
-                        {project.sdgAlignment.slice(0, 4).map((sdg) => (
-                          <Badge
+                        {project.sdgAlignment.slice(0, 6).map((sdg) => (
+                          <SDGIcon
                             key={`${project.id}-sdg-${sdg}`}
-                            className="bg-purple-100 text-purple-700"
-                          >
-                            SDG {sdg}
-                          </Badge>
+                            number={sdg}
+                            size="sm"
+                            showTitle={false}
+                            className="w-10 h-10 object-cover rounded shadow-sm hover:shadow-md transition-shadow"
+                          />
                         ))}
                       </div>
                     )}
@@ -1306,94 +1219,37 @@ export function SchoolProfileDashboard({
                   </Card>
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5" />
-                        Program performance
-                      </CardTitle>
-                      <CardDescription>
-                        Top programs ranked by student engagement.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {programSummaries
-                        .slice()
-                        .sort((a, b) => b.metrics.studentCount - a.metrics.studentCount)
-                        .slice(0, 4)
-                        .map((summary, index) => (
-                          <div key={summary.program.id} className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 font-semibold text-purple-700">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-sm font-semibold text-gray-900">
-                                {summary.program.displayTitle ?? summary.program.name}
-                              </p>
-                              <p className="text-xs text-gray-600">
-                                {summary.metrics.studentCount.toLocaleString()} students ·{' '}
-                                {summary.metrics.institutionCount} schools
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Export data</CardTitle>
-                      <CardDescription>
-                        Share aligned reports with administrators and partners.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <Button variant="outline" className="justify-start">
-                        <Download className="mr-2 h-4 w-4" />
-                        Export participation summary
-                      </Button>
-                      <Button variant="outline" className="justify-start">
-                        <Download className="mr-2 h-4 w-4" />
-                        Export student impact (CSV)
-                      </Button>
-                      <Button variant="outline" className="justify-start">
-                        <Download className="mr-2 h-4 w-4" />
-                        Export teacher engagement report
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5 text-purple-600" />
-                      Engagement trends
+                      <BarChart3 className="h-5 w-5" />
+                      Program Performance
                     </CardTitle>
                     <CardDescription>
-                      Quick-glance percentages to match the partner analytics vibe.
+                      Top programs ranked by student engagement
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {[
-                      { label: 'Student participation', value: '85%' },
-                      { label: 'Teacher engagement', value: '92%' },
-                      { label: 'Project completion', value: '78%' },
-                    ].map((item) => (
-                      <div key={item.label}>
-                        <div className="mb-2 flex items-center justify-between text-sm">
-                          <span className="text-gray-600">{item.label}</span>
-                          <span className="font-semibold text-gray-900">{item.value}</span>
+                    {programSummaries
+                      .slice()
+                      .sort((a, b) => b.metrics.studentCount - a.metrics.studentCount)
+                      .slice(0, 4)
+                      .map((summary, index) => (
+                        <div key={summary.program.id} className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 font-semibold text-purple-700">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-gray-900">
+                              {summary.program.displayTitle ?? summary.program.name}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {summary.metrics.studentCount.toLocaleString()} students ·{' '}
+                              {summary.metrics.institutionCount} schools
+                            </p>
+                          </div>
                         </div>
-                        <div className="h-2 w-full rounded-full bg-gray-200">
-                          <div
-                            className="h-2 rounded-full bg-purple-600"
-                            style={{ width: item.value }}
-                          />
-                        </div>
-                      </div>
-                    ))}
+                      ))}
                   </CardContent>
                 </Card>
               </>

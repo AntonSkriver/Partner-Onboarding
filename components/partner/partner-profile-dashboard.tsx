@@ -45,10 +45,12 @@ import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import {
   buildProgramSummariesForPartner,
   aggregateProgramMetrics,
+  buildProgramCatalog,
   type ProgramSummary,
 } from '@/lib/programs/selectors'
 import { Database } from '@/lib/types/database'
 import { startTeacherPreviewSession } from '@/lib/auth/session'
+import { ProgramCatalogCard } from '../program/program-catalog-card'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 
@@ -105,6 +107,21 @@ export function PartnerProfileDashboard({
     () => aggregateProgramMetrics(programSummaries),
     [programSummaries],
   )
+
+  const programCatalog = useMemo(() => {
+    if (!database || !partnerRecord) return []
+
+    const allPrograms = buildProgramCatalog(database)
+
+    // Filter to show only programs where this partner is the main host (partnerId)
+    // or a supporting partner (supportingPartnerId)
+    const filtered = allPrograms.filter((item) => {
+      const prog = database.programs.find((p) => p.id === item.programId)
+      return prog && (prog.partnerId === partnerRecord.id || prog.supportingPartnerId === partnerRecord.id)
+    })
+
+    return filtered
+  }, [database, partnerRecord])
 
   useEffect(() => {
     loadOrganizationData()
@@ -297,6 +314,10 @@ export function PartnerProfileDashboard({
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <h1 className="text-2xl font-bold">{organization.name}</h1>
+              <Badge className="bg-blue-100 text-blue-700">
+                <Building2 className="w-4 h-4 mr-1" />
+                Partner Profile
+              </Badge>
               <Badge className={getVerificationStatusColor(organization.verification_status)}>
                 {getVerificationStatusIcon(organization.verification_status)}
                 <span className="ml-1 capitalize">{organization.verification_status}</span>
@@ -545,7 +566,7 @@ export function PartnerProfileDashboard({
         {/* Programs Tab */}
         <TabsContent value="programs" className="space-y-6">
           {/* Create Program Button - shown when there are programs */}
-          {isOwnProfile && programSummaries.length > 0 && (
+          {isOwnProfile && programCatalog.length > 0 && (
             <div className="flex justify-end">
               <Button asChild>
                 <Link href="/partner/programs/create">
@@ -562,90 +583,28 @@ export function PartnerProfileDashboard({
                 Loading programs…
               </CardContent>
             </Card>
-          ) : programSummaries.length > 0 ? (
-            <div className="space-y-6">
-              {programSummaries.map(({ program, metrics }) => (
-                <Card key={program.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div className="flex gap-4 flex-1">
-                      {program.logo && (
-                        <div className="flex-shrink-0">
-                          <Image
-                            src={program.logo}
-                            alt={program.displayTitle ?? program.name}
-                            width={80}
-                            height={80}
-                            className="h-16 w-auto object-contain rounded-lg border border-gray-200 bg-white p-2"
-                          />
-                        </div>
+          ) : programCatalog.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {programCatalog.map((item) => (
+                <ProgramCatalogCard
+                  key={item.programId}
+                  item={item}
+                  actions={
+                    <>
+                      <Button variant="outline" className="w-full" asChild>
+                        <Link href={`/partner/programs/${item.programId}`}>View Details</Link>
+                      </Button>
+                      {isOwnProfile && (
+                        <Button className="w-full bg-purple-600 hover:bg-purple-700" asChild>
+                          <Link href={`/partner/programs/${item.programId}/edit`}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit Program
+                          </Link>
+                        </Button>
                       )}
-                      <div className="space-y-2 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <CardTitle className="text-xl">{program.displayTitle ?? program.name}</CardTitle>
-                          <Badge variant="outline" className="capitalize">
-                            {program.status}
-                          </Badge>
-                        </div>
-                        {program.displayTitle && program.displayTitle !== program.name && (
-                          <p className="text-xs text-gray-500">{program.name}</p>
-                        )}
-                        <CardDescription className="text-sm">
-                          {program.marketingTagline ?? program.description}
-                        </CardDescription>
-                        <div className="flex flex-wrap gap-3 text-xs text-gray-600">
-                          <span className="flex items-center gap-1">
-                            <CalendarDays className="h-3 w-3 text-purple-500" />
-                            {formatDate(program.startDate)} – {formatDate(program.endDate)}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3 text-purple-500" />
-                            {metrics.countries.length} {metrics.countries.length === 1 ? 'country' : 'countries'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                      <Button size="sm" variant="outline" asChild>
-                        <Link href={`/partner/programs/${program.id}`}>View Details</Link>
-                      </Button>
-                      <Button size="sm" variant="outline" asChild>
-                        <Link href={`/partner/programs/${program.id}/edit`}>Edit</Link>
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                      <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <Target className="h-3 w-3 text-purple-500" />
-                          <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Active Projects</p>
-                        </div>
-                        <p className="text-xl font-bold text-gray-900">{metrics.activeProjectCount}</p>
-                      </div>
-                      <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <Users className="h-3 w-3 text-purple-500" />
-                          <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Teachers</p>
-                        </div>
-                        <p className="text-xl font-bold text-gray-900">{metrics.teacherCount}</p>
-                      </div>
-                      <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <GraduationCap className="h-3 w-3 text-purple-500" />
-                          <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Students</p>
-                        </div>
-                        <p className="text-xl font-bold text-gray-900">{metrics.studentCount.toLocaleString()}</p>
-                      </div>
-                      <div className="rounded-md border border-gray-200 bg-white p-3 text-center hover:shadow-sm transition-shadow">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <School className="h-3 w-3 text-purple-500" />
-                          <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Institutions</p>
-                        </div>
-                        <p className="text-xl font-bold text-gray-900">{metrics.institutionCount}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </>
+                  }
+                />
               ))}
             </div>
           ) : (
@@ -791,69 +750,42 @@ export function PartnerProfileDashboard({
               </Card>
             </div>
 
-            {/* Additional Analytics Cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Program Performance */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5" />
-                    Program Performance
-                  </CardTitle>
-                  <CardDescription>
-                    Top performing programs by student engagement
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {programSummaries.slice(0, 3).map(({ program, metrics }, index) => (
-                      <div key={program.id} className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-semibold text-sm">
-                          {index + 1}
+            {/* Program Performance */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Program Performance
+                </CardTitle>
+                <CardDescription>
+                  Top performing programs by student engagement
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {programSummaries.slice(0, 3).map(({ program, metrics }, index) => (
+                    <div key={program.id} className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-semibold text-sm">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900 text-sm">
+                          {program.displayTitle ?? program.name}
                         </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-900 text-sm">
-                            {program.displayTitle ?? program.name}
-                          </div>
-                          <div className="text-xs text-gray-600">
-                            {metrics.studentCount} students • {metrics.institutionCount} institutions
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-semibold text-green-600">
-                            {metrics.activeProjectCount} active
-                          </div>
+                        <div className="text-xs text-gray-600">
+                          {metrics.studentCount} students • {metrics.institutionCount} institutions
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Export Data */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Export Data</CardTitle>
-                  <CardDescription>
-                    Download your organization's data for reporting
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start">
-                    <BarChart3 className="w-4 h-4 mr-2" />
-                    Export Analytics Report
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <School className="w-4 h-4 mr-2" />
-                    Export Institution Data (CSV)
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <Users className="w-4 h-4 mr-2" />
-                    Export Participant Data
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+                      <div className="text-right">
+                        <div className="text-sm font-semibold text-green-600">
+                          {metrics.activeProjectCount} active
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         )}
 

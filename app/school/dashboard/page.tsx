@@ -30,6 +30,7 @@ function SchoolDashboardContent() {
   const [school, setSchool] = useState<SchoolProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
   const searchParams = useSearchParams()
   const tabParam = searchParams.get('tab')
   const allowedTabs = new Set(['overview', 'programs', 'projects', 'network', 'resources', 'analytics'])
@@ -44,6 +45,10 @@ function SchoolDashboardContent() {
   useEffect(() => {
     loadSchoolProfile()
   }, [])
+
+  const handleStartEditing = () => {
+    setIsEditing(true)
+  }
 
   const loadSchoolProfile = async () => {
     setLoading(true)
@@ -119,11 +124,34 @@ function SchoolDashboardContent() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <SchoolProfileDashboard
-        school={school}
-        isOwnProfile={true}
-        initialTab={initialTab}
-      />
+      {isEditing ? (
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">Edit School Profile</h1>
+              <p className="text-gray-600 mt-2">
+                Update your school's information to help partners find and connect with you.
+              </p>
+            </div>
+            {/* TODO: Add school profile edit form here */}
+            <div className="flex gap-2">
+              <Button onClick={() => setIsEditing(false)} variant="outline">
+                Cancel
+              </Button>
+              <Button onClick={() => setIsEditing(false)}>
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <SchoolProfileDashboard
+          school={school}
+          isOwnProfile={true}
+          initialTab={initialTab}
+          onEdit={handleStartEditing}
+        />
+      )}
     </div>
   )
 }
