@@ -23,6 +23,7 @@ import {
   Edit,
   FileText,
   Globe,
+  LogOut,
   Mail,
   MapPin,
   Phone,
@@ -514,6 +515,12 @@ export function SchoolProfileDashboard({
 
         {isOwnProfile && (
           <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button variant="outline" asChild>
+              <Link href="/partner/login">
+                <LogOut className="w-4 h-4 mr-2" />
+                Back to Login
+              </Link>
+            </Button>
             {onEdit && (
               <Button onClick={onEdit} variant="outline">
                 <Edit className="w-4 h-4 mr-2" />

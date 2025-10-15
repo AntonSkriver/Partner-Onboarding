@@ -34,7 +34,7 @@ import {
   Target,
   CalendarDays,
   PenTool,
-  LogIn,
+  LogOut,
   UserPlus,
   Send,
 } from 'lucide-react'
@@ -318,10 +318,6 @@ export function PartnerProfileDashboard({
                 <Building2 className="w-4 h-4 mr-1" />
                 Partner Profile
               </Badge>
-              <Badge className={getVerificationStatusColor(organization.verification_status)}>
-                {getVerificationStatusIcon(organization.verification_status)}
-                <span className="ml-1 capitalize">{organization.verification_status}</span>
-              </Badge>
             </div>
             <p className="text-gray-600 max-w-2xl">{organization.short_description}</p>
             <div className="flex items-center space-x-4 text-sm text-gray-500">
@@ -346,9 +342,11 @@ export function PartnerProfileDashboard({
         
         {isOwnProfile && (
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <Button onClick={handleTeacherPreview}>
-              <LogIn className="w-4 h-4 mr-2" />
-              Log in as teacher
+            <Button variant="outline" asChild>
+              <Link href="/partner/login">
+                <LogOut className="w-4 h-4 mr-2" />
+                Back to Login
+              </Link>
             </Button>
             {onEdit && (
               <Button onClick={onEdit} variant="outline">
@@ -568,7 +566,7 @@ export function PartnerProfileDashboard({
           {/* Create Program Button - shown when there are programs */}
           {isOwnProfile && programCatalog.length > 0 && (
             <div className="flex justify-end">
-              <Button asChild>
+              <Button className="bg-purple-600 hover:bg-purple-700" asChild>
                 <Link href="/partner/programs/create">
                   <Plus className="w-4 h-4 mr-2" />
                   Create Program
@@ -631,7 +629,7 @@ export function PartnerProfileDashboard({
           {/* Add Resources Button - shown when there are resources */}
           {isOwnProfile && resources.length > 0 && (
             <div className="flex justify-end">
-              <Button asChild>
+              <Button className="bg-purple-600 hover:bg-purple-700" asChild>
                 <Link href="/partner/content/upload">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Resources
@@ -805,7 +803,7 @@ export function PartnerProfileDashboard({
                       Manage your organization's country coordinators
                     </CardDescription>
                   </div>
-                  <Button onClick={() => setShowInviteCoordinatorDialog(true)}>
+                  <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowInviteCoordinatorDialog(true)}>
                     <UserPlus className="w-4 h-4 mr-2" />
                     Invite Coordinator
                   </Button>
@@ -876,7 +874,7 @@ export function PartnerProfileDashboard({
                       Schools, libraries, municipality centers and other educational partners
                     </CardDescription>
                   </div>
-                  <Button onClick={() => setShowInviteInstitutionDialog(true)}>
+                  <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowInviteInstitutionDialog(true)}>
                     <UserPlus className="w-4 h-4 mr-2" />
                     Invite Institution
                   </Button>
@@ -981,7 +979,7 @@ export function PartnerProfileDashboard({
                         placeholder="Country"
                       />
                     </div>
-                    <Button className="w-full">
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700">
                       <Send className="w-4 h-4 mr-2" />
                       Send Invitation
                     </Button>
@@ -1045,7 +1043,7 @@ export function PartnerProfileDashboard({
                         placeholder="contact@institution.edu"
                       />
                     </div>
-                    <Button className="w-full">
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700">
                       <Send className="w-4 h-4 mr-2" />
                       Send Invitation
                     </Button>
