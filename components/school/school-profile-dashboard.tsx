@@ -773,37 +773,13 @@ export function SchoolProfileDashboard({
         </TabsContent>
 
         <TabsContent value="projects" className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-4">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-xs uppercase text-gray-500">Total projects</p>
-                <p className="mt-1 text-2xl font-semibold text-gray-900">{totalProjects}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-xs uppercase text-gray-500">Active</p>
-                <p className="mt-1 text-2xl font-semibold text-green-600">
-                  {projectStats.active}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-xs uppercase text-gray-500">Drafts</p>
-                <p className="mt-1 text-2xl font-semibold text-yellow-600">
-                  {projectStats.draft}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-xs uppercase text-gray-500">Finished</p>
-                <p className="mt-1 text-2xl font-semibold text-blue-600">
-                  {finishedProjectCount}
-                </p>
-              </CardContent>
-            </Card>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Classroom Projects</h3>
+              <p className="text-sm text-gray-600">
+                Projects created by teachers at your school across all programs
+              </p>
+            </div>
           </div>
 
           {projects.length === 0 ? (
@@ -814,76 +790,45 @@ export function SchoolProfileDashboard({
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-6">
+            <div className="grid md:grid-cols-3 gap-6">
               {projects.map((project) => (
-                <Card key={project.id} className="overflow-hidden border border-purple-100">
-                  {project.coverImageUrl && (
-                    <div className="relative h-32 w-full overflow-hidden">
-                      <div
-                        className="absolute inset-0 bg-cover bg-center"
-                        style={{ backgroundImage: `url(${project.coverImageUrl})` }}
+                <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                  <div className="relative h-40 overflow-hidden rounded-t-lg">
+                    {project.coverImageUrl ? (
+                      <Image
+                        src={project.coverImageUrl}
+                        alt={project.title}
+                        width={500}
+                        height={300}
+                        className="w-full h-full object-cover"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-purple-700/10" />
-                    </div>
-                  )}
-                  <CardContent className="space-y-4 p-6">
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div className="space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h4 className="text-lg font-semibold text-gray-900">{project.title}</h4>
-                          <Badge className={projectStatusClasses[project.status]}>
-                            {projectStatusLabels[project.status]}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600">{project.programName}</p>
-                      </div>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/teacher/projects?project=${project.id}`}>View project</Link>
-                      </Button>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <Users className="h-4 w-4 text-purple-500" />
-                        {project.teacherName}
-                      </span>
-                      {project.teacherEmail && (
-                        <span className="text-xs text-gray-500">{project.teacherEmail}</span>
-                      )}
-                      {project.estimatedWeeks && project.estimatedWeeks > 0 && (
-                        <span className="flex items-center gap-1">
-                          <CalendarDays className="h-4 w-4 text-purple-500" />
-                          {project.estimatedWeeks} week
-                          {project.estimatedWeeks > 1 ? 's' : ''}
-                        </span>
-                      )}
-                      {project.templateTitle && (
-                        <span className="flex items-center gap-1">
-                          <BookOpen className="h-4 w-4 text-purple-500" />
-                          Based on {project.templateTitle}
-                        </span>
-                      )}
-                    </div>
-
-                    {project.sdgAlignment && project.sdgAlignment.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {project.sdgAlignment.slice(0, 6).map((sdg) => (
-                          <SDGIcon
-                            key={`${project.id}-sdg-${sdg}`}
-                            number={sdg}
-                            size="sm"
-                            showTitle={false}
-                            className="w-10 h-10 object-cover rounded shadow-sm hover:shadow-md transition-shadow"
-                          />
-                        ))}
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
+                        <BookOpen className="h-12 w-12 text-purple-300" />
                       </div>
                     )}
-
-                    {project.updatedAt && (
-                      <p className="text-xs text-gray-500">
-                        Updated {new Date(project.updatedAt).toLocaleDateString()}
-                      </p>
-                    )}
+                  </div>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="text-xs text-purple-600 font-medium">
+                        {project.programName}
+                      </div>
+                      <Badge className={projectStatusClasses[project.status]}>
+                        {projectStatusLabels[project.status]}
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-lg leading-tight">{project.title}</CardTitle>
+                    <CardDescription className="text-sm text-gray-600">
+                      By {project.teacherName}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-700 mb-4 line-clamp-3">
+                      {project.templateTitle ? `Based on ${project.templateTitle}` : project.programName}
+                    </p>
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link href={`/teacher/projects?project=${project.id}`}>View Details</Link>
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
