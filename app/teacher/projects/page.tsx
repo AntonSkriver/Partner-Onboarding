@@ -199,7 +199,7 @@ export default function TeacherProjectsPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-3">
               {visibleInProgress.map((item) => (
                 <ProjectCard key={item.project.id} item={item} />
               ))}
@@ -215,7 +215,7 @@ export default function TeacherProjectsPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-3">
               {visibleFinished.map((item) => (
                 <ProjectCard key={item.project.id} item={item} />
               ))}
@@ -281,22 +281,26 @@ function ProjectCard({ item }: { item: DecoratedProject }) {
   const lastUpdated = new Date(project.updatedAt ?? project.createdAt)
 
   return (
-    <Card className="flex h-full flex-col border border-gray-200 shadow-sm">
-      <CardHeader className="space-y-2">
+    <Card className="hover:shadow-lg transition-shadow">
+      {project.coverImageUrl && (
+        <div className="relative h-40 overflow-hidden rounded-t-lg">
+          <img
+            src={project.coverImageUrl}
+            alt={template?.title ?? project.projectId}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      <CardHeader className="pb-2">
+        <div className="text-sm text-purple-600 font-medium mb-1">
+          {programName}
+        </div>
         <div className="flex items-start justify-between gap-2">
-          <div>
-            <CardTitle className="text-lg text-gray-900">
-              {template?.title ?? project.projectId.replaceAll('-', ' ')}
-            </CardTitle>
-            <p className="text-xs text-gray-500">Program: {programName}</p>
-          </div>
+          <CardTitle className="text-lg leading-tight">
+            {template?.title ?? project.projectId.replaceAll('-', ' ')}
+          </CardTitle>
           <Badge className={cn('capitalize', statusBadgeClass)}>{status}</Badge>
         </div>
-        {template?.recommendedStartMonth && (
-          <p className="text-xs text-purple-600">
-            Suggested start: {template.recommendedStartMonth}
-          </p>
-        )}
       </CardHeader>
       <CardContent className="mt-auto space-y-4 text-sm text-gray-600">
         <p>
