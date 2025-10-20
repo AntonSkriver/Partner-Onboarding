@@ -137,10 +137,6 @@ export default function TeacherProjectsPage() {
               <Sparkles className="mr-1 h-3 w-3" />
               {activeProjectsCount} active
             </Badge>
-            <Badge className="bg-purple-50 text-purple-700">
-              <Layers className="mr-1 h-3 w-3" />
-              {draftProjectsCount} drafts
-            </Badge>
             <Badge variant="outline" className="border-purple-200 text-purple-700">
               <Users className="mr-1 h-3 w-3" />
               {programSummaries.length} programs

@@ -335,48 +335,68 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
       </TabsContent>
 
       <TabsContent value="projects" className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Program projects</CardTitle>
-            <CardDescription>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Program projects</h2>
+            <p className="text-sm text-gray-600">
               Track active and completed classroom collaborations within this program.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {summary.projects.length === 0 ? (
+            </p>
+          </div>
+        </div>
+        {summary.projects.length === 0 ? (
+          <Card>
+            <CardContent className="py-12">
               <EmptyState icon={<Layers className="h-6 w-6 text-purple-500" />} title="No projects yet" description="Once teachers launch projects they will appear here." />
-            ) : (
-              summary.projects.map((project) => {
-                const template = project.templateId
-                  ? summary.templates.find((entry) => entry.id === project.templateId)
-                  : undefined
-                const status = project.status
-                const statusClass = status === 'active'
-                  ? 'bg-green-100 text-green-700'
-                  : status === 'completed'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-100 text-gray-600'
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-3">
+            {summary.projects.map((project) => {
+              const template = project.templateId
+                ? summary.templates.find((entry) => entry.id === project.templateId)
+                : undefined
+              const status = project.status
+              const statusClass = status === 'active'
+                ? 'bg-green-100 text-green-700'
+                : status === 'completed'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-gray-100 text-gray-600'
 
-                return (
-                  <div key={project.id} className="rounded-lg border border-gray-200 bg-white p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">
-                          {template?.title ?? project.projectId.replaceAll('-', ' ')}
-                        </p>
-                        <p className="text-xs text-gray-500">Created {new Date(project.createdAt).toLocaleDateString()}</p>
-                      </div>
+              return (
+                <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                  {project.coverImageUrl && (
+                    <div className="relative h-40 overflow-hidden rounded-t-lg">
+                      <img
+                        src={project.coverImageUrl}
+                        alt={template?.title ?? project.projectId}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <CardHeader className="pb-2">
+                    <div className="text-sm text-purple-600 font-medium mb-1">
+                      Created {new Date(project.createdAt).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="text-lg leading-tight">
+                        {template?.title ?? project.projectId.replaceAll('-', ' ')}
+                      </CardTitle>
                       <Badge className={statusClass}>{status}</Badge>
                     </div>
-                    <p className="mt-3 text-sm text-gray-600">
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-700 mb-4">
                       {template?.summary ?? 'Teacher-defined project aligned to the program approach.'}
                     </p>
-                  </div>
-                )
-              })
-            )}
-          </CardContent>
-        </Card>
+                    <Button variant="outline" className="w-full">
+                      View Details
+                    </Button>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        )}
       </TabsContent>
 
       <TabsContent value="resources" className="space-y-6">
