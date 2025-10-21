@@ -180,21 +180,6 @@ export default function PartnerProgramDetailPage() {
                 </div>
               </div>
             </div>
-
-            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
-              {metricItems(summary).map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-lg border border-gray-200 bg-white p-3 text-center"
-                >
-                  <div className="mb-1 flex items-center justify-center gap-1 text-xs text-gray-500 uppercase tracking-wide">
-                    {item.icon}
-                    {item.label}
-                  </div>
-                  <p className="text-lg font-semibold text-gray-900">{item.value}</p>
-                </div>
-              ))}
-            </div>
           </CardContent>
         </Card>
 
