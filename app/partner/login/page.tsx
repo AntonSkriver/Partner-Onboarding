@@ -265,19 +265,6 @@ export default function PartnerLoginPage() {
                 </Button>
               </div>
 
-              <div className="space-y-2 text-sm text-gray-500">
-                <p>Looking for teacher or student access? Use the quick actions above to jump straight into their experience.</p>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="px-0 text-purple-600 hover:text-purple-700"
-                  onClick={handleTeacherPreview}
-                  disabled={isDemoLoading === 'teacher'}
-                >
-                  Continue as Teacher
-                </Button>
-              </div>
-
               <div className="text-xs text-gray-400">
                 <Button
                   type="button"
