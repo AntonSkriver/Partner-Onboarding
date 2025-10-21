@@ -377,6 +377,7 @@ export const buildProgramCatalog = (
     const supportingPartner = supportingRelationship?.partner ?? null
 
     const coverImageUrl =
+      summary.program.heroImageUrl ??
       summary.templates.find((template) => Boolean(template.heroImageUrl))?.heroImageUrl ??
       undefined
 

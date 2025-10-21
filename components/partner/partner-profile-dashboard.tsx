@@ -37,7 +37,10 @@ import {
   LogOut,
   UserPlus,
   Send,
+  MoreVertical,
+  FileText,
 } from 'lucide-react'
+import { SDG_DATA } from '@/components/sdg-icons'
 import { SDGIcon } from '../sdg-icons'
 import { SDG_OPTIONS } from '../../contexts/partner-onboarding-context'
 import { OrganizationAPI } from '@/lib/api/organizations'
@@ -157,18 +160,38 @@ export function PartnerProfileDashboard({
         {
           id: 'children-rights-toolkit',
           title: 'Children\'s Rights Education Toolkit',
-          description: 'Comprehensive guide for teaching children\'s rights concepts across cultures',
-          type: 'teaching_guide',
+          description: 'Comprehensive guide for teaching children\'s rights concepts across cultures. Perfect for middle and high school students exploring global citizenship and human rights.',
+          type: 'Document',
+          category: 'Teaching Guide',
+          ageRange: '13-19 years old',
+          sdgAlignment: [16],
           language: 'English',
+          heroImageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=480&fit=crop',
           updated_at: '2025-01-10T10:00:00Z'
         },
         {
           id: 'cultural-exchange-framework',
           title: 'Cultural Exchange Learning Framework',
-          description: 'Structured approach to facilitating cross-cultural learning experiences',
-          type: 'framework',
-          language: 'Multiple',
+          description: 'Structured approach to facilitating cross-cultural learning experiences. Includes activities, discussion prompts, and assessment tools for virtual exchange programs.',
+          type: 'Video',
+          category: 'Framework',
+          ageRange: '9-13 years old',
+          sdgAlignment: [4],
+          language: 'English',
+          heroImageUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=480&fit=crop',
           updated_at: '2024-12-15T15:30:00Z'
+        },
+        {
+          id: 'sustainability-action-guide',
+          title: 'Climate Action for Young Leaders',
+          description: 'Engaging guide to help students understand climate change and take meaningful action in their communities through hands-on projects and global collaboration.',
+          type: 'Book',
+          category: 'Action Guide',
+          ageRange: '13-19 years old',
+          sdgAlignment: [13],
+          language: 'English',
+          heroImageUrl: 'https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?w=800&h=480&fit=crop',
+          updated_at: '2025-02-01T09:00:00Z'
         }
       ]
 
@@ -639,32 +662,83 @@ export function PartnerProfileDashboard({
           )}
 
           {resources.length > 0 ? (
-            <div className="grid gap-4">
-              {resources.map((resource) => (
-                <Card key={resource.id}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <BookOpen className="w-4 h-4 text-blue-600" />
-                          <h3 className="font-semibold">{resource.title}</h3>
-                          <Badge variant="outline">{resource.type}</Badge>
+            <div className="space-y-4">
+              {resources.map((resource) => {
+                // Get SDG data
+                const sdgTitles = resource.sdgAlignment?.map((num: number) => {
+                  const sdgData = SDG_DATA[num]
+                  return sdgData ? `SDG #${num}: ${sdgData.title}` : `SDG ${num}`
+                }) || []
+
+                return (
+                  <Card key={resource.id} className="overflow-hidden">
+                    <CardContent className="p-0">
+                      <div className="flex flex-col sm:flex-row gap-0">
+                        {/* Thumbnail */}
+                        <div className="sm:w-48 sm:h-48 h-40 flex-shrink-0 bg-gray-100 relative overflow-hidden">
+                          {resource.heroImageUrl ? (
+                            <img
+                              src={resource.heroImageUrl}
+                              alt={resource.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-purple-50">
+                              <FileText className="w-12 h-12 text-purple-300" />
+                            </div>
+                          )}
                         </div>
-                        {resource.description && (
-                          <p className="text-gray-600 text-sm">{resource.description}</p>
-                        )}
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
-                          <span>{resource.language}</span>
-                          <span>Updated {new Date(resource.updated_at).toLocaleDateString()}</span>
+
+                        {/* Content */}
+                        <div className="flex-1 p-6">
+                          <div className="flex items-start justify-between gap-4 mb-3">
+                            <h3 className="text-xl font-semibold text-gray-900 leading-tight">
+                              {resource.title}
+                            </h3>
+                            <Button variant="ghost" size="sm" className="flex-shrink-0">
+                              <MoreVertical className="h-4 w-4 text-gray-400" />
+                            </Button>
+                          </div>
+
+                          {/* Metadata badges */}
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            <Badge className="bg-purple-600 hover:bg-purple-700 text-white">
+                              {resource.type}
+                            </Badge>
+
+                            {resource.category && (
+                              <Badge variant="outline" className="capitalize">
+                                {resource.category}
+                              </Badge>
+                            )}
+
+                            {resource.ageRange && (
+                              <Badge variant="outline">
+                                {resource.ageRange}
+                              </Badge>
+                            )}
+
+                            {sdgTitles.length > 0 && (
+                              <Badge variant="outline" className="text-orange-700 border-orange-300">
+                                {sdgTitles[0]}
+                              </Badge>
+                            )}
+
+                            <Badge className="bg-purple-600 hover:bg-purple-700 text-white">
+                              {resource.language}
+                            </Badge>
+                          </div>
+
+                          {/* Description */}
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            {resource.description}
+                          </p>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm">
-                        Download
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           ) : (
             <Card>

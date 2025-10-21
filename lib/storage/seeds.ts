@@ -189,6 +189,7 @@ const buildSeedPrograms = (): PrototypeDatabase['programs'] => [
     programUrl: 'https://prototype.class2class.org/programs/communities-in-focus',
     brandColor: '#5B8DEF',
     logo: '/programs/communities-in-focus/logo.svg',
+    heroImageUrl: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=800&h=480&fit=crop',
     status: 'active',
     isPublic: true,
     createdAt: '2025-01-20T09:00:00.000Z',
@@ -659,7 +660,7 @@ const buildSeedProgramTemplates = (): PrototypeDatabase['programTemplates'] => [
     title: 'City Guardians Workshop',
     summary:
       'Children redesign public spaces using LEGO bricks, focusing on clean energy, green transport, and playful community hubs.',
-    heroImageUrl: 'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?w=800&h=480&fit=crop',
+    heroImageUrl: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=480&fit=crop',
     estimatedDurationWeeks: 4,
     recommendedStartMonth: 'September',
     subjectFocus: ['science', 'design'],
@@ -676,7 +677,7 @@ const buildSeedProgramTemplates = (): PrototypeDatabase['programTemplates'] => [
     title: 'Ocean Stewards Lab',
     summary:
       'Learners investigate plastic waste issues, prototype cleanup inventions, and pitch campaigns to protect local waterways.',
-    heroImageUrl: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&h=480&fit=crop',
+    heroImageUrl: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=800&h=480&fit=crop',
     estimatedDurationWeeks: 3,
     recommendedStartMonth: 'March',
     subjectFocus: ['science', 'civics'],
@@ -693,7 +694,7 @@ const buildSeedProgramTemplates = (): PrototypeDatabase['programTemplates'] => [
     title: 'Community Story Circles',
     summary:
       'Students host guided conversations to surface stories about belonging, synthesise insights, and prepare visual narratives to share with partner classes.',
-    heroImageUrl: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&h=480&fit=crop',
+    heroImageUrl: 'https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?w=800&h=480&fit=crop',
     estimatedDurationWeeks: 3,
     recommendedStartMonth: 'February',
     subjectFocus: ['civics', 'language'],
@@ -710,7 +711,7 @@ const buildSeedProgramTemplates = (): PrototypeDatabase['programTemplates'] => [
     title: 'Community Action Lab',
     summary:
       'Classes prototype small actions that strengthen inclusion—such as welcome rituals or peer support systems—and iterate based on feedback from partner schools.',
-    heroImageUrl: 'https://images.unsplash.com/photo-1515165562835-c4c2b33a3e60?w=800&h=480&fit=crop',
+    heroImageUrl: 'https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?w=800&h=480&fit=crop',
     estimatedDurationWeeks: 4,
     recommendedStartMonth: 'April',
     subjectFocus: ['design', 'social_sciences'],
@@ -727,7 +728,7 @@ const buildSeedProgramTemplates = (): PrototypeDatabase['programTemplates'] => [
     title: 'Sustainable School Garden',
     summary:
       'Design and create a thriving school garden using LEGO bricks to prototype sustainable solutions. Work with partner classrooms to bring green spaces, renewable energy, and community gardening projects to life in your school.',
-    heroImageUrl: '/images/lego-garden-school.png',
+    heroImageUrl: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=480&fit=crop',
     estimatedDurationWeeks: 6,
     recommendedStartMonth: 'September',
     subjectFocus: ['science', 'design', 'sustainability'],
@@ -744,7 +745,7 @@ const buildSeedProgramTemplates = (): PrototypeDatabase['programTemplates'] => [
     title: 'Building Belonging in Our Communities',
     summary:
       'Students explore what makes communities welcoming and inclusive through dialogue, storytelling, and collaborative problem-solving. Partner classrooms work together to identify barriers to belonging and co-create solutions that strengthen community connections and celebrate diversity.',
-    heroImageUrl: '/images/community-inclusion.png',
+    heroImageUrl: 'https://images.unsplash.com/photo-1609619385002-f40f2a6eef93?w=800&h=480&fit=crop',
     estimatedDurationWeeks: 5,
     recommendedStartMonth: 'February',
     subjectFocus: ['civics', 'social_sciences', 'language'],

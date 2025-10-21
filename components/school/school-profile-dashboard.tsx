@@ -37,8 +37,9 @@ import {
   ChevronDown,
   ChevronUp,
   GraduationCap,
+  MoreVertical,
 } from 'lucide-react'
-import { SDGIcon } from '@/components/sdg-icons'
+import { SDGIcon, SDG_DATA } from '@/components/sdg-icons'
 import { SDG_OPTIONS } from '@/contexts/partner-onboarding-context'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import {
@@ -96,7 +97,11 @@ type ResourceEntry = {
   title: string
   description: string
   type: string
+  category?: string
+  ageRange?: string
+  sdgAlignment?: number[]
   language: string
+  heroImageUrl?: string
   updatedAt: string
   programName: string
 }
@@ -305,12 +310,21 @@ export function SchoolProfileDashboard({
 
     programSummaries.forEach((summary) => {
       summary.templates.forEach((template) => {
+        // Get age range from program
+        const ageRange = summary.program.targetAgeRanges.length > 0
+          ? summary.program.targetAgeRanges.join(', ')
+          : undefined
+
         derived.push({
           id: template.id,
           title: template.title,
           description: template.summary,
-          type: 'template',
+          type: 'Project Template',
+          category: template.subjectFocus?.[0]?.replace('_', ' ') || undefined,
+          ageRange,
+          sdgAlignment: template.sdgAlignment,
           language: template.languageSupport?.join(', ') || 'English',
+          heroImageUrl: template.heroImageUrl,
           updatedAt: template.updatedAt,
           programName: summary.program.displayTitle ?? summary.program.name,
         })
@@ -325,18 +339,26 @@ export function SchoolProfileDashboard({
       {
         id: 'resource-1',
         title: 'Human Rights Education Toolkit',
-        description: 'Comprehensive guide for teaching human rights concepts',
-        type: 'teaching_guide',
+        description: 'Comprehensive guide for teaching human rights concepts and promoting global citizenship through interactive activities.',
+        type: 'Document',
+        category: 'Teaching Guide',
+        ageRange: '13-19 years old',
+        sdgAlignment: [16],
         language: 'English',
+        heroImageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=480&fit=crop',
         updatedAt: '2025-01-10T10:00:00Z',
         programName: 'Communities in Focus',
       },
       {
         id: 'resource-2',
         title: 'Climate Action Project Templates',
-        description: 'Ready-to-use templates for climate projects',
-        type: 'template',
+        description: 'Ready-to-use templates for climate projects that engage students in hands-on sustainability initiatives.',
+        type: 'Project Template',
+        category: 'Science',
+        ageRange: '9-13 years old',
+        sdgAlignment: [13],
         language: 'English',
+        heroImageUrl: 'https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?w=800&h=480&fit=crop',
         updatedAt: '2025-01-15T10:00:00Z',
         programName: 'Build the Change',
       },
@@ -1056,34 +1078,83 @@ export function SchoolProfileDashboard({
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4">
-              {resources.map((resource) => (
-                <Card key={resource.id} className="border border-purple-100">
-                  <CardContent className="flex flex-wrap items-start justify-between gap-4 p-6">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <FileText className="h-4 w-4 text-purple-600" />
-                        <h4 className="font-semibold text-gray-900">{resource.title}</h4>
-                        <Badge variant="outline">{resource.type}</Badge>
-                        <Badge variant="secondary" className="text-xs">
-                          {resource.programName}
-                        </Badge>
+            <div className="space-y-4">
+              {resources.map((resource) => {
+                // Get SDG data
+                const sdgTitles = resource.sdgAlignment?.map((num: number) => {
+                  const sdgData = SDG_DATA[num]
+                  return sdgData ? `SDG #${num}: ${sdgData.title}` : `SDG ${num}`
+                }) || []
+
+                return (
+                  <Card key={resource.id} className="overflow-hidden">
+                    <CardContent className="p-0">
+                      <div className="flex flex-col sm:flex-row gap-0">
+                        {/* Thumbnail */}
+                        <div className="sm:w-48 sm:h-48 h-40 flex-shrink-0 bg-gray-100 relative overflow-hidden">
+                          {resource.heroImageUrl ? (
+                            <img
+                              src={resource.heroImageUrl}
+                              alt={resource.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-purple-50">
+                              <FileText className="w-12 h-12 text-purple-300" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 p-6">
+                          <div className="flex items-start justify-between gap-4 mb-3">
+                            <h3 className="text-xl font-semibold text-gray-900 leading-tight">
+                              {resource.title}
+                            </h3>
+                            <Button variant="ghost" size="sm" className="flex-shrink-0">
+                              <MoreVertical className="h-4 w-4 text-gray-400" />
+                            </Button>
+                          </div>
+
+                          {/* Metadata badges */}
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            <Badge className="bg-purple-600 hover:bg-purple-700 text-white">
+                              {resource.type}
+                            </Badge>
+
+                            {resource.category && (
+                              <Badge variant="outline" className="capitalize">
+                                {resource.category}
+                              </Badge>
+                            )}
+
+                            {resource.ageRange && (
+                              <Badge variant="outline">
+                                {resource.ageRange}
+                              </Badge>
+                            )}
+
+                            {sdgTitles.length > 0 && (
+                              <Badge variant="outline" className="text-orange-700 border-orange-300">
+                                {sdgTitles[0]}
+                              </Badge>
+                            )}
+
+                            <Badge className="bg-purple-600 hover:bg-purple-700 text-white">
+                              {resource.language}
+                            </Badge>
+                          </div>
+
+                          {/* Description */}
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            {resource.description}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-600">{resource.description}</p>
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                        <span>{resource.language}</span>
-                        <span>
-                          Updated {new Date(resource.updatedAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Download className="mr-2 h-4 w-4" />
-                      Download
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           )}
         </TabsContent>

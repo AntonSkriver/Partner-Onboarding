@@ -28,6 +28,7 @@ export interface Program {
   programUrl?: string;
   brandColor?: string; // Hex color for program branding
   logo?: string; // URL or base64
+  heroImageUrl?: string; // Cover image for program cards
 
   // Status
   status: 'draft' | 'active' | 'completed' | 'archived';

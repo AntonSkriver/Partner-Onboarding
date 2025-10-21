@@ -14,9 +14,12 @@ import {
   Users,
   FolderOpen,
   FileText,
+  MoreVertical,
+  Plus,
 } from 'lucide-react'
 
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
+import { SDG_DATA } from '@/components/sdg-icons'
 import { getCurrentSession } from '@/lib/auth/session'
 import { findProgramSummaryById, type ProgramSummary } from '@/lib/programs/selectors'
 import {
@@ -385,35 +388,132 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
       </TabsContent>
 
       <TabsContent value="resources" className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Program resources</CardTitle>
-            <CardDescription>
-              Templates and materials available to teachers running this program.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {summary.templates.length === 0 ? (
-              <EmptyState icon={<FolderOpen className="h-6 w-6 text-purple-500" />} title="No templates yet" description="Upload learning resources or guided templates from the Resources tab." />
-            ) : (
-              summary.templates.map((template) => (
-                <div key={template.id} className="rounded-lg border border-gray-200 bg-white p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{template.title}</p>
-                      <p className="text-xs text-gray-500">Estimated {template.estimatedDurationWeeks} week(s) • {template.languageSupport.join(', ').toUpperCase()}</p>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <FileText className="mr-2 h-4 w-4" />
-                      Preview
-                    </Button>
-                  </div>
-                  <p className="mt-3 text-sm text-gray-600">{template.summary}</p>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Program resources</h2>
+            <p className="text-sm text-gray-600">
+              Educational materials and resources available to teachers in this program.
+            </p>
+          </div>
+          <Button className="bg-purple-600 hover:bg-purple-700">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Resources
+          </Button>
+        </div>
+        {(() => {
+          // Mock program resources - in real implementation, these would be resources assigned to this program
+          const programResources = summary.program.id === 'program-communities-2025' ? [
+            {
+              id: 'cultural-exchange-framework',
+              title: 'Cultural Exchange Learning Framework',
+              description: 'Structured approach to facilitating cross-cultural learning experiences. Includes activities, discussion prompts, and assessment tools for virtual exchange programs.',
+              type: 'Video',
+              category: 'Framework',
+              ageRange: '9-13 years old',
+              sdgAlignment: [4],
+              language: 'English',
+              heroImageUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=480&fit=crop',
+            },
+            {
+              id: 'children-rights-toolkit',
+              title: 'Children\'s Rights Education Toolkit',
+              description: 'Comprehensive guide for teaching children\'s rights concepts across cultures. Perfect for middle and high school students exploring global citizenship and human rights.',
+              type: 'Document',
+              category: 'Teaching Guide',
+              ageRange: '13-19 years old',
+              sdgAlignment: [16],
+              language: 'English',
+              heroImageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=480&fit=crop',
+            }
+          ] : []
+
+          return programResources.length === 0 ? (
+            <Card>
+              <CardContent className="py-12">
+                <EmptyState icon={<FolderOpen className="h-6 w-6 text-purple-500" />} title="No resources yet" description="Add resources from your library to make them available to teachers in this program." />
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {programResources.map((resource) => {
+                // Get SDG data
+                const sdgTitles = resource.sdgAlignment?.map((num: number) => {
+                  const sdgData = SDG_DATA[num]
+                  return sdgData ? `SDG #${num}: ${sdgData.title}` : `SDG ${num}`
+                }) || []
+
+                return (
+                  <Card key={resource.id} className="overflow-hidden">
+                    <CardContent className="p-0">
+                      <div className="flex flex-col sm:flex-row gap-0">
+                        {/* Thumbnail */}
+                        <div className="sm:w-48 sm:h-48 h-40 flex-shrink-0 bg-gray-100 relative overflow-hidden">
+                          {resource.heroImageUrl ? (
+                            <img
+                              src={resource.heroImageUrl}
+                              alt={resource.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-purple-50">
+                              <FileText className="w-12 h-12 text-purple-300" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 p-6">
+                          <div className="flex items-start justify-between gap-4 mb-3">
+                            <h3 className="text-xl font-semibold text-gray-900 leading-tight">
+                              {resource.title}
+                            </h3>
+                            <Button variant="ghost" size="sm" className="flex-shrink-0">
+                              <MoreVertical className="h-4 w-4 text-gray-400" />
+                            </Button>
+                          </div>
+
+                          {/* Metadata badges */}
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            <Badge className="bg-purple-600 hover:bg-purple-700 text-white">
+                              {resource.type}
+                            </Badge>
+
+                            {resource.category && (
+                              <Badge variant="outline" className="capitalize">
+                                {resource.category}
+                              </Badge>
+                            )}
+
+                            {resource.ageRange && (
+                              <Badge variant="outline">
+                                {resource.ageRange}
+                              </Badge>
+                            )}
+
+                            {sdgTitles.length > 0 && (
+                              <Badge variant="outline" className="text-orange-700 border-orange-300">
+                                {sdgTitles[0]}
+                              </Badge>
+                            )}
+
+                            <Badge className="bg-purple-600 hover:bg-purple-700 text-white">
+                              {resource.language}
+                            </Badge>
+                          </div>
+
+                          {/* Description */}
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            {resource.description}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          )
+        })()}
       </TabsContent>
     </Tabs>
   )
