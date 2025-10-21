@@ -32,6 +32,7 @@ import {
   Plus
 } from 'lucide-react'
 import Link from 'next/link'
+import { SDGIcon, SDG_DATA } from '@/components/sdg-icons'
 
 const resourceSchema = z.object({
   title: z.string().min(3, 'Title is required (minimum 3 characters)'),
@@ -638,27 +639,40 @@ export default function UploadContentPage() {
                 <CardDescription>Which UN Sustainable Development Goals does this resource support?</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                  {sdgOptions.map((sdg) => (
-                    <div
-                      key={sdg.id}
-                      className={`p-2 rounded-lg border cursor-pointer transition-colors text-center ${
-                        selectedSDGs.includes(sdg.id)
-                          ? 'border-purple-500 bg-purple-50'
-                          : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
-                      }`}
-                      onClick={() => handleSDGToggle(sdg.id)}
-                    >
-                      <div className={`w-8 h-8 ${sdg.color} rounded text-white text-xs font-bold flex items-center justify-center mx-auto mb-1`}>
-                        {sdg.id}
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                  {sdgOptions.map((sdg) => {
+                    const isSelected = selectedSDGs.includes(sdg.id)
+                    const sdgNumber = parseInt(sdg.id)
+                    const sdgData = SDG_DATA[sdgNumber]
+
+                    return (
+                      <div
+                        key={sdg.id}
+                        className="flex flex-col items-center cursor-pointer group"
+                        onClick={() => handleSDGToggle(sdg.id)}
+                      >
+                        <div className={`relative transition-all ${
+                          isSelected
+                            ? 'ring-4 ring-purple-500 ring-offset-2 rounded-lg shadow-lg scale-105'
+                            : 'opacity-70 hover:opacity-100 hover:scale-105'
+                        }`}>
+                          <SDGIcon
+                            number={sdgNumber}
+                            size="md"
+                            showTitle={false}
+                            className="w-16 h-16 object-cover rounded-lg shadow-sm group-hover:shadow-md transition-shadow"
+                          />
+                        </div>
+                        <p className="text-xs text-gray-600 text-center mt-1 leading-tight">
+                          {sdgData?.title || sdg.title}
+                        </p>
                       </div>
-                      <div className="text-xs text-gray-700">{sdg.title}</div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
                 {selectedSDGs.length > 0 && (
                   <div className="mt-4 space-y-2">
-                    <p className="text-sm font-medium text-gray-700">Selected SDGs:</p>
+                    <p className="text-sm font-medium text-gray-700">Selected SDGs ({selectedSDGs.length}):</p>
                     <div className="flex flex-wrap gap-2">
                       {selectedSDGs.map(sdgId => {
                         const sdg = sdgOptions.find(s => s.id === sdgId)
