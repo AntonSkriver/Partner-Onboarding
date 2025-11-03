@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import Image from 'next/image'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -15,6 +16,7 @@ import {
   Target,
   Edit,
   Building2,
+  ShieldCheck,
 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
@@ -28,23 +30,112 @@ import {
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 
+const CRC_ARTICLE_DETAILS: Record<
+  string,
+  { title: string; summary: string; focus?: 'participation' | 'protection' | 'provision' }
+> = {
+  '12': {
+    title: 'Article 12 · Respect for the views of the child',
+    summary:
+      'Children have the right to express their views freely in all matters affecting them, and for those views to be given due weight.',
+    focus: 'participation',
+  },
+  '13': {
+    title: 'Article 13 · Freedom of expression',
+    summary:
+      'Every child can seek, receive, and impart information and ideas of all kinds, enabling active participation in learning communities.',
+    focus: 'participation',
+  },
+  '24': {
+    title: 'Article 24 · Health and health services',
+    summary:
+      'Children have the right to the highest attainable standard of health, including access to clean water, nutritious food, and health education.',
+    focus: 'provision',
+  },
+  '28': {
+    title: 'Article 28 · Right to education',
+    summary:
+      'Primary education must be compulsory and available free to all, ensuring learners gain knowledge, skills, and respect for human rights.',
+    focus: 'provision',
+  },
+  '31': {
+    title: 'Article 31 · Leisure, play, and culture',
+    summary:
+      'Children have the right to rest and leisure, engage in play, and participate fully in cultural and artistic life.',
+    focus: 'provision',
+  },
+}
+
+type PartnerResource = {
+  id: string
+  title: string
+}
+
+type OrganizationContact = {
+  name?: string
+  email?: string
+  phone?: string | null
+  role?: string | null
+  isPrimary?: boolean | null
+}
+
+type ChildRightsEntry = {
+  article: string
+  title: string
+  summary: string
+  focus?: 'participation' | 'protection' | 'provision'
+  iconSrc: string
+}
+
+const parseContacts = (rawContacts: Organization['primary_contacts']): OrganizationContact[] => {
+  if (!rawContacts || !Array.isArray(rawContacts)) {
+    return []
+  }
+
+  return rawContacts
+    .map((entry) => (typeof entry === 'object' && entry !== null ? entry : null))
+    .filter((entry): entry is Record<string, unknown> => entry !== null)
+    .map((entry) => ({
+      name: typeof entry.name === 'string' ? entry.name : undefined,
+      email: typeof entry.email === 'string' ? entry.email : undefined,
+      phone: typeof entry.phone === 'string' ? entry.phone : undefined,
+      role: typeof entry.role === 'string' ? entry.role : undefined,
+      isPrimary: typeof entry.isPrimary === 'boolean' ? entry.isPrimary : undefined,
+    }))
+}
+
+const extractChildRightsFocus = (org: Organization | null): string[] => {
+  if (!org) return []
+  const raw = (org as unknown as { child_rights_focus?: unknown }).child_rights_focus
+  if (!raw || !Array.isArray(raw)) {
+    return []
+  }
+  return raw
+    .map((value) => (value === null || value === undefined ? '' : String(value).trim()))
+    .filter((value): value is string => value.length > 0)
+}
+
 export default function PartnerOverviewPage() {
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
-  const [resources, setResources] = useState<any[]>([])
+  const [resources, setResources] = useState<PartnerResource[]>([])
+  const [childRightsFocus, setChildRightsFocus] = useState<string[]>([])
   const { ready: prototypeReady, database } = usePrototypeDb()
 
+  const normalizedOrganizationName = organization?.name
+    ? organization.name.trim().toLowerCase()
+    : null
+
   const partnerRecord = useMemo(() => {
-    if (!database || !organization) return null
-    const normalizedName = organization.name?.trim().toLowerCase()
-    if (normalizedName) {
+    if (!database) return null
+    if (normalizedOrganizationName) {
       const match = database.partners.find(
-        (partner) => partner.organizationName.toLowerCase() === normalizedName,
+        (partner) => partner.organizationName.toLowerCase() === normalizedOrganizationName,
       )
       if (match) return match
     }
     return database.partners.length > 0 ? database.partners[0] : null
-  }, [database, organization?.name])
+  }, [database, normalizedOrganizationName])
 
   const programSummaries = useMemo<ProgramSummary[]>(() => {
     if (!prototypeReady || !database || !partnerRecord) {
@@ -119,6 +210,7 @@ export default function PartnerOverviewPage() {
 
       setOrganization(sampleOrg)
       setResources(mockResources)
+      setChildRightsFocus(['12', '24', '28'])
     } catch (err) {
       console.error('Error loading organization profile:', err)
     } finally {
@@ -126,9 +218,7 @@ export default function PartnerOverviewPage() {
     }
   }
 
-  const primaryContacts = Array.isArray(organization?.primary_contacts)
-    ? (organization.primary_contacts as any[])
-    : []
+  const primaryContacts = parseContacts(organization?.primary_contacts ?? null)
   const primaryContact = primaryContacts.find((contact) => contact.isPrimary) || primaryContacts[0]
 
   const normalizedSdgTags = Array.isArray(organization?.sdg_tags)
@@ -138,6 +228,66 @@ export default function PartnerOverviewPage() {
     : []
 
   const sdgFocus = normalizedSdgTags.length > 0 ? normalizedSdgTags : [4]
+
+  const organizationChildRights = extractChildRightsFocus(organization)
+
+  const normalizedChildRights = useMemo(() => {
+    const base = organizationChildRights.length > 0 ? organizationChildRights : childRightsFocus
+    const seen = new Set<string>()
+    const collected: string[] = []
+    base.forEach((value) => {
+      if (value === null || value === undefined) return
+      const key = String(value).trim()
+      if (!key) return
+      if (!seen.has(key)) {
+        seen.add(key)
+        collected.push(key)
+      }
+    })
+    return collected
+  }, [organizationChildRights, childRightsFocus])
+
+  const childRightsEntries: ChildRightsEntry[] = useMemo(() => {
+    if (normalizedChildRights.length === 0) {
+      return []
+    }
+    return normalizedChildRights.map((article) => {
+      const fallback = {
+        title: `Article ${article}`,
+        summary:
+          'This article outlines a core protection in the UN Convention on the Rights of the Child.',
+        focus: undefined,
+      }
+      const details = CRC_ARTICLE_DETAILS[article] ?? fallback
+      const padded = article.padStart(2, '0')
+
+      return {
+        article,
+        title: details.title,
+        summary: details.summary,
+        focus: details.focus,
+        iconSrc: `/crc/icons/article-${padded}.png`,
+      }
+    })
+  }, [normalizedChildRights])
+
+const childRightsFocusStyles: Record<
+  NonNullable<(typeof childRightsEntries)[number]['focus']>,
+  { label: string; tagClassName: string }
+> = {
+  participation: {
+    label: 'Participation right',
+    tagClassName: 'bg-blue-100 text-blue-700',
+  },
+  protection: {
+    label: 'Protection right',
+    tagClassName: 'bg-rose-100 text-rose-700',
+  },
+  provision: {
+    label: 'Provision right',
+    tagClassName: 'bg-emerald-100 text-emerald-700',
+  },
+}
 
   if (loading) {
     return (
@@ -275,10 +425,10 @@ export default function PartnerOverviewPage() {
         </CardHeader>
         <CardContent>
           <p className="leading-relaxed text-gray-700">
-            UNICEF Danmark works to secure all children's rights through fundraising, education and
-            advocacy in Denmark. We collaborate with schools, organizations and communities to
-            create awareness about children's global situation and mobilize resources for UNICEF's
-            work worldwide.
+            UNICEF Danmark works to secure all children&rsquo;s rights through fundraising,
+            education and advocacy in Denmark. We collaborate with schools, organizations and
+            communities to create awareness about children&rsquo;s global situation and mobilize
+            resources for UNICEF&rsquo;s work worldwide.
           </p>
         </CardContent>
       </Card>
@@ -338,6 +488,62 @@ export default function PartnerOverviewPage() {
               </div>
             ) : (
               <p className="text-gray-500">No thematic areas specified</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Child Rights Focus */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4" />
+              CRC Child Rights Focus
+            </CardTitle>
+            <CardDescription>
+              Priority articles from the UN Convention on the Rights of the Child supported through
+              this partnership.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {childRightsEntries.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                {childRightsEntries.map((entry) => {
+                  const focusStyle = entry.focus ? childRightsFocusStyles[entry.focus] : undefined
+                  const tagClass = focusStyle?.tagClassName ?? 'bg-rose-100 text-rose-700'
+                  return (
+                    <div
+                      key={entry.article}
+                      className="flex h-full flex-col items-center rounded-lg border border-gray-100 bg-white p-3 text-center shadow-sm"
+                    >
+                      <div className="relative h-24 w-20 overflow-hidden rounded-md bg-gray-50">
+                        <Image
+                          src={entry.iconSrc}
+                          alt={entry.title}
+                          fill
+                          sizes="80px"
+                          className="object-cover"
+                        />
+                      </div>
+                      <p className="mt-3 text-sm font-semibold text-gray-900">{entry.title}</p>
+                      <p className="mt-1 line-clamp-4 text-xs leading-relaxed text-gray-600">
+                        {entry.summary}
+                      </p>
+                      {focusStyle && (
+                        <span
+                          className={`mt-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${tagClass}`}
+                        >
+                          {focusStyle.label}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">
+                Add your Convention on the Rights of the Child focus areas to highlight key articles
+                you champion.
+              </p>
             )}
           </CardContent>
         </Card>
