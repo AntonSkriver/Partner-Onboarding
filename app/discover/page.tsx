@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { 
+import {
   Search,
   ChevronDown,
   Plus,
@@ -13,13 +14,131 @@ import {
   Compass,
   Link as LinkIcon,
   FolderOpen,
-  GraduationCap
+  GraduationCap,
+  Globe2,
+  Users2,
+  Clock,
+  Languages
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { getCountryDisplay } from '@/lib/countries'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ProgramCatalogCard } from '@/components/program/program-catalog-card'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import { buildProgramCatalog } from '@/lib/programs/selectors'
+
+type CollaborationProject = {
+  id: number
+  title: string
+  subtitle: string
+  startMonth: string
+  image: string
+  description: string
+  projectType: string
+  ageRange: string
+  timezone: string
+  language: string
+  teacherName: string
+  teacherInitials: string
+  teacherCountry: string
+  createdAt: string
+}
+
+// Project Card Component
+function ProjectCard({ project }: { project: CollaborationProject }) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const { flag: countryFlag, name: countryName } = getCountryDisplay(project.teacherCountry)
+
+  return (
+    <Card className="flex h-full flex-col overflow-hidden hover:shadow-lg transition-shadow">
+      {/* Hero Image */}
+      <div className="relative h-44 overflow-hidden">
+        <Image
+          src={project.image}
+          alt={project.title}
+          width={500}
+          height={300}
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      {/* Content */}
+      <CardContent className="flex flex-1 flex-col p-5 space-y-4">
+        {/* Starting Month Label */}
+        <p className="text-xs font-medium text-purple-600 uppercase tracking-wide">
+          Starting Month: {project.startMonth}
+        </p>
+
+        {/* Title */}
+        <h3 className="text-lg font-semibold text-gray-900 leading-tight">
+          {project.title}
+        </h3>
+
+        {/* Description */}
+        <div className="text-sm text-gray-600">
+          <p className={cn(!isExpanded && 'line-clamp-2')}>
+            {project.description}
+          </p>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-purple-600 hover:text-purple-700 text-sm font-medium mt-1"
+          >
+            {isExpanded ? 'Read less' : 'Read more'}
+          </button>
+        </div>
+
+        {/* Metadata Icons */}
+        <div className="space-y-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            <Globe2 className="h-4 w-4 text-gray-400" />
+            <span>{project.projectType}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Users2 className="h-4 w-4 text-gray-400" />
+            <span>{project.ageRange}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-gray-400" />
+            <span>{project.timezone}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Languages className="h-4 w-4 text-gray-400" />
+            <span>{project.language}</span>
+          </div>
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Created By Section */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center text-xs font-semibold text-white">
+              {project.teacherInitials}
+            </div>
+            <div className="text-xs">
+              <p className="font-medium text-gray-900">{project.teacherName}</p>
+              <Badge
+                variant="outline"
+                className="mt-1 flex items-center gap-1 border-purple-200 text-gray-600"
+              >
+                <span className="text-base leading-none">{countryFlag}</span>
+                <span>{countryName}</span>
+              </Badge>
+              <p className="mt-1 text-gray-500">{project.createdAt}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <Button variant="outline" className="w-full border-purple-600 text-purple-600 hover:bg-purple-50">
+          Request to join
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
 
 // Mock data for tabs
 const mockProjects = {
@@ -30,15 +149,31 @@ const mockProjects = {
       subtitle: "Change Is Started From ...",
       startMonth: "September",
       image: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=500&h=300&fit=crop",
-      description: "This project began with a simple yet powerful idea..."
+      description: "This project began with a simple yet powerful idea to make students aware of environmental sustainability through local action and global collaboration.",
+      projectType: "Explore Global Challenges",
+      ageRange: "Ages 9 - 13 years",
+      timezone: "+1 hour from you",
+      language: "English, Spanish",
+      teacherName: "Maria Garcia",
+      teacherInitials: "MG",
+      teacherCountry: "Spain",
+      createdAt: "Created 3 days ago"
     },
     {
       id: 2,
       title: "Machine Learning Prediction System",
       subtitle: "",
-      startMonth: "August", 
+      startMonth: "August",
       image: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=500&h=300&fit=crop",
-      description: "The project is all about machine learning with python to create a model to predict disease"
+      description: "The project is all about machine learning with python to create a model to predict disease patterns and understand data science concepts through practical application.",
+      projectType: "Create Solutions",
+      ageRange: "Ages 15 - 18 years",
+      timezone: "+5 hours from you",
+      language: "English",
+      teacherName: "Raj Patel",
+      teacherInitials: "RP",
+      teacherCountry: "India",
+      createdAt: "Created 1 week ago"
     },
     {
       id: 3,
@@ -46,7 +181,15 @@ const mockProjects = {
       subtitle: "",
       startMonth: "August",
       image: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=500&h=300&fit=crop",
-      description: "This project is designed to engage students both creatively and intellectually..."
+      description: "This project is designed to engage students both creatively and intellectually by exploring local communities, sharing traditions, and building cross-cultural understanding.",
+      projectType: "Cultural Exchange",
+      ageRange: "Ages 11 - 15 years",
+      timezone: "-6 hours from you",
+      language: "English, French",
+      teacherName: "Sophie Martin",
+      teacherInitials: "SM",
+      teacherCountry: "Canada",
+      createdAt: "Created 2 weeks ago"
     }
   ],
   ideas: Array(87).fill(null).map((_, i) => ({
@@ -106,34 +249,7 @@ export default function DiscoverPage() {
             </p>
             <div className="grid md:grid-cols-3 gap-6">
               {mockProjects.collaboration.map((project) => (
-                <Card key={project.id} className="hover:shadow-lg transition-shadow">
-                  <div className="relative h-40 overflow-hidden rounded-t-lg">
-                    <Image 
-                      src={project.image} 
-                      alt={project.title}
-                      width={500}
-                      height={300}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <CardHeader className="pb-2">
-                    <div className="text-xs text-purple-600 font-medium mb-1">
-                      Starting Month: {project.startMonth}
-                    </div>
-                    <CardTitle className="text-lg leading-tight">{project.title}</CardTitle>
-                    {project.subtitle && (
-                      <CardDescription className="text-sm text-gray-600">
-                        {project.subtitle}
-                      </CardDescription>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-700 mb-4">{project.description}</p>
-                    <Button variant="outline" className="w-full">
-                      View Details
-                    </Button>
-                  </CardContent>
-                </Card>
+                <ProjectCard key={project.id} project={project} />
               ))}
             </div>
           </div>

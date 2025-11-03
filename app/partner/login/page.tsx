@@ -92,16 +92,16 @@ export default function PartnerLoginPage() {
       createSession({
         email: 'demo.partner@class2class.org',
         role: 'partner',
-        organization: 'UNICEF Learning Lab',
-        name: 'UNICEF Communities Lead',
+        organization: 'UNICEF Denmark',
+        name: 'UNICEF Coordinator',
       })
       router.push('/partner/profile')
     } else {
       createSession({
         email: 'demo.school@class2class.org',
         role: 'teacher',
-        organization: 'Global Classroom Lab',
-        name: 'Demo Teacher',
+        organization: 'Ørestad Gymnasium',
+        name: 'School Coordinator',
       })
       router.push('/school/dashboard')
     }

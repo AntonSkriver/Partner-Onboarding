@@ -1,12 +1,12 @@
 'use client'
 
 import Image from 'next/image'
-import type { ReactNode } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { useState, type ReactNode } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { ProgramCatalogItem } from '@/lib/programs/selectors'
 import { Button } from '@/components/ui/button'
+import { Globe2, Users2, Languages } from 'lucide-react'
 
 interface ProgramCatalogCardProps {
   item: ProgramCatalogItem
@@ -19,26 +19,28 @@ interface ProgramCatalogCardProps {
 const renderPartnerAvatar = (name?: string, logo?: string) => {
   if (logo) {
     return (
-      <Image
-        src={logo}
-        alt={name ?? 'Partner logo'}
-        width={28}
-        height={28}
-        className="h-7 w-7 rounded-full object-cover border border-gray-200 bg-white"
-      />
+      <div className="h-8 w-8 rounded-full overflow-hidden bg-white flex items-center justify-center">
+        <Image
+          src={logo}
+          alt={name ?? 'Partner logo'}
+          width={32}
+          height={32}
+          className="h-8 w-8 object-cover"
+        />
+      </div>
     )
   }
 
   if (!name) {
     return (
-      <div className="h-7 w-7 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-600">
+      <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-600">
         —
       </div>
     )
   }
 
   return (
-    <div className="h-7 w-7 rounded-full bg-purple-100 flex items-center justify-center text-xs font-semibold text-purple-700">
+    <div className="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center text-xs font-semibold text-white">
       {name.charAt(0).toUpperCase()}
     </div>
   )
@@ -51,22 +53,24 @@ export function ProgramCatalogCard({
   membershipStatus,
   onJoin,
 }: ProgramCatalogCardProps) {
-  const hostName = item.hostPartner?.organizationName ?? 'Partner'
-  const supportingName = item.supportingPartner?.organizationName
-  const logoStack = [item.hostPartner, item.supportingPartner].filter(Boolean) as typeof item.hostPartner[]
+  const [isExpanded, setIsExpanded] = useState(false)
+  const hostName = item.hostPartner?.organizationName ?? 'Class2Class.org'
+  const hostLogo = item.hostPartner?.logo
+  const location = item.hostPartner?.headquartersCity ?? 'Copenhagen'
 
-  const membershipBadge =
-    membershipStatus === 'member'
-      ? { label: 'You\'re enrolled', className: 'bg-purple-600 text-white' }
-      : membershipStatus === 'invite-only'
-        ? { label: 'Invite required', className: 'bg-amber-100 text-amber-700' }
-        : membershipStatus === 'available'
-          ? { label: 'Open to join', className: 'bg-green-100 text-green-700' }
-          : null
+  // Get first pedagogical framework or project type as category
+  const category = 'Sustainability and Global Action' // Default category
+
+  // Format age ranges
+  const ageRange = item.metrics?.institutions ? 'Ages 6 - 13 years' : 'All ages'
+
+  // Format languages
+  const languages = 'English, Spanish, Danish' // Default for demo
 
   return (
     <Card className={cn('flex h-full flex-col overflow-hidden', className)}>
-      <div className="relative h-40 w-full bg-gray-100">
+      {/* Hero Image */}
+      <div className="relative h-44 w-full bg-gray-100">
         {item.coverImageUrl ? (
           <Image
             src={item.coverImageUrl}
@@ -86,77 +90,75 @@ export function ProgramCatalogCard({
         )}
       </div>
 
-      <CardHeader className="space-y-4">
-        <div className="flex items-start justify-between gap-3">
+      {/* Content */}
+      <CardContent className="flex flex-1 flex-col p-5 space-y-4">
+        {/* Category Label */}
+        <p className="text-xs font-medium text-purple-600 uppercase tracking-wide">
+          {category}
+        </p>
+
+        {/* Title */}
+        <h3 className="text-lg font-semibold text-gray-900 leading-tight">
+          {item.displayTitle}
+        </h3>
+
+        {/* Description */}
+        <div className="text-sm text-gray-600">
+          <p className={cn(!isExpanded && 'line-clamp-2')}>
+            {item.marketingTagline || item.description}
+          </p>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-purple-600 hover:text-purple-700 text-sm font-medium mt-1"
+          >
+            {isExpanded ? 'Read less' : 'Read more'}
+          </button>
+        </div>
+
+        {/* Metadata Icons */}
+        <div className="space-y-2 text-sm text-gray-600">
           <div className="flex items-center gap-2">
-            {item.logo ? (
-              <Image
-                src={item.logo}
-                alt={`${item.displayTitle} logo`}
-                width={100}
-                height={100}
-                className={cn(
-                  'w-auto object-contain',
-                  item.logo.includes('communities-in-focus') ? 'h-9' : 'h-10'
-                )}
-              />
-            ) : (
-              <>
-                {logoStack.map((partner, index) => (
-                  <div
-                    key={partner?.id ?? index}
-                    className={cn(
-                      'rounded-full border border-white shadow-sm',
-                      index > 0 && '-ml-2',
-                    )}
-                  >
-                    {renderPartnerAvatar(
-                      partner?.organizationName,
-                      partner?.logo,
-                    )}
-                  </div>
-                ))}
-                <span className="text-xs text-gray-500">
-                  {supportingName ? `${hostName} x ${supportingName}` : hostName}
-                </span>
-              </>
-            )}
+            <Globe2 className="h-4 w-4 text-gray-400" />
+            <span>Explore Global Challenges</span>
           </div>
-          <div className="flex flex-col items-end gap-1 text-xs">
-            <Badge
-              variant="outline"
-              className={item.isPublic ? 'border-green-200 bg-green-50 text-green-700' : 'border-purple-200 bg-purple-50 text-purple-700'}
-            >
-              {item.isPublic ? 'Public program' : 'Invite-only'}
-            </Badge>
-            {membershipBadge && (
-              <Badge className={membershipBadge.className}>{membershipBadge.label}</Badge>
-            )}
+          <div className="flex items-center gap-2">
+            <Users2 className="h-4 w-4 text-gray-400" />
+            <span>{ageRange}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Languages className="h-4 w-4 text-gray-400" />
+            <span>{languages}</span>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <CardTitle className="text-lg leading-tight text-gray-900">
-            {item.displayTitle}
-          </CardTitle>
-          {item.marketingTagline ? (
-            <p className="text-sm text-gray-600">{item.marketingTagline}</p>
-          ) : (
-            <p className="text-sm text-gray-600 line-clamp-3">{item.description}</p>
-          )}
-        </div>
-      </CardHeader>
+        {/* Spacer */}
+        <div className="flex-1" />
 
-      <CardContent className="mt-auto space-y-4">
+        {/* Created By Section */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+          <div className="flex items-center gap-2">
+            {renderPartnerAvatar(hostName, hostLogo)}
+            <div className="text-xs">
+              <p className="font-medium text-gray-900">{hostName}</p>
+              <p className="text-gray-500">{location}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Button */}
         <div className="flex flex-col gap-2">
-          {actions}
-          {item.isPublic && onJoin && membershipStatus !== 'member' && (
+          {actions ? (
+            actions
+          ) : item.isPublic && onJoin && membershipStatus !== 'member' ? (
             <Button className="w-full bg-purple-600 text-white hover:bg-purple-700" onClick={onJoin}>
               Join program
             </Button>
-          )}
-          {!item.isPublic && membershipStatus !== 'member' && !actions && (
-            <Button className="w-full" variant="ghost" disabled>
+          ) : membershipStatus === 'member' ? (
+            <Button className="w-full bg-purple-600 text-white hover:bg-purple-700">
+              View details
+            </Button>
+          ) : (
+            <Button className="w-full" variant="outline" disabled>
               Invite required
             </Button>
           )}

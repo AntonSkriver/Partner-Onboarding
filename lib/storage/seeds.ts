@@ -6,14 +6,14 @@ import {
   StoredPartnerUser,
 } from '@/lib/storage/prototype-db'
 
-const PROTOTYPE_SEED_VERSION = 4
+const PROTOTYPE_SEED_VERSION = 5
 
 const buildSeedPartners = (): StoredPartner[] => [
   {
     id: 'partner-save-the-children',
     organizationName: 'Save the Children International',
     organizationType: 'ngo',
-    logo: '/partners/save-the-children.png',
+    logo: '/partners/save-the-children.svg',
     description: 'Global NGO focused on ensuring every child has the future they deserve.',
     mission: 'Create sustainable, child-centered programs that improve education and wellbeing worldwide.',
     website: 'https://www.savethechildren.net',
@@ -31,7 +31,7 @@ const buildSeedPartners = (): StoredPartner[] => [
     id: 'partner-lego-foundation',
     organizationName: 'LEGO Foundation',
     organizationType: 'commercial',
-    logo: '/partners/lego-foundation.png',
+    logo: '/partners/lego-foundation.svg',
     description: 'Philanthropic arm of LEGO Group supporting learning through play.',
     mission: 'Inspire and develop the builders of tomorrow through playful learning experiences.',
     website: 'https://www.legofoundation.com',
@@ -47,9 +47,9 @@ const buildSeedPartners = (): StoredPartner[] => [
   },
   {
     id: 'partner-unicef',
-    organizationName: 'UNICEF Learning Lab',
+    organizationName: 'UNICEF Denmark',
     organizationType: 'ngo',
-    logo: '/partners/unicef.png',
+    logo: '/partners/unicef.svg',
     description: 'UN agency delivering development programs with a focus on education equity.',
     mission: 'Advance children’s rights and equitable access to transformative learning programmes.',
     website: 'https://www.unicef.org',
@@ -67,7 +67,7 @@ const buildSeedPartners = (): StoredPartner[] => [
     id: 'partner-alm-brand',
     organizationName: 'Alm. Brand Foundation',
     organizationType: 'foundation',
-    logo: '/partners/alm-brand.png',
+    logo: '/partners/alm-brand.svg',
     description: 'Danish sponsor supporting community wellbeing and resilience initiatives in schools.',
     mission: 'Invest in programmes that strengthen communities and empower young people to thrive together.',
     website: 'https://www.almbrand.dk',
@@ -147,7 +147,7 @@ const buildSeedPrograms = (): PrototypeDatabase['programs'] => [
     marketingTagline: 'Playful design labs where children imagine sustainable futures with LEGO bricks.',
     description:
       'Build the Change empowers children, primarily aged 6–13, to imagine and build solutions for a better, more sustainable future. Through creative workshops using LEGO bricks, children explore real-world environmental challenges and express their ideas for change. The programme is rooted in Learning through Play, fostering engagement, critical thinking, collaboration, and creative problem-solving. This playful, hands-on approach links learning to real-life experiences, giving children a voice while developing key cognitive and emotional skills.',
-    projectTypes: ['collaborative_project', 'stem_challenge', 'art_project'],
+    projectTypes: ['cultural_exchange', 'explore_global_challenges', 'create_solutions'],
     pedagogicalFramework: ['steam', 'pbl', 'design_thinking'],
     learningGoals:
       'Nurture creativity and agency by guiding children to prototype sustainable solutions, document their thinking, and present stories of impact to their communities.',
@@ -175,7 +175,7 @@ const buildSeedPrograms = (): PrototypeDatabase['programs'] => [
     marketingTagline: 'Design-thinking projects that strengthen school communities across borders.',
     description:
       'Each class works, within the Communities theme, to investigate a local case or challenge that affects their students’ well-being or sense of community at school. Students conduct surveys, gather stories, and share findings with partner classrooms before prototyping actions that build stronger communities.',
-    projectTypes: ['collaborative_project', 'service_learning', 'social_impact'],
+    projectTypes: ['cultural_exchange', 'explore_global_challenges', 'create_solutions'],
     pedagogicalFramework: ['design_thinking', 'pbl', 'global_citizenship'],
     learningGoals:
       'Guide students through an empathy-driven, iterative design process where they define community challenges, co-create solutions, and act on their findings with partner schools.',

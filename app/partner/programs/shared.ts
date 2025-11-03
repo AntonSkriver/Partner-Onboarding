@@ -5,7 +5,8 @@ export const PROGRAM_TYPE_VALUES = [
   'collaborative_project',
   'virtual_classroom',
   'cultural_exchange',
-  'stem_challenge',
+  'explore_global_challenges',
+  'create_solutions',
   'art_project',
   'language_learning',
   'environmental_action',
@@ -55,7 +56,6 @@ export const programSchema = z
     name: z.string().min(3, 'Program name must be at least 3 characters long'),
     description: z.string().min(60, 'Provide a short description (minimum 60 characters)'),
     learningGoals: z.string().min(40, 'Outline the learning goals (minimum 40 characters)'),
-    projectTypes: z.array(z.enum(PROGRAM_TYPE_VALUES)).min(1, 'Select at least one project type'),
     pedagogicalFramework: z
       .array(z.enum(PEDAGOGICAL_FRAMEWORK_VALUES))
       .min(1, 'Select at least one pedagogical framework'),
@@ -67,9 +67,6 @@ export const programSchema = z
     status: z.enum(STATUS_VALUES),
     isPublic: z.boolean(),
     programUrl: z.string().url('Enter a valid URL (including https://)').optional().or(z.literal('')),
-    brandColor: z
-      .string()
-      .regex(/^#([0-9A-Fa-f]{6})$/, 'Enter a valid hex color (e.g. #7F56D9)'),
   })
   .refine(
     (data) => {

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <circle cx="100" cy="100" r="95" fill="#003B5C"/>
+  <text x="100" y="90" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="white" text-anchor="middle">Alm. Brand</text>
+  <text x="100" y="125" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle">Foundation</text>
+</svg>

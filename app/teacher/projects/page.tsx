@@ -2,16 +2,10 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import {
-  ArrowLeft,
-  CalendarDays,
-  Layers,
-  Search,
-  Sparkles,
-  Users,
-} from 'lucide-react'
+import Image from 'next/image'
+import { ArrowLeft, Search, Sparkles, Users, Globe2, Users2, Clock, Languages } from 'lucide-react'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -24,12 +18,23 @@ import {
   type ProgramCatalogItem,
   type ProgramSummary,
 } from '@/lib/programs/selectors'
-import type { ProgramProject, ProgramProjectTemplate } from '@/lib/types/program'
+import { getCountryDisplay } from '@/lib/countries'
+import type {
+  ProgramProject,
+  ProgramProjectTemplate,
+  InstitutionTeacher,
+  EducationalInstitution,
+  ProjectType,
+} from '@/lib/types/program'
 
 type DecoratedProject = {
   project: ProgramProject
   program: ProgramSummary | null
   template?: ProgramProjectTemplate
+  creator?: {
+    teacher: InstitutionTeacher | null
+    institution: EducationalInstitution | null
+  }
 }
 
 const finishedStatuses = new Set(['completed', 'archived'])
@@ -46,7 +51,21 @@ export default function TeacherProjectsPage() {
       .map((project) => {
         const program = programSummaries.find((summary) => summary.program.id === project.programId) ?? null
         const template = program?.templates.find((entry) => entry.id === project.templateId)
-        return { project, program, template }
+        const teacher =
+          database.institutionTeachers.find((entry) => entry.id === project.createdById) ?? null
+        const institution = teacher
+          ? database.institutions.find((entry) => entry.id === teacher.institutionId) ?? null
+          : null
+
+        return {
+          project,
+          program,
+          template,
+          creator: {
+            teacher,
+            institution,
+          },
+        }
       })
   }, [database, membershipIds, programSummaries])
 
@@ -83,7 +102,6 @@ export default function TeacherProjectsPage() {
   }, [finishedProjects, searchTerm])
 
   const activeProjectsCount = decoratedProjects.filter(({ project }) => project.status === 'active').length
-  const draftProjectsCount = decoratedProjects.filter(({ project }) => project.status === 'draft').length
 
   const programCatalogMap = useMemo(() => {
     if (!database) return new Map<string, ProgramCatalogItem>()
@@ -263,63 +281,261 @@ export default function TeacherProjectsPage() {
 }
 
 function ProjectCard({ item }: { item: DecoratedProject }) {
-  const { project, template, program } = item
-  const programName = program?.program.displayTitle ?? program?.program.name ?? 'Program'
-  const status = project.status
+  const { project, template, program, creator } = item
+  const [isExpanded, setIsExpanded] = useState(false)
 
-  const statusBadgeClass =
-    status === 'active'
-      ? 'bg-green-100 text-green-700'
-      : status === 'draft'
-        ? 'bg-amber-100 text-amber-700'
-        : 'bg-blue-100 text-blue-700'
+  const createdDate = new Date(project.createdAt)
+  const hoursSinceCreated = Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60))
+  const createdText =
+    hoursSinceCreated < 24
+      ? `Created ${hoursSinceCreated} hours ago`
+      : `Created ${Math.floor(hoursSinceCreated / 24)} days ago`
 
-  const lastUpdated = new Date(project.updatedAt ?? project.createdAt)
+  const teacher = creator?.teacher ?? null
+  const institution = creator?.institution ?? null
+
+  const teacherName =
+    [teacher?.firstName, teacher?.lastName].filter(Boolean).join(' ') || 'Unknown teacher'
+  const teacherInitials = computeInitials(teacher?.firstName, teacher?.lastName, teacherName)
+  const { flag: countryFlag, name: countryName } = getCountryDisplay(institution?.country ?? '')
+
+  const primaryProjectTypeKey = pickPrimaryProjectType(program?.program.projectTypes ?? [])
+  const projectTypeLabel = formatProjectType(primaryProjectTypeKey)
+
+  const startingMonthLabel =
+    template?.recommendedStartMonth ??
+    new Intl.DateTimeFormat(undefined, { month: 'long' }).format(createdDate)
+
+  const ageRangeLabel = formatAgeRange(program?.program.targetAgeRanges?.[0])
+  const timezoneLabel = getTimezoneHint(institution?.country)
+  const languageLabel = formatLanguages(institution?.languages)
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
+      {/* Hero Image */}
       {project.coverImageUrl && (
-        <div className="relative h-40 overflow-hidden rounded-t-lg">
-          <img
+        <div className="relative h-44 overflow-hidden">
+          <Image
             src={project.coverImageUrl}
             alt={template?.title ?? project.projectId}
-            className="w-full h-full object-cover"
+            fill
+            sizes="(min-width: 768px) 320px, 100vw"
+            className="h-full w-full object-cover"
           />
         </div>
       )}
-      <CardHeader className="pb-2">
-        <div className="text-sm text-purple-600 font-medium mb-1">
-          {programName}
-        </div>
-        <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-lg leading-tight">
-            {template?.title ?? project.projectId.replaceAll('-', ' ')}
-          </CardTitle>
-          <Badge className={cn('capitalize', statusBadgeClass)}>{status}</Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="mt-auto space-y-4 text-sm text-gray-600">
-        <p>
-          {template?.summary ??
-            'Custom project defined with the AI assistant and aligned to partner expectations.'}
+
+      {/* Content */}
+      <CardContent className="flex flex-1 flex-col space-y-4 p-5">
+        {/* Starting Month Label */}
+        <p className="text-xs font-medium uppercase tracking-wide text-purple-600">
+          Starting Month: {startingMonthLabel}
         </p>
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          <span className="inline-flex items-center gap-1">
-            <CalendarDays className="h-3.5 w-3.5 text-purple-500" />
-            Updated {lastUpdated.toLocaleDateString()}
-          </span>
+
+        {/* Title */}
+        <h3 className="text-lg font-semibold leading-tight text-gray-900">
+          {template?.title ?? project.projectId.replaceAll('-', ' ')}
+        </h3>
+
+        {/* Description */}
+        <div className="text-sm text-gray-600">
+          <p className={cn(!isExpanded && 'line-clamp-2')}>
+            {template?.summary ??
+              'Custom project defined with the AI assistant and aligned to partner expectations.'}
+          </p>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="mt-1 text-sm font-medium text-purple-600 hover:text-purple-700"
+          >
+            {isExpanded ? 'Read less' : 'Read more'}
+          </button>
+        </div>
+
+        {/* Metadata Icons */}
+        <div className="space-y-2 text-sm text-gray-600">
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline">
-              Continue
-            </Button>
-            <Button size="sm" variant="ghost">
-              Share
-            </Button>
+            <Globe2 className="h-4 w-4 text-gray-400" />
+            <span>{projectTypeLabel}</span>
           </div>
+          <div className="flex items-center gap-2">
+            <Users2 className="h-4 w-4 text-gray-400" />
+            <span>{ageRangeLabel}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-gray-400" />
+            <span>{timezoneLabel}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Languages className="h-4 w-4 text-gray-400" />
+            <span>{languageLabel}</span>
+          </div>
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Created By Section */}
+        <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500 text-xs font-semibold text-white">
+              {teacherInitials}
+            </div>
+            <div className="text-xs">
+              <p className="font-medium text-gray-900">{teacherName}</p>
+              <Badge
+                variant="outline"
+                className="mt-1 flex items-center gap-1 border-purple-200 text-gray-600"
+              >
+                <span className="text-base leading-none">{countryFlag}</span>
+                <span>{countryName}</span>
+              </Badge>
+              <p className="mt-1 text-gray-500">{createdText}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="flex-1 border-purple-600 text-purple-600 hover:bg-purple-50"
+            size="sm"
+          >
+            Continue
+          </Button>
+          <Button variant="ghost" className="flex-1" size="sm">
+            Share
+          </Button>
         </div>
       </CardContent>
     </Card>
   )
+}
+
+const PRIORITY_PROJECT_TYPES: ProjectType[] = [
+  'cultural_exchange',
+  'explore_global_challenges',
+  'create_solutions',
+]
+
+const LANGUAGE_LABELS: Record<string, string> = {
+  da: 'Danish',
+  de: 'German',
+  en: 'English',
+  es: 'Spanish',
+  fr: 'French',
+  it: 'Italian',
+  no: 'Norwegian',
+  pt: 'Portuguese',
+  sv: 'Swedish',
+}
+
+const TIMEZONE_HINTS: Record<string, string> = {
+  BR: '-4 hours from you',
+  CA: '-6 hours from you',
+  DE: '+0 hours from you',
+  DK: 'Matches your timezone',
+  ES: '+0 hours from you',
+  FR: '+0 hours from you',
+  GB: '-1 hour from you',
+  IN: '+4.5 hours from you',
+  IT: '+0 hours from you',
+  MX: '-7 hours from you',
+  NO: '+0 hours from you',
+  PT: '-1 hour from you',
+  SE: '+0 hours from you',
+  US: '-6 hours from you',
+}
+
+function computeInitials(
+  first?: string | null,
+  last?: string | null,
+  fallbackLabel?: string,
+): string {
+  const firstInitial = first?.trim().charAt(0) ?? ''
+  const lastInitial = last?.trim().charAt(0) ?? ''
+  const combined = `${firstInitial}${lastInitial}`.trim()
+
+  if (combined) {
+    return combined.toUpperCase()
+  }
+
+  if (fallbackLabel) {
+    const letters = fallbackLabel
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((segment) => segment.charAt(0))
+      .join('')
+
+    if (letters) {
+      return letters.slice(0, 2).toUpperCase()
+    }
+  }
+
+  return '??'
+}
+
+function pickPrimaryProjectType(types: ProjectType[]): ProjectType | undefined {
+  if (!types?.length) {
+    return undefined
+  }
+
+  for (const desired of PRIORITY_PROJECT_TYPES) {
+    if (types.includes(desired)) {
+      return desired
+    }
+  }
+
+  return types[0]
+}
+
+function formatProjectType(value?: string): string {
+  if (!value) {
+    return 'Cultural Exchange'
+  }
+
+  return value
+    .split('_')
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(' ')
+}
+
+function formatAgeRange(range?: string): string {
+  if (!range) {
+    return 'All ages'
+  }
+
+  if (range === '18+') {
+    return 'Ages 18+'
+  }
+
+  const [start, end] = range.split('-')
+  if (!end) {
+    return `Ages ${start}`
+  }
+
+  return `Ages ${start} - ${end} years`
+}
+
+function getTimezoneHint(countryCode?: string | null): string {
+  if (!countryCode) {
+    return 'Flexible timezone'
+  }
+
+  const normalized = countryCode.trim().toUpperCase()
+  return TIMEZONE_HINTS[normalized] ?? 'Varies by partner'
+}
+
+function formatLanguages(codes?: string[] | null): string {
+  if (!codes || codes.length === 0) {
+    return 'English'
+  }
+
+  const labels = codes
+    .map((code) => LANGUAGE_LABELS[code.toLowerCase()] ?? code.toUpperCase())
+    .filter(Boolean)
+
+  return labels.join(', ')
 }
 
 function buildFallbackCatalogItem(summary: ProgramSummary): ProgramCatalogItem {

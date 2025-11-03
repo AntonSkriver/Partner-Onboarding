@@ -71,7 +71,7 @@ export default function PartnerAnalyticsPage() {
       // For demo purposes - sample organization data
       const sampleOrg: Organization = {
         id: 'demo-org-id',
-        name: 'UNICEF Learning Lab',
+        name: 'UNICEF Denmark',
         organization_type: 'ngo',
         website: 'https://unicef.dk',
         logo: null,

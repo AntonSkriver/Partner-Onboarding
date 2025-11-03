@@ -43,7 +43,6 @@ import {
   AGE_RANGE_VALUES,
   COUNTRY_OPTIONS,
   PEDAGOGICAL_FRAMEWORK_VALUES,
-  PROGRAM_TYPE_VALUES,
   SDG_OPTIONS,
   STATUS_VALUES,
   friendlyLabel,
@@ -65,7 +64,6 @@ const toFormValues = (program: Program): ProgramFormValues => ({
   name: program.name,
   description: program.description,
   learningGoals: program.learningGoals,
-  projectTypes: program.projectTypes,
   pedagogicalFramework: program.pedagogicalFramework,
   targetAgeRanges: program.targetAgeRanges,
   countriesInScope: program.countriesInScope,
@@ -75,7 +73,6 @@ const toFormValues = (program: Program): ProgramFormValues => ({
   status: program.status,
   isPublic: program.isPublic,
   programUrl: program.programUrl ?? '',
-  brandColor: program.brandColor ?? '#7F56D9',
 })
 
 export default function EditProgramPage() {
@@ -121,7 +118,6 @@ export default function EditProgramPage() {
       name: '',
       description: '',
       learningGoals: '',
-      projectTypes: [],
       pedagogicalFramework: [],
       targetAgeRanges: [],
       countriesInScope: [],
@@ -131,7 +127,6 @@ export default function EditProgramPage() {
       status: 'draft',
       isPublic: true,
       programUrl: '',
-      brandColor: partnerRecord?.brandColor ?? '#7F56D9',
     },
   })
 
@@ -163,7 +158,6 @@ export default function EditProgramPage() {
         name: values.name,
         description: values.description,
         learningGoals: values.learningGoals,
-        projectTypes: values.projectTypes,
         pedagogicalFramework: values.pedagogicalFramework,
         targetAgeRanges: values.targetAgeRanges,
         countriesInScope: values.countriesInScope,
@@ -173,7 +167,6 @@ export default function EditProgramPage() {
         status: values.status,
         isPublic: values.isPublic,
         programUrl: values.programUrl || undefined,
-        brandColor: values.brandColor,
         updatedAt: now,
       })
 
@@ -299,34 +292,19 @@ export default function EditProgramPage() {
           <CardContent className="space-y-6">
             <Form {...form}>
               <form className="space-y-8" onSubmit={form.handleSubmit(handleSubmit)}>
-                <div className="grid gap-6 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Program name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Climate Changemakers 2025" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="brandColor"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Brand color</FormLabel>
-                        <FormControl>
-                          <Input type="color" className="h-10" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Program name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Climate Changemakers 2025" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <FormField
                   control={form.control}
@@ -433,34 +411,6 @@ export default function EditProgramPage() {
                     )}
                   />
                 </div>
-
-                <FormField
-                  control={form.control}
-                  name="projectTypes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Project formats</FormLabel>
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        {PROGRAM_TYPE_VALUES.map((value) => {
-                          const isActive = field.value?.includes(value)
-                          return (
-                            <Badge
-                              key={value}
-                              variant={isActive ? 'default' : 'outline'}
-                              className="cursor-pointer"
-                              onClick={() =>
-                                toggleValue(value, field.value ?? [], field.onChange)
-                              }
-                            >
-                              {friendlyLabel(value)}
-                            </Badge>
-                          )
-                        })}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <FormField
                   control={form.control}

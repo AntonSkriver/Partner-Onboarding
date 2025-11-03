@@ -15,7 +15,7 @@ import type {
 } from '@/lib/types/program'
 
 // Local storage key – bump version when we need to invalidate older seeds
-export const PROTOTYPE_STORAGE_KEY = 'class2class_prototype_db_v5'
+export const PROTOTYPE_STORAGE_KEY = 'class2class_prototype_db_v6'
 
 export type StoredPartner = Omit<Partner, 'createdAt' | 'updatedAt'> & {
   createdAt: string
@@ -65,7 +65,7 @@ const DEFAULT_DB: PrototypeDatabase = {
   invitations: [],
   activities: [],
   metadata: {
-    version: 4,
+    version: 5,
     seededAt: null,
   },
 }
