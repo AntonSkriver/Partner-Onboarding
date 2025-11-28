@@ -85,7 +85,11 @@ export default function PartnerProgramDetailPage() {
   }, [])
 
   useEffect(() => {
-    if (!session || session.role !== 'partner') {
+    if (!session) {
+      router.push('/partner/login')
+      return
+    }
+    if (session.role !== 'partner' && session.role !== 'parent') {
       router.push('/partner/login')
     }
   }, [router, session])

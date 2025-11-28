@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { createSession, clearSession, startTeacherPreviewSession } from '@/lib/auth/session'
 import { resetPrototypeDb } from '@/lib/storage/prototype-db'
 import { seedPrototypeDb } from '@/lib/storage/seeds'
@@ -25,10 +26,33 @@ type LoginData = z.infer<typeof loginSchema>
 export default function PartnerLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isDemoLoading, setIsDemoLoading] = useState<'partner' | 'school' | 'teacher' | null>(null)
+  const [isDemoLoading, setIsDemoLoading] = useState<
+    'parent' | 'partner' | 'school' | 'teacher' | 'unicef-denmark' | 'unicef-england' | null
+  >(null)
   const [isResetting, setIsResetting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+
+  const partnerQuickOptions = [
+    {
+      id: 'parent' as const,
+      label: 'UNICEF World (Parent)',
+      description: 'See all country programs and performance.',
+      role: 'parent',
+      organization: 'UNICEF World Organization',
+      name: 'Global Admin',
+      redirect: '/parent/profile/overview',
+    },
+    {
+      id: 'unicef-denmark' as const,
+      label: 'UNICEF Denmark',
+      description: 'Manage Denmark programs and schools.',
+      role: 'partner',
+      organization: 'UNICEF Denmark',
+      name: 'UNICEF Coordinator',
+      redirect: '/partner/profile/overview',
+    },
+  ]
 
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -109,6 +133,24 @@ export default function PartnerLoginPage() {
     setIsDemoLoading(null)
   }
 
+  const handlePartnerSelection = async (
+    option: (typeof partnerQuickOptions)[number],
+  ) => {
+    setIsDemoLoading(option.id)
+    setError(null)
+    clearSession()
+
+    createSession({
+      email: `demo+${option.id}@class2class.org`,
+      role: option.role,
+      organization: option.organization,
+      name: option.name,
+    })
+
+    router.push(option.redirect)
+    setIsDemoLoading(null)
+  }
+
   const handleTeacherPreview = () => {
     setIsDemoLoading('teacher')
     clearSession()
@@ -147,14 +189,45 @@ export default function PartnerLoginPage() {
             </p>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <Button
-                variant="outline"
-                className="h-12 border border-purple-200 bg-white text-purple-700 hover:bg-purple-50"
-                onClick={() => handleDemoLogin('partner')}
-                disabled={Boolean(isDemoLoading)}
-              >
-                {isDemoLoading === 'partner' ? 'Loading...' : 'Continue as Partner'}
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-12 border border-purple-200 bg-white text-purple-700 hover:bg-purple-50"
+                    disabled={Boolean(isDemoLoading)}
+                  >
+                    {isDemoLoading ? 'Loading...' : 'Continue as Partner'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="space-y-3">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Sign in as
+                    </div>
+                    <div className="space-y-2">
+                      {partnerQuickOptions.map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => handlePartnerSelection(option)}
+                          disabled={isDemoLoading === option.id}
+                          className="w-full rounded-lg border border-gray-200 p-3 text-left transition hover:border-purple-300 hover:bg-purple-50 disabled:opacity-60"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900">{option.label}</p>
+                              <p className="text-xs text-gray-600">{option.description}</p>
+                            </div>
+                            <span className="text-[11px] font-medium text-purple-700">
+                              {option.role === 'parent' ? 'Parent' : 'Country'}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
               <Button
                 variant="outline"
                 className="h-12 border-gray-200 text-gray-700 hover:text-purple-700"

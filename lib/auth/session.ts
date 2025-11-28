@@ -3,7 +3,7 @@
 
 export interface UserSession {
   email: string
-  role: 'partner' | 'teacher' | 'student'
+  role: 'partner' | 'teacher' | 'student' | 'parent'
   organization?: string
   name?: string
   loginTime: string
@@ -173,6 +173,9 @@ export function redirectBasedOnRole(defaultPath = '/'): void {
   switch (session.role) {
     case 'partner':
       window.location.href = '/partner/dashboard'
+      break
+    case 'parent':
+      window.location.href = '/parent/profile/overview'
       break
     case 'teacher':
       window.location.href = '/dashboard'

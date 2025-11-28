@@ -12,32 +12,27 @@ import {
   Users,
   LogOut,
   Building2,
-  Edit,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import {
-  getCurrentSession,
-  clearSession,
-  type UserSession,
-} from '@/lib/auth/session'
+import { getCurrentSession, clearSession, type UserSession } from '@/lib/auth/session'
 
-interface PartnerShellProps {
+interface ParentShellProps {
   children: React.ReactNode
 }
 
 const navItems = [
-  { href: '/partner/profile/dashboard', label: 'Home', icon: Home },
-  { href: '/partner/profile/overview', label: 'Overview', icon: Building2 },
-  { href: '/partner/profile/programs', label: 'Programs', icon: Layers },
-  { href: '/partner/profile/resources', label: 'Resources', icon: BookOpen },
-  { href: '/partner/profile/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/partner/profile/network', label: 'Network', icon: Users },
+  { href: '/parent/profile/dashboard', label: 'Home', icon: Home },
+  { href: '/parent/profile/overview', label: 'Overview', icon: Building2 },
+  { href: '/parent/profile/programs', label: 'Programs', icon: Layers },
+  { href: '/parent/profile/resources', label: 'Resources', icon: BookOpen },
+  { href: '/parent/profile/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/parent/profile/network', label: 'Network', icon: Users },
 ]
 
-export function PartnerShell({ children }: PartnerShellProps) {
+export function ParentShell({ children }: ParentShellProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [session, setSession] = useState<UserSession | null>(null)
@@ -72,10 +67,10 @@ export function PartnerShell({ children }: PartnerShellProps) {
                 height={32}
                 className="h-8 w-8"
               />
-              <span className="text-lg font-semibold text-gray-900">Class2Class Partner</span>
+              <span className="text-lg font-semibold text-gray-900">Class2Class Parent</span>
             </Link>
             <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-              Partner Profile
+              Parent Profile
             </Badge>
           </div>
           <div className="flex items-center gap-3">
@@ -127,7 +122,7 @@ export function PartnerShell({ children }: PartnerShellProps) {
           <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm md:hidden">
             <nav className="flex items-center gap-2 text-sm text-gray-600">
               <Building2 className="h-4 w-4 text-purple-500" />
-              <span>{session?.organization ?? 'Partner'}</span>
+              <span>{session?.organization ?? 'Parent'}</span>
             </nav>
           </div>
           <div className="mt-6 space-y-6 md:mt-0">{children}</div>

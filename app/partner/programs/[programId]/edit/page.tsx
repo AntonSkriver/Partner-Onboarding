@@ -95,7 +95,7 @@ export default function EditProgramPage() {
       return
     }
 
-    if (session.role !== 'partner') {
+    if (session.role !== 'partner' && session.role !== 'parent') {
       router.push('/partner/login')
     }
   }, [session, router])

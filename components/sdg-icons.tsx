@@ -43,10 +43,11 @@ export function SDGIcon({ number, size = 'lg', showTitle = true, className = '',
 
   const displayTitle = customTitle || sdg.title
   const imageUrl = getSDGImageUrl(number)
+  const iconSpacingClass = showTitle ? 'mb-3' : 'mb-1'
 
   return (
     <div className={`text-center ${className}`}>
-      <div className={`${sizeClasses[size]} rounded-lg flex items-center justify-center mx-auto mb-3 overflow-hidden shadow-md`}>
+      <div className={`${sizeClasses[size]} rounded-lg flex items-center justify-center mx-auto ${iconSpacingClass} overflow-hidden shadow-md`}>
         <img 
           src={imageUrl}
           alt={`SDG ${number}: ${sdg.title}`}

@@ -7,25 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Mail,
-  BarChart3,
-  Award,
-  Tag,
-  Target,
-  Edit,
-  Building2,
-  ShieldCheck,
-} from 'lucide-react'
+import { Mail, BarChart3, Award, Tag, Target, Edit, Building2, ShieldCheck, MapPin } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
 import { SDGIcon } from '@/components/sdg-icons'
 import { SDG_OPTIONS } from '@/contexts/partner-onboarding-context'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
-import {
-  buildProgramSummariesForPartner,
-  type ProgramSummary,
-} from '@/lib/programs/selectors'
+import { buildProgramSummariesForPartner, type ProgramSummary } from '@/lib/programs/selectors'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 
@@ -97,7 +85,7 @@ const extractChildRightsFocus = (org: Organization | null): string[] => {
     .filter((value): value is string => value.length > 0)
 }
 
-export default function PartnerOverviewPage() {
+export default function ParentOverviewPage() {
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
   const [resources, setResources] = useState<PartnerResource[]>([])
@@ -136,37 +124,37 @@ export default function PartnerOverviewPage() {
     setLoading(true)
     try {
       const session = getCurrentSession()
-      if (!session || session.role !== 'partner') {
+      if (!session || session.role !== 'parent') {
         return
       }
 
-      // For demo purposes - sample organization data
+      // For demo purposes - sample parent organization data
       const sampleOrg: Organization = {
-        id: 'demo-org-id',
-        name: 'UNICEF Denmark',
+        id: 'parent-org-id',
+        name: 'UNICEF World Organization',
         organization_type: 'ngo',
-        website: 'https://unicef.dk',
+        website: 'https://www.unicef.org',
         logo: null,
         short_description:
-          'Connecting classrooms worldwide through collaborative learning experiences aligned with UN Sustainable Development Goals',
+          'Connecting UNICEF country teams and partners to scale impact for children worldwide.',
         primary_contacts: [
           {
-            name: 'Christian Bindslev',
-            email: 'Christian@unicef.dk',
-            role: 'Project Leader',
+            name: 'Global Partnerships',
+            email: 'partners@unicef.org',
+            role: 'Global Partnerships Lead',
             isPrimary: true,
           },
           {
-            name: 'Mette Victoria',
-            email: 'Mette@unicef.dk',
-            role: 'Country Coordinator',
+            name: 'Regional Coordination',
+            email: 'operations@unicef.org',
+            role: 'Regional Operations',
             isPrimary: false,
           },
         ],
-        regions_of_operation: ['Europe', 'Africa', 'Asia-Pacific'],
-        countries_of_operation: ['Denmark', 'Mexico', 'Italy', 'Germany', 'Brazil', 'Finland'],
-        languages: ['Danish', 'English', 'Spanish', 'Italian'],
-        sdg_tags: ['4', '10', '16', '17'],
+        regions_of_operation: ['Global'],
+        countries_of_operation: ['Denmark', 'England'],
+        languages: ['English', 'French', 'Spanish'],
+        sdg_tags: ['4', '5', '10', '13', '16', '17'],
         thematic_tags: [
           "Children's Rights",
           'Global Citizenship',
@@ -183,24 +171,24 @@ export default function PartnerOverviewPage() {
 
       const mockResources = [
         {
-          id: 'children-rights-toolkit',
-          title: "Children's Rights Education Toolkit",
+          id: 'global-toolkit',
+          title: 'Global Partnerships Toolkit',
         },
         {
-          id: 'cultural-exchange-framework',
-          title: 'Cultural Exchange Learning Framework',
+          id: 'country-playbook',
+          title: 'Country Collaboration Playbook',
         },
         {
-          id: 'sustainability-action-guide',
-          title: 'Climate Action for Young Leaders',
+          id: 'impact-dashboard',
+          title: 'Impact & Reporting Guide',
         },
       ]
 
       setOrganization(sampleOrg)
       setResources(mockResources)
-      setChildRightsFocus(['12', '24', '28'])
+      setChildRightsFocus(['12', '24', '28', '31'])
     } catch (err) {
-      console.error('Error loading organization profile:', err)
+      console.error('Error loading parent organization profile:', err)
     } finally {
       setLoading(false)
     }
@@ -290,7 +278,7 @@ export default function PartnerOverviewPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-semibold text-gray-900">{organization.name}</h1>
           <Button variant="outline" asChild>
-            <Link href="/partner/profile/edit">
+            <Link href="/parent/profile/edit">
               <Edit className="mr-2 h-4 w-4" />
               Edit Profile
             </Link>
@@ -400,6 +388,26 @@ export default function PartnerOverviewPage() {
         </Card>
       </div>
 
+      {/* Geographic Scope */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="h-4 w-4" />
+            Geographic Scope
+          </CardTitle>
+          <CardDescription>Countries where UNICEF country teams operate programs.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {organization.countries_of_operation.map((country) => (
+              <Badge key={country} variant="secondary" className="text-xs">
+                {country}
+              </Badge>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Mission Statement */}
       <Card>
         <CardHeader>
@@ -410,10 +418,9 @@ export default function PartnerOverviewPage() {
         </CardHeader>
         <CardContent>
           <p className="leading-relaxed text-gray-700">
-            UNICEF Danmark works to secure all children&rsquo;s rights through fundraising,
-            education and advocacy in Denmark. We collaborate with schools, organizations and
-            communities to create awareness about children&rsquo;s global situation and mobilize
-            resources for UNICEF&rsquo;s work worldwide.
+            UNICEF works to secure every child&apos;s rights through global coordination,
+            fundraising, education, and advocacy. We support country teams, schools, and partners to
+            amplify impact for children worldwide.
           </p>
         </CardContent>
       </Card>

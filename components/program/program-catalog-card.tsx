@@ -56,7 +56,8 @@ export function ProgramCatalogCard({
   const [isExpanded, setIsExpanded] = useState(false)
   const hostName = item.hostPartner?.organizationName ?? 'Class2Class.org'
   const hostLogo = item.hostPartner?.logo
-  const location = item.hostPartner?.headquartersCity ?? 'Copenhagen'
+  const location =
+    item.hostPartner?.headquartersCity || item.hostPartner?.country || 'Copenhagen'
 
   // Get first pedagogical framework or project type as category
   const category = 'Sustainability and Global Action' // Default category
