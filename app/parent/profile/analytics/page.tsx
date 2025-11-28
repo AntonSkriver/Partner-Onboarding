@@ -68,13 +68,13 @@ export default function ParentAnalyticsPage() {
         activePrograms: 2,
         coPartners: 2,
         coordinators: 4,
-        institutions: 12,
-        teachers: 18,
+        institutions: 4,
+        teachers: 8,
         students: 5200,
-        projects: 10,
-        activeProjects: 7,
-        completedProjects: 3,
-        templates: 4,
+        projects: 6,
+        activeProjects: 4,
+        completedProjects: 2,
+        templates: 3,
         pendingInvitations: 0,
         countryCount: 2,
       }
@@ -89,22 +89,22 @@ export default function ParentAnalyticsPage() {
           country: 'DK',
           countryLabel: 'Denmark',
           flag: '🇩🇰',
-          institutions: 6,
-          teachers: 8,
+          institutions: 2,
+          teachers: 4,
           students: 2400,
-          projects: 5,
-          completedProjects: 2,
+          projects: 3,
+          completedProjects: 1,
           regions: ['Capital Region', 'Jutland'],
         },
         {
           country: 'UK',
           countryLabel: 'United Kingdom',
           flag: '🇬🇧',
-          institutions: 6,
-          teachers: 10,
+          institutions: 2,
+          teachers: 4,
           students: 2800,
-          projects: 5,
-          completedProjects: 3,
+          projects: 3,
+          completedProjects: 1,
           regions: ['London', 'Manchester'],
         },
       ]
@@ -729,59 +729,6 @@ export default function ParentAnalyticsPage() {
         </Card>
       </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Project timeline
-          </CardTitle>
-          <CardDescription>Launch velocity across the past six months.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {timelineEntries.length > 0 ? (
-            <div className="space-y-3">
-              {timelineEntries
-                .slice()
-                .reverse()
-                .map((entry) => {
-                  const percent = entry.projects
-                    ? Math.min(
-                        100,
-                        Math.max(8, Math.round((entry.projects / maxTimelineProjects) * 100)),
-                      )
-                    : 0
-                  return (
-                    <div
-                      key={entry.timestamp}
-                      className="space-y-2 rounded-md border border-gray-100 p-3 shadow-sm"
-                    >
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium text-gray-900">{entry.label}</span>
-                        <span className="text-xs text-gray-500">
-                          +{entry.projects} project{entry.projects === 1 ? '' : 's'}
-                        </span>
-                      </div>
-                      <div className="h-2 rounded-full bg-gray-100">
-                        <div
-                          className="h-2 rounded-full bg-indigo-500"
-                          style={{ width: `${percent}%` }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>{entry.completed} completed</span>
-                        <span>{entry.projects - entry.completed} in progress</span>
-                      </div>
-                    </div>
-                  )
-                })}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500">
-              Timeline insights will appear once your programs start rolling out.
-            </p>
-          )}
-        </CardContent>
-      </Card>
     </div>
   )
 }

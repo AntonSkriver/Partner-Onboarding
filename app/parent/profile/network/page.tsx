@@ -22,7 +22,7 @@ export default function ParentNetworkPage() {
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
   const [countryCoordinators, setCountryCoordinators] = useState<
-    Array<{ id: string; name: string; country: string; email: string }>
+    Array<{ id: string; name: string; country: string; email: string; role: string }>
   >([])
   const [educationalInstitutions, setEducationalInstitutions] = useState<
     Array<{
@@ -73,57 +73,67 @@ export default function ParentNetworkPage() {
 
       const mockCoordinators = [
         {
-          id: 'coord-1',
-          name: 'Maria Garcia',
-          country: 'Mexico',
-          email: 'maria.garcia@unicef.org',
-        },
-        {
-          id: 'coord-2',
-          name: 'Lars Nielsen',
+          id: 'coord-dk-1',
+          name: 'Christian Bindslev',
           country: 'Denmark',
-          email: 'lars.nielsen@unicef.dk',
+          email: 'christian@unicef.dk',
+          role: 'Project Leader',
         },
         {
-          id: 'coord-3',
-          name: 'Giovanni Rossi',
-          country: 'Italy',
-          email: 'giovanni.rossi@unicef.it',
+          id: 'coord-dk-2',
+          name: 'Mette Victoria',
+          country: 'Denmark',
+          email: 'mette@unicef.dk',
+          role: 'Country Coordinator',
+        },
+        {
+          id: 'coord-uk-1',
+          name: 'Amelia Parker',
+          country: 'United Kingdom',
+          email: 'amelia.parker@unicef.org.uk',
+          role: 'Regional Lead',
+        },
+        {
+          id: 'coord-uk-2',
+          name: 'James Turner',
+          country: 'United Kingdom',
+          email: 'james.turner@unicef.org.uk',
+          role: 'Program Coordinator',
         },
       ]
 
       const mockInstitutions = [
         {
           id: 'inst-1',
-          name: 'Ørestad Gymnasium',
+          name: 'Ørestad Gymnasium · Child Rights School',
           country: 'Denmark',
           category: 'School',
-          pointOfContact: 'Anne Larsen',
-          email: 'anne@orestad.dk',
+          pointOfContact: 'Mette Victoria',
+          email: 'mette@unicef.dk',
         },
         {
           id: 'inst-2',
-          name: 'Copenhagen Public Library',
+          name: 'Aarhus International School · Child Rights School',
           country: 'Denmark',
-          category: 'Library',
-          pointOfContact: 'Michael Jensen',
-          email: 'michael@cphlib.dk',
+          category: 'School',
+          pointOfContact: 'Mette Victoria',
+          email: 'mette@unicef.dk',
         },
         {
           id: 'inst-3',
-          name: 'Guadalajara Cultural Center',
-          country: 'Mexico',
-          category: 'Municipality Center',
-          pointOfContact: 'Carmen Rodriguez',
-          email: 'carmen@guadalajara.mx',
+          name: 'London Community School · Child Rights School',
+          country: 'United Kingdom',
+          category: 'School',
+          pointOfContact: 'Amelia Parker',
+          email: 'amelia.parker@unicef.org.uk',
         },
         {
           id: 'inst-4',
-          name: 'Liceo Scientifico Roma',
-          country: 'Italy',
+          name: 'Manchester Academy · Child Rights School',
+          country: 'United Kingdom',
           category: 'School',
-          pointOfContact: 'Francesco Bianchi',
-          email: 'francesco@liceoroma.it',
+          pointOfContact: 'James Turner',
+          email: 'james.turner@unicef.org.uk',
         },
       ]
 
@@ -198,6 +208,7 @@ export default function ParentNetworkPage() {
                 <thead>
                   <tr className="border-b">
                     <th className="px-4 py-3 text-left font-medium text-gray-700">Name</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-700">Role</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-700">Country</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-700">Email</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-700">Actions</th>
@@ -207,6 +218,11 @@ export default function ParentNetworkPage() {
                   {countryCoordinators.map((coordinator) => (
                     <tr key={coordinator.id} className="border-b hover:bg-gray-50">
                       <td className="px-4 py-3">{coordinator.name}</td>
+                      <td className="px-4 py-3">
+                        <Badge variant="outline" className="text-xs">
+                          {coordinator.role}
+                        </Badge>
+                      </td>
                       <td className="px-4 py-3">
                         <Badge variant="secondary">{coordinator.country}</Badge>
                       </td>
