@@ -32,37 +32,22 @@ type Organization = Database['public']['Tables']['organizations']['Row']
 
 const CRC_ARTICLE_DETAILS: Record<
   string,
-  { title: string; summary: string; focus?: 'participation' | 'protection' | 'provision' }
+  { title: string }
 > = {
   '12': {
-    title: 'Article 12 · Respect for the views of the child',
-    summary:
-      'Children have the right to express their views freely in all matters affecting them, and for those views to be given due weight.',
-    focus: 'participation',
+    title: 'Respect for the views of the child',
   },
   '13': {
-    title: 'Article 13 · Freedom of expression',
-    summary:
-      'Every child can seek, receive, and impart information and ideas of all kinds, enabling active participation in learning communities.',
-    focus: 'participation',
+    title: 'Freedom of expression',
   },
   '24': {
-    title: 'Article 24 · Health and health services',
-    summary:
-      'Children have the right to the highest attainable standard of health, including access to clean water, nutritious food, and health education.',
-    focus: 'provision',
+    title: 'Health and health services',
   },
   '28': {
-    title: 'Article 28 · Right to education',
-    summary:
-      'Primary education must be compulsory and available free to all, ensuring learners gain knowledge, skills, and respect for human rights.',
-    focus: 'provision',
+    title: 'Right to education',
   },
   '31': {
-    title: 'Article 31 · Leisure, play, and culture',
-    summary:
-      'Children have the right to rest and leisure, engage in play, and participate fully in cultural and artistic life.',
-    focus: 'provision',
+    title: 'Leisure, play, and culture',
   },
 }
 
@@ -82,8 +67,6 @@ type OrganizationContact = {
 type ChildRightsEntry = {
   article: string
   title: string
-  summary: string
-  focus?: 'participation' | 'protection' | 'provision'
   iconSrc: string
 }
 
@@ -228,6 +211,10 @@ export default function PartnerOverviewPage() {
     : []
 
   const sdgFocus = normalizedSdgTags.length > 0 ? normalizedSdgTags : [4]
+  const sdgFocusDisplay = useMemo(
+    () => sdgFocus.filter((sdgId) => sdgId !== 17),
+    [sdgFocus],
+  )
 
   const organizationChildRights = extractChildRightsFocus(organization)
 
@@ -254,9 +241,6 @@ export default function PartnerOverviewPage() {
     return normalizedChildRights.map((article) => {
       const fallback = {
         title: `Article ${article}`,
-        summary:
-          'This article outlines a core protection in the UN Convention on the Rights of the Child.',
-        focus: undefined,
       }
       const details = CRC_ARTICLE_DETAILS[article] ?? fallback
       const padded = article.padStart(2, '0')
@@ -264,30 +248,10 @@ export default function PartnerOverviewPage() {
       return {
         article,
         title: details.title,
-        summary: details.summary,
-        focus: details.focus,
         iconSrc: `/crc/icons/article-${padded}.png`,
       }
     })
   }, [normalizedChildRights])
-
-const childRightsFocusStyles: Record<
-  NonNullable<(typeof childRightsEntries)[number]['focus']>,
-  { label: string; tagClassName: string }
-> = {
-  participation: {
-    label: 'Participation right',
-    tagClassName: 'bg-blue-100 text-blue-700',
-  },
-  protection: {
-    label: 'Protection right',
-    tagClassName: 'bg-rose-100 text-rose-700',
-  },
-  provision: {
-    label: 'Provision right',
-    tagClassName: 'bg-emerald-100 text-emerald-700',
-  },
-}
 
   if (loading) {
     return (
@@ -444,19 +408,18 @@ const childRightsFocusStyles: Record<
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {sdgFocus.length > 0 ? (
-              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
-                {sdgFocus.map((sdgId) => {
+            {sdgFocusDisplay.length > 0 ? (
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                {sdgFocusDisplay.map((sdgId) => {
                   const sdg = SDG_OPTIONS.find((s) => s.id === sdgId)
                   return sdg ? (
-                    <div key={sdgId} className="flex flex-col items-center">
+                    <div key={sdgId} className="flex flex-col items-center gap-2">
                       <SDGIcon
                         number={sdgId}
-                        size="md"
+                        size="lg"
                         showTitle={false}
-                        className="h-16 w-16 rounded-lg object-cover shadow-sm transition-shadow hover:shadow-md"
                       />
-                      <p className="mt-1 text-center text-xs leading-tight text-gray-600">
+                      <p className="text-center text-xs leading-tight text-gray-900">
                         {sdg.title}
                       </p>
                     </div>
@@ -499,45 +462,30 @@ const childRightsFocusStyles: Record<
               <ShieldCheck className="h-4 w-4" />
               CRC Child Rights Focus
             </CardTitle>
-            <CardDescription>
-              Priority articles from the UN Convention on the Rights of the Child supported through
-              this partnership.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {childRightsEntries.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                {childRightsEntries.map((entry) => {
-                  const focusStyle = entry.focus ? childRightsFocusStyles[entry.focus] : undefined
-                  const tagClass = focusStyle?.tagClassName ?? 'bg-rose-100 text-rose-700'
-                  return (
-                    <div
-                      key={entry.article}
-                      className="flex h-full flex-col items-center rounded-lg border border-gray-100 bg-white p-3 text-center shadow-sm"
-                    >
-                      <div className="relative h-24 w-20 overflow-hidden rounded-md bg-gray-50">
-                        <Image
-                          src={entry.iconSrc}
-                          alt={entry.title}
-                          fill
-                          sizes="80px"
-                          className="object-cover"
-                        />
-                      </div>
-                      <p className="mt-3 text-sm font-semibold text-gray-900">{entry.title}</p>
-                      <p className="mt-1 line-clamp-4 text-xs leading-relaxed text-gray-600">
-                        {entry.summary}
-                      </p>
-                      {focusStyle && (
-                        <span
-                          className={`mt-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${tagClass}`}
-                        >
-                          {focusStyle.label}
-                        </span>
-                      )}
+          <CardDescription>
+            Priority articles from the UN Convention on the Rights of the Child supported through
+            this partnership.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {childRightsEntries.length > 0 ? (
+            <div className="grid grid-cols-3 gap-5 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+              {childRightsEntries.map((entry) => (
+                <div key={entry.article} className="flex flex-col items-center gap-2">
+                  <div className="relative h-20 w-20">
+                    <Image
+                      src={entry.iconSrc}
+                      alt={entry.title}
+                      fill
+                      sizes="96px"
+                        className="rounded object-contain"
+                      />
                     </div>
-                  )
-                })}
+                    <p className="text-center text-xs leading-tight text-gray-900">
+                      {entry.title}
+                    </p>
+                  </div>
+                ))}
               </div>
             ) : (
               <p className="text-sm text-gray-500">
