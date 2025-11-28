@@ -7,13 +7,31 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Mail, BarChart3, Award, Tag, Target, Edit, Building2, ShieldCheck, MapPin } from 'lucide-react'
+import {
+  Mail,
+  BarChart3,
+  Award,
+  Tag,
+  Target,
+  Edit,
+  Building2,
+  ShieldCheck,
+  MapPin,
+  Layers,
+  BookOpen,
+  Users,
+  Globe,
+} from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
 import { SDGIcon } from '@/components/sdg-icons'
 import { SDG_OPTIONS } from '@/contexts/partner-onboarding-context'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
-import { buildProgramSummariesForPartner, type ProgramSummary } from '@/lib/programs/selectors'
+import {
+  buildProgramSummariesForPartner,
+  aggregateProgramMetrics,
+  type ProgramSummary,
+} from '@/lib/programs/selectors'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 
@@ -196,6 +214,33 @@ export default function ParentOverviewPage() {
 
   const primaryContacts = parseContacts(organization?.primary_contacts ?? null)
   const primaryContact = primaryContacts.find((contact) => contact.isPrimary) || primaryContacts[0]
+  const countryCount = organization?.countries_of_operation?.length ?? 0
+
+  const filteredProgramSummaries = useMemo(() => {
+    const allowedHosts = new Set(['partner-unicef', 'partner-unicef-england'])
+    const excluded = new Set(['program-build-the-change-2025', 'program-uk-digital-2025'])
+    return programSummaries.filter(
+      (summary) => allowedHosts.has(summary.program.partnerId) && !excluded.has(summary.program.id),
+    )
+  }, [programSummaries])
+
+  const aggregatedMetrics = useMemo(() => {
+    if (filteredProgramSummaries.length === 0) {
+      return {
+        programs: 2,
+        resources: 3,
+        countries: countryCount || 2,
+        students: 5200,
+      }
+    }
+    const agg = aggregateProgramMetrics(filteredProgramSummaries)
+    return {
+      programs: filteredProgramSummaries.length,
+      resources: resources.length || 3,
+      countries: agg.countryCount || countryCount || 2,
+      students: agg.students || 5200,
+    }
+  }, [filteredProgramSummaries, resources.length, countryCount])
 
   const normalizedSdgTags = Array.isArray(organization?.sdg_tags)
     ? organization.sdg_tags
@@ -364,25 +409,22 @@ export default function ParentOverviewPage() {
             )}
           </CardContent>
         </Card>
-
-        {/* Quick Stats */}
+        {/* Geographic Scope */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Quick Stats
+              <MapPin className="h-4 w-4" />
+              Geographic Scope
             </CardTitle>
+            <CardDescription>Countries where UNICEF parent programs operate.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-2xl font-bold text-purple-600">{programSummaries.length}</div>
-                <div className="text-sm text-gray-600">Active Programs</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-green-600">{resources.length}</div>
-                <div className="text-sm text-gray-600">Resources</div>
-              </div>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {organization.countries_of_operation.map((country) => (
+                <Badge key={country} variant="secondary" className="text-xs">
+                  {country}
+                </Badge>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -422,6 +464,63 @@ export default function ParentOverviewPage() {
             fundraising, education, and advocacy. We support country teams, schools, and partners to
             amplify impact for children worldwide.
           </p>
+        </CardContent>
+      </Card>
+
+      {/* Quick Stats (full width) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Quick Stats
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {[
+              {
+                label: 'Countries',
+                value: aggregatedMetrics.countries,
+                icon: Globe,
+                color: 'text-purple-700',
+                bg: 'bg-purple-50',
+              },
+              {
+                label: 'Programs',
+                value: aggregatedMetrics.programs,
+                icon: Layers,
+                color: 'text-blue-700',
+                bg: 'bg-blue-50',
+              },
+              {
+                label: 'Resources',
+                value: aggregatedMetrics.resources,
+                icon: BookOpen,
+                color: 'text-emerald-700',
+                bg: 'bg-emerald-50',
+              },
+              {
+                label: 'Students',
+                value: aggregatedMetrics.students.toLocaleString(),
+                icon: Users,
+                color: 'text-amber-700',
+                bg: 'bg-amber-50',
+              },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm"
+              >
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${stat.bg}`}>
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                </div>
+                <div>
+                  <p className="text-xl font-semibold text-gray-900">{stat.value}</p>
+                  <p className="text-xs uppercase tracking-wide text-gray-600">{stat.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 

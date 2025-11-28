@@ -21,6 +21,7 @@ import {
   buildProgramSummariesForPartner,
   aggregateProgramMetrics,
 } from '@/lib/programs/selectors'
+import { GraduationCap } from 'lucide-react'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 
@@ -51,10 +52,41 @@ export default function ParentDashboardPage() {
     })
   }, [prototypeReady, database, partnerRecord])
 
-  const programMetrics = useMemo(
-    () => aggregateProgramMetrics(programSummaries),
-    [programSummaries],
-  )
+  const filteredProgramSummaries = useMemo(() => {
+    const allowedHosts = new Set(['partner-unicef', 'partner-unicef-england'])
+    const excluded = new Set(['program-build-the-change-2025', 'program-uk-digital-2025'])
+    return programSummaries.filter(
+      (summary) => allowedHosts.has(summary.program.partnerId) && !excluded.has(summary.program.id),
+    )
+  }, [programSummaries])
+
+  const programMetrics = useMemo(() => aggregateProgramMetrics(filteredProgramSummaries), [filteredProgramSummaries])
+
+  const displayStats = useMemo(() => {
+    if (filteredProgramSummaries.length === 0) {
+      return {
+        programs: 2,
+        countries: 2,
+        teachers: 8,
+        students: 5200,
+      }
+    }
+    const allowedCountries = new Set(['DK', 'UK'])
+    const countrySet = new Set<string>()
+    filteredProgramSummaries.forEach((summary) => {
+      summary.metrics.countries.forEach((c) => {
+        if (allowedCountries.has(c)) {
+          countrySet.add(c)
+        }
+      })
+    })
+    return {
+      programs: filteredProgramSummaries.length,
+      countries: countrySet.size || programMetrics.countryCount || 2,
+      teachers: programMetrics.teachers,
+      students: programMetrics.students,
+    }
+  }, [filteredProgramSummaries, programMetrics])
 
   useEffect(() => {
     loadOrganizationProfile()
@@ -80,7 +112,7 @@ export default function ParentDashboardPage() {
           'Connecting UNICEF country teams and partners to scale impact for children worldwide.',
         primary_contacts: [],
         regions_of_operation: ['Global'],
-        countries_of_operation: ['Denmark', 'United Kingdom', 'Kenya', 'Bangladesh', 'Brazil'],
+        countries_of_operation: ['Denmark', 'United Kingdom'],
         languages: ['English', 'French', 'Spanish'],
         sdg_tags: ['4', '5', '10', '13', '16', '17'],
         thematic_tags: ["Children's Rights", 'Global Citizenship', 'Healthy Communities'],
@@ -127,32 +159,54 @@ export default function ParentDashboardPage() {
     <div className="space-y-10">
       {/* Header Section */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="space-y-4">
           <h1 className="text-3xl font-semibold text-gray-900">
             Hi, {session?.organization ?? 'Parent'}
           </h1>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-purple-600" />
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">{programMetrics.countryCount}</p>
-                <p className="text-xs text-gray-600">Countries</p>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {[
+              {
+                label: 'Countries',
+                value: displayStats.countries,
+                icon: Globe,
+                color: 'text-purple-700',
+                bg: 'bg-purple-50',
+              },
+              {
+                label: 'Programs',
+                value: displayStats.programs,
+                icon: Layers,
+                color: 'text-blue-700',
+                bg: 'bg-blue-50',
+              },
+              {
+                label: 'Teachers',
+                value: displayStats.teachers,
+                icon: Users,
+                color: 'text-emerald-700',
+                bg: 'bg-emerald-50',
+              },
+              {
+                label: 'Students',
+                value: displayStats.students.toLocaleString(),
+                icon: GraduationCap,
+                color: 'text-amber-700',
+                bg: 'bg-amber-50',
+              },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm"
+              >
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${stat.bg}`}>
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
+                  <p className="text-xs uppercase tracking-wide text-gray-500">{stat.label}</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Layers className="h-5 w-5 text-purple-600" />
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">{programSummaries.length}</p>
-                <p className="text-xs text-gray-600">Programs</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-purple-600" />
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">{programMetrics.teachers}</p>
-                <p className="text-xs text-gray-600">Teachers</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 

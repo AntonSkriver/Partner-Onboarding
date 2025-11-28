@@ -363,6 +363,29 @@ export default function ParentAnalyticsPage() {
       ? Math.min(100, Math.max(0, Math.round((programMetrics.completedProjects / totalProjects) * 100)))
       : 0
 
+  const markerPositions: Record<string, { x: string; y: string }> = {
+    Denmark: { x: '65%', y: '38%' },
+    'United Kingdom': { x: '46%', y: '52%' },
+  }
+
+  const mapMarkers =
+    countryImpact.length > 0
+      ? countryImpact.map((entry) => ({
+          country: entry.countryLabel,
+          flag: entry.flag,
+          x: markerPositions[entry.countryLabel]?.x ?? '50%',
+          y: markerPositions[entry.countryLabel]?.y ?? '50%',
+        }))
+      : [
+          { country: 'Denmark', flag: '🇩🇰', x: markerPositions.Denmark.x, y: markerPositions.Denmark.y },
+          {
+            country: 'United Kingdom',
+            flag: '🇬🇧',
+            x: markerPositions['United Kingdom'].x,
+            y: markerPositions['United Kingdom'].y,
+          },
+        ]
+
   useEffect(() => {
     loadOrganizationProfile()
   }, [])
@@ -459,176 +482,6 @@ export default function ParentAnalyticsPage() {
         ))}
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-        <div className="space-y-6">
-          {topCountry ? (
-            <Card className="border-blue-100 bg-gradient-to-br from-blue-50 to-white">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-blue-900">
-                  <MapPin className="h-5 w-5" />
-                  Impact spotlight
-                </CardTitle>
-                <CardDescription>
-                  Leading countries by student reach and classroom activity.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="text-sm text-gray-700">Top contributor</p>
-                    <p className="mt-1 text-2xl font-semibold text-blue-900">
-                      <span className="mr-2">{topCountry.flag}</span>
-                      {topCountry.countryLabel}
-                    </p>
-                    <p className="mt-2 text-xs text-gray-600">
-                      {topCountry.students.toLocaleString()} students • {topCountry.institutions}{' '}
-                      institutions • {topCountry.projects} projects
-                    </p>
-                    {topCountry.regions.length > 0 && (
-                      <p className="mt-1 text-xs text-gray-500">
-                        Regional hubs: {topCountry.regions.join(', ')}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <p className="text-xs font-medium uppercase text-gray-500">Next in line</p>
-                    {countryImpact.slice(1, 4).length > 0 ? (
-                      countryImpact.slice(1, 4).map((country) => (
-                        <div
-                          key={country.country}
-                          className="flex items-center justify-between rounded-md border border-blue-100 bg-white/70 px-3 py-2 text-sm text-gray-700 shadow-sm"
-                        >
-                          <span>
-                            <span className="mr-2">{country.flag}</span>
-                            {country.countryLabel}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {country.students.toLocaleString()} students
-                          </span>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-xs text-gray-500">
-                        Invite more institutions to grow your impact footprint.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="border-blue-100 bg-blue-50/60">
-              <CardContent className="p-6 text-sm text-blue-900">
-                Connect your first program to start tracking country-level impact.
-              </CardContent>
-            </Card>
-          )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Program engagement
-              </CardTitle>
-              <CardDescription>Top programs ranked by student participation.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {topPrograms.length > 0 ? (
-                <div className="space-y-4">
-                    {topPrograms.map((summary) => {
-                      const percent = Math.round((summary.students / maxProgramStudents) * 100)
-                      return (
-                        <div key={summary.id} className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="font-medium text-gray-900">
-                              {summary.title}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {summary.students} students
-                            </span>
-                          </div>
-                          <div className="h-1.5 rounded-full bg-gray-100">
-                            <div
-                              className="h-1.5 rounded-full bg-purple-500"
-                              style={{ width: `${Math.min(100, percent)}%` }}
-                            />
-                          </div>
-                          <div className="flex items-center justify-between text-xs text-gray-500">
-                            <span>{summary.institutions} institutions</span>
-                            <span>{summary.activeProjects} active projects</span>
-                          </div>
-                        </div>
-                      )
-                    })}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">
-                  Program insights will appear once classrooms start their first projects.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5 text-purple-600" />
-                Global reach summary
-              </CardTitle>
-              <CardDescription>A snapshot of where UNICEF parent programs are active.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {countryReachStats.map((stat) => (
-                  <div
-                    key={stat.label}
-                    className="flex items-center justify-between rounded-md border border-gray-100 px-3 py-2 text-sm text-gray-700"
-                  >
-                    <span>{stat.label}</span>
-                    <span className="font-semibold text-gray-900">{stat.value}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Project health</CardTitle>
-              <CardDescription>Progress across all initiatives.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between text-sm text-gray-700">
-                <span>Active projects</span>
-                <span className="font-semibold text-gray-900">{programMetrics.activeProjects}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm text-gray-700">
-                <span>Completed projects</span>
-                <span className="font-semibold text-gray-900">
-                  {programMetrics.completedProjects}
-                </span>
-              </div>
-              <div>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>Completion rate</span>
-                  <span className="font-medium text-gray-900">
-                    {totalProjects > 0 ? `${completionRate}%` : '—'}
-                  </span>
-                </div>
-                <div className="mt-2 h-2 rounded-full bg-gray-100">
-                  <div
-                    className="h-2 rounded-full bg-green-500"
-                    style={{ width: `${completionBarWidth}%` }}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
       <section className="grid gap-6 lg:grid-cols-[3fr,2fr]">
         <Card>
           <CardHeader>
@@ -690,40 +543,55 @@ export default function ParentAnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapIcon className="h-5 w-5 text-purple-600" />
-              Geographic reach
-            </CardTitle>
-            <CardDescription>
-              A map view will visualise school locations and regional coverage in an upcoming
-              release.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-purple-200 bg-purple-50/40 text-center text-sm text-purple-700">
-              <MapPin className="mb-3 h-6 w-6" />
-              <p className="font-medium">
-                {activeCountryNames.length > 0
-                  ? `${activeCountryNames.length} countries active`
-                  : 'No countries connected yet'}
-              </p>
-              {activeCountryNames.length > 0 ? (
-                <p className="mt-1 text-xs text-purple-600">
-                  {activeCountryNames.slice(0, 5).join(', ')}
-                  {activeCountryNames.length > 5 ? '…' : ''}
-                </p>
-              ) : (
-                <p className="mt-1 text-xs text-purple-600">
-                  Add programs to begin mapping your impact footprint.
-                </p>
-              )}
-              {activeCountryNames.length > 0 && (
-                <p className="mt-3 text-xs text-purple-600">
-                  {totalRegionsCovered} regional hubs reported
-                </p>
-              )}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapIcon className="h-5 w-5 text-purple-600" />
+                Geographic reach
+              </CardTitle>
+              <CardDescription>Visual map of where UNICEF parent programs are active.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="relative h-56 overflow-hidden rounded-xl border border-purple-100 bg-gradient-to-br from-purple-50 via-white to-blue-50 shadow-sm">
+              <div className="absolute inset-0 opacity-70">
+                <div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,rgba(99,102,241,0.18),transparent_35%),radial-gradient(circle_at_70%_40%,rgba(59,130,246,0.15),transparent_30%),radial-gradient(circle_at_55%_70%,rgba(34,197,94,0.12),transparent_28%)]" />
+              </div>
+              <div className="absolute inset-0">
+                <div className="mx-auto flex h-full max-w-xl items-center justify-between px-8">
+                  <div className="flex flex-col gap-3 text-xs text-gray-600">
+                    {countryReachStats.map((stat) => (
+                      <div key={stat.label} className="flex items-center justify-between gap-4">
+                        <span className="text-gray-600">{stat.label}</span>
+                        <span className="text-lg font-semibold text-gray-900">{stat.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="relative h-52 w-80 overflow-hidden rounded-xl border border-white/60 bg-white/85 p-4 shadow-sm backdrop-blur">
+                    <div className="absolute inset-0 opacity-60">
+                      <img
+                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/World_map_-_low_resolution.svg/1024px-World_map_-_low_resolution.svg.png"
+                        alt="World map"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="absolute inset-0 rounded-xl bg-[radial-gradient(circle_at_50%_30%,rgba(99,102,241,0.08),transparent_40%)]" />
+                    <div className="relative h-full w-full">
+                      {mapMarkers.map((marker) => (
+                        <div
+                          key={marker.country}
+                          className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center gap-1 text-[11px] font-medium text-gray-800"
+                          style={{ left: marker.x, top: marker.y }}
+                        >
+                          <span className="h-2.5 w-2.5 rounded-full bg-purple-600 shadow-sm" />
+                          <span className="rounded-full bg-white/90 px-2 py-0.5 shadow-sm">
+                            {marker.flag} {marker.country}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
