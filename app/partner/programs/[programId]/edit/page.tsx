@@ -27,7 +27,6 @@ import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
 import {
   Select,
@@ -41,8 +40,7 @@ import { Badge } from '@/components/ui/badge'
 import { resolvePartnerContext } from '@/lib/auth/partner-context'
 import {
   AGE_RANGE_VALUES,
-  COUNTRY_OPTIONS,
-  PEDAGOGICAL_FRAMEWORK_VALUES,
+  CRC_ARTICLE_OPTIONS,
   SDG_OPTIONS,
   STATUS_VALUES,
   friendlyLabel,
@@ -68,6 +66,7 @@ const toFormValues = (program: Program): ProgramFormValues => ({
   targetAgeRanges: program.targetAgeRanges,
   countriesInScope: program.countriesInScope,
   sdgFocus: program.sdgFocus,
+  crcFocus: program.crcFocus ?? [],
   startDate: program.startDate,
   endDate: program.endDate,
   status: program.status,
@@ -122,6 +121,7 @@ export default function EditProgramPage() {
       targetAgeRanges: [],
       countriesInScope: [],
       sdgFocus: [],
+      crcFocus: [],
       startDate: '',
       endDate: '',
       status: 'draft',
@@ -162,6 +162,7 @@ export default function EditProgramPage() {
         targetAgeRanges: values.targetAgeRanges,
         countriesInScope: values.countriesInScope,
         sdgFocus: values.sdgFocus,
+        crcFocus: values.crcFocus ?? [],
         startDate: values.startDate,
         endDate: values.endDate,
         status: values.status,
@@ -414,34 +415,6 @@ export default function EditProgramPage() {
 
                 <FormField
                   control={form.control}
-                  name="pedagogicalFramework"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Pedagogical frameworks</FormLabel>
-                      <div className="flex flex-wrap gap-2">
-                        {PEDAGOGICAL_FRAMEWORK_VALUES.map((value) => {
-                          const isActive = field.value?.includes(value)
-                          return (
-                            <Badge
-                              key={value}
-                              variant={isActive ? 'default' : 'outline'}
-                              className="cursor-pointer"
-                              onClick={() =>
-                                toggleValue(value, field.value ?? [], field.onChange)
-                              }
-                            >
-                              {friendlyLabel(value)}
-                            </Badge>
-                          )
-                        })}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
                   name="targetAgeRanges"
                   render={({ field }) => (
                     <FormItem>
@@ -468,62 +441,63 @@ export default function EditProgramPage() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="countriesInScope"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Countries in scope</FormLabel>
-                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                        {COUNTRY_OPTIONS.map((country) => (
-                          <label
-                            key={country.code}
-                            className="flex items-start gap-2 rounded-lg border border-gray-200 bg-white p-3 hover:border-purple-300"
-                          >
-                            <Checkbox
-                              checked={field.value?.includes(country.code) ?? false}
-                              onCheckedChange={() =>
-                                toggleValue(country.code, field.value ?? [], field.onChange)
-                              }
-                            />
-                            <span className="text-sm leading-5 text-gray-700">
-                              {country.name}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid gap-6 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="sdgFocus"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>SDG focus areas</FormLabel>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {SDG_OPTIONS.map((sdg) => {
+                            const isActive = field.value?.includes(sdg.value)
+                            return (
+                              <Badge
+                                key={sdg.value}
+                                variant={isActive ? 'default' : 'outline'}
+                                className="cursor-pointer"
+                                onClick={() =>
+                                  toggleValue(sdg.value, field.value ?? [], field.onChange)
+                                }
+                              >
+                                {sdg.label}
+                              </Badge>
+                            )
+                          })}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="sdgFocus"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>SDG focus areas</FormLabel>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                        {SDG_OPTIONS.map((sdg) => {
-                          const isActive = field.value?.includes(sdg.value)
-                          return (
-                            <Badge
-                              key={sdg.value}
-                              variant={isActive ? 'default' : 'outline'}
-                              className="cursor-pointer"
-                              onClick={() =>
-                                toggleValue(sdg.value, field.value ?? [], field.onChange)
-                              }
-                            >
-                              {sdg.label}
-                            </Badge>
-                          )
-                        })}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="crcFocus"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CRC focus (UN Convention on the Rights of the Child)</FormLabel>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {CRC_ARTICLE_OPTIONS.map((article) => {
+                            const isActive = field.value?.includes(article.value)
+                            return (
+                              <Badge
+                                key={article.value}
+                                variant={isActive ? 'default' : 'outline'}
+                                className="cursor-pointer"
+                                onClick={() =>
+                                  toggleValue(article.value, field.value ?? [], field.onChange)
+                                }
+                              >
+                                {article.label}
+                              </Badge>
+                            )
+                          })}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <FormField
                   control={form.control}

@@ -136,9 +136,6 @@ export default function PartnerOverviewPage() {
     setLoading(true)
     try {
       const session = getCurrentSession()
-      if (!session || session.role !== 'partner') {
-        return
-      }
 
       // For demo purposes - sample organization data
       const sampleOrg: Organization = {

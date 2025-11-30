@@ -34,6 +34,7 @@ import { resolvePartnerContext } from '@/lib/auth/partner-context'
 import { Badge } from '@/components/ui/badge'
 import {
   AGE_RANGE_VALUES,
+  CRC_ARTICLE_OPTIONS,
   COUNTRY_OPTIONS,
   PEDAGOGICAL_FRAMEWORK_VALUES,
   PROGRAM_TYPE_VALUES,
@@ -101,6 +102,7 @@ export default function CreateProgramPage() {
       targetAgeRanges: [],
       countriesInScope: partnerRecord?.country ? [partnerRecord.country] : [],
       sdgFocus: [],
+      crcFocus: [],
       startDate: '',
       endDate: '',
       status: 'draft',
@@ -141,6 +143,7 @@ export default function CreateProgramPage() {
         targetAgeRanges: values.targetAgeRanges,
         countriesInScope: values.countriesInScope,
         sdgFocus: values.sdgFocus,
+        crcFocus: values.crcFocus ?? [],
         startDate: values.startDate,
         endDate: values.endDate,
         programUrl: values.programUrl || undefined,
@@ -540,6 +543,34 @@ export default function CreateProgramPage() {
                               }
                             >
                               {sdg.label}
+                            </Badge>
+                          )
+                        })}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="crcFocus"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>CRC focus (UN Convention on the Rights of the Child)</FormLabel>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {CRC_ARTICLE_OPTIONS.map((article) => {
+                          const isActive = field.value?.includes(article.value)
+                          return (
+                            <Badge
+                              key={article.value}
+                              variant={isActive ? 'default' : 'outline'}
+                              className="cursor-pointer"
+                              onClick={() =>
+                                toggleValue(article.value, field.value ?? [], field.onChange)
+                              }
+                            >
+                              {article.label}
                             </Badge>
                           )
                         })}

@@ -51,6 +51,14 @@ export const SDG_OPTIONS = Array.from({ length: 17 }, (_, index) => {
   }
 })
 
+export const CRC_ARTICLE_OPTIONS = [
+  { value: '12', label: 'Article 12: Respect for the views of the child' },
+  { value: '13', label: 'Article 13: Freedom of expression' },
+  { value: '24', label: 'Article 24: Health and health services' },
+  { value: '28', label: 'Article 28: Right to education' },
+  { value: '31', label: 'Article 31: Leisure, play, and culture' },
+] as const
+
 export const programSchema = z
   .object({
     name: z.string().min(3, 'Program name must be at least 3 characters long'),
@@ -62,6 +70,7 @@ export const programSchema = z
     targetAgeRanges: z.array(z.enum(AGE_RANGE_VALUES)).min(1, 'Select at least one age range'),
     countriesInScope: z.array(z.string()).min(1, 'Select at least one country'),
     sdgFocus: z.array(z.number()).min(1, 'Choose at least one SDG focus area'),
+    crcFocus: z.array(z.string()).optional(),
     startDate: z.string().min(1, 'Start date is required'),
     endDate: z.string().min(1, 'End date is required'),
     status: z.enum(STATUS_VALUES),

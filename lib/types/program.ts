@@ -19,6 +19,7 @@ export interface Program {
   targetAgeRanges: AgeRange[];
   countriesInScope: string[]; // ISO country codes
   sdgFocus: number[]; // UN SDG numbers (1-17)
+  crcFocus?: string[]; // UN CRC articles
 
   // Timeline
   startDate: string; // ISO date string

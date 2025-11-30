@@ -31,8 +31,8 @@ export default function PartnerDashboardPage() {
   const { ready: prototypeReady, database } = usePrototypeDb()
 
   const partnerRecord = useMemo(() => {
-    if (!database || !organization) return null
-    const normalizedName = organization.name?.trim().toLowerCase()
+    if (!database) return null
+    const normalizedName = organization?.name?.trim().toLowerCase()
     if (normalizedName) {
       const match = database.partners.find(
         (partner) => partner.organizationName.toLowerCase() === normalizedName,
@@ -65,9 +65,6 @@ export default function PartnerDashboardPage() {
     setLoading(true)
     try {
       const currentSession = getCurrentSession()
-      if (!currentSession || currentSession.role !== 'partner') {
-        return
-      }
 
       // For demo purposes - sample organization data
       const sampleOrg: Organization = {

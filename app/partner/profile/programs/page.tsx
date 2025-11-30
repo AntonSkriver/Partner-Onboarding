@@ -24,8 +24,8 @@ export default function PartnerProgramsPage() {
   const { ready: prototypeReady, database } = usePrototypeDb()
 
   const partnerRecord = useMemo(() => {
-    if (!database || !organization) return null
-    const normalizedName = organization.name?.trim().toLowerCase()
+    if (!database) return null
+    const normalizedName = organization?.name?.trim().toLowerCase()
     if (normalizedName) {
       const match = database.partners.find(
         (partner) => partner.organizationName.toLowerCase() === normalizedName,
@@ -61,11 +61,6 @@ export default function PartnerProgramsPage() {
   const loadOrganizationProfile = async () => {
     setLoading(true)
     try {
-      const session = getCurrentSession()
-      if (!session || session.role !== 'partner') {
-        return
-      }
-
       // For demo purposes - sample organization data
       const sampleOrg: Organization = {
         id: 'demo-org-id',

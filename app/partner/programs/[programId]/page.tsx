@@ -41,6 +41,22 @@ const statusStyles: Record<string, string> = {
   archived: 'bg-gray-100 text-gray-600',
 }
 
+const COUNTRY_LABELS: Record<string, string> = {
+  DK: 'Denmark',
+  UK: 'United Kingdom',
+  MX: 'Mexico',
+  IT: 'Italy',
+  BD: 'Bangladesh',
+  KE: 'Kenya',
+  BR: 'Brazil',
+  US: 'United States',
+  CA: 'Canada',
+  FI: 'Finland',
+  JP: 'Japan',
+  ZA: 'South Africa',
+  IN: 'India',
+}
+
 const metricItems = (summary: ProgramSummary) => [
   {
     label: 'Active projects',
@@ -129,7 +145,7 @@ export default function PartnerProgramDetailPage() {
           </CardHeader>
           <CardContent>
             <Button variant="outline" asChild>
-              <Link href="/partner/profile?tab=programs">Back to programs</Link>
+              <Link href="/partner/profile/programs">Back to programs</Link>
             </Button>
           </CardContent>
         </Card>
@@ -144,7 +160,7 @@ export default function PartnerProgramDetailPage() {
       <div className="mx-auto w-full max-w-5xl px-4 py-10">
         <div className="mb-6 flex items-center justify-between">
           <Button variant="ghost" size="sm" asChild className="px-0 text-purple-600 hover:text-purple-700">
-            <Link href="/partner/profile?tab=programs">
+            <Link href="/partner/profile/programs">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to programs
             </Link>
@@ -205,6 +221,9 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
 
   const hostName = hostPartner?.partner?.organizationName ?? 'Host organisation'
   const supportingName = supportingPartner?.partner?.organizationName ?? '—'
+  const crcLabel = summary.program.crcFocus?.length
+    ? summary.program.crcFocus.map((article) => `Article ${article}`).join(', ')
+    : '—'
 
   return (
     <Tabs value={tab} onValueChange={(value) => setTab(value as typeof tab)} className="space-y-6">
@@ -229,10 +248,9 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
             <div className="grid gap-4 md:grid-cols-2">
               <OverviewField label="Host organisation" value={hostName} />
               <OverviewField label="Supporting partner" value={supportingName} />
-              <OverviewField label="Pedagogical frameworks" value={summary.program.pedagogicalFramework.map((item) => item.replace(/_/g, ' ')).join(', ')} />
               <OverviewField label="Age focus" value={summary.program.targetAgeRanges.join(', ')} />
               <OverviewField label="SDG focus" value={summary.program.sdgFocus.map((sdg) => `SDG ${sdg}`).join(', ')} />
-              <OverviewField label="Countries" value={summary.metrics.countries.join(', ')} />
+              <OverviewField label="CRC focus" value={crcLabel} />
             </div>
           </CardContent>
         </Card>
@@ -315,9 +333,12 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
                     </p>
                     <Badge variant="outline" className="capitalize">{coordinator.status}</Badge>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    {coordinator.country}{coordinator.region ? ` • ${coordinator.region}` : ''}
-                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                    <Badge variant="secondary" className="text-[11px]">
+                      {COUNTRY_LABELS[coordinator.country] ?? coordinator.country} ({coordinator.country})
+                    </Badge>
+                    {coordinator.region && <span>Region: {coordinator.region}</span>}
+                  </div>
                   <p className="mt-2 text-xs text-gray-500">{coordinator.email}</p>
                 </div>
               ))

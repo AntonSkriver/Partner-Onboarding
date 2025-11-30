@@ -430,26 +430,6 @@ export default function ParentOverviewPage() {
         </Card>
       </div>
 
-      {/* Geographic Scope */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
-            Geographic Scope
-          </CardTitle>
-          <CardDescription>Countries where UNICEF country teams operate programs.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {organization.countries_of_operation.map((country) => (
-              <Badge key={country} variant="secondary" className="text-xs">
-                {country}
-              </Badge>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Mission Statement */}
       <Card>
         <CardHeader>

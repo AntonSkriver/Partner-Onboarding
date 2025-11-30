@@ -56,6 +56,8 @@ export function ProgramCatalogCard({
   const [isExpanded, setIsExpanded] = useState(false)
   const hostName = item.hostPartner?.organizationName ?? 'Class2Class.org'
   const hostLogo = item.hostPartner?.logo
+   const supportingName = item.supportingPartner?.organizationName
+   const supportingLogo = item.supportingPartner?.logo
   const location =
     item.hostPartner?.headquartersCity || item.hostPartner?.country || 'Copenhagen'
 
@@ -137,10 +139,17 @@ export function ProgramCatalogCard({
 
         {/* Created By Section */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-2">
-            {renderPartnerAvatar(hostName, hostLogo)}
+          <div className="flex items-center gap-3">
+            <div className="flex -space-x-2">
+              {renderPartnerAvatar(hostName, hostLogo)}
+              {supportingName && (
+                <div className="ring-2 ring-white rounded-full">{renderPartnerAvatar(supportingName, supportingLogo)}</div>
+              )}
+            </div>
             <div className="text-xs">
-              <p className="font-medium text-gray-900">{hostName}</p>
+              <p className="font-medium text-gray-900">
+                {supportingName ? `${hostName} + ${supportingName}` : hostName}
+              </p>
               <p className="text-gray-500">{location}</p>
             </div>
           </div>

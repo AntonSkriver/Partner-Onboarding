@@ -23,6 +23,11 @@ export default function ParentProgramsPage() {
   const catalogItems = useMemo<ProgramCatalogItem[]>(() => {
     if (!prototypeReady || !database) return []
     const allowedHosts = new Set(['partner-unicef', 'partner-unicef-england'])
+    const desiredOrder = [
+      'program-communities-2025',
+      'program-uk-climate-2025',
+      'program-child-world-2025',
+    ]
 
     return buildProgramCatalog(database)
       .filter((item) => {
@@ -30,6 +35,14 @@ export default function ParentProgramsPage() {
         const isAllowedHost = hostId && allowedHosts.has(hostId)
         const isExcluded = item.programId === 'program-build-the-change-2025' || item.programId === 'program-uk-digital-2025'
         return isAllowedHost && !isExcluded
+      })
+      .sort((a, b) => {
+        const indexA = desiredOrder.indexOf(a.programId)
+        const indexB = desiredOrder.indexOf(b.programId)
+        if (indexA === -1 && indexB === -1) return 0
+        if (indexA === -1) return 1
+        if (indexB === -1) return -1
+        return indexA - indexB
       })
   }, [prototypeReady, database])
 
