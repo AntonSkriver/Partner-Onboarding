@@ -373,12 +373,11 @@ export default function PartnerLoginPage() {
           <div className="mt-auto">
             <div className="rounded-2xl bg-white/15 p-6 backdrop-blur-sm">
               <p className="text-sm leading-relaxed text-white/90">
-                “Working with Class2Class has given our organisation a clear view of how schools progress together.
-                The platform keeps every stakeholder aligned—from coordinators to teachers.”
+                “Class2Class helps our UK schools see progress and stay in sync with partners abroad. It keeps coordinators and teachers aligned without extra overhead.”
               </p>
               <div className="mt-4">
-                <p className="text-sm font-semibold text-white">Maria Jensen</p>
-                <p className="text-xs uppercase tracking-wide text-white/70">Program Director · UNICEF Denmark</p>
+                <p className="text-sm font-semibold text-white">Amelia Parker</p>
+                <p className="text-xs uppercase tracking-wide text-white/70">Program Director · UNICEF England</p>
               </div>
               <div className="mt-6 flex items-center gap-2 text-white/40">
                 <span className="h-2 w-2 rounded-full bg-white" />

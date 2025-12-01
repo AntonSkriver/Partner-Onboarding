@@ -66,16 +66,16 @@ export default function PartnersPage() {
               <Link href="/discover" className="text-gray-600 hover:text-gray-900 transition-colors">Discover Projects</Link>
               <LanguageSwitcher />
               <div className="flex items-center space-x-4">
-                <Link href="/sign-in">
+                <Link href="/partner/login">
                   <Button size="lg" variant="outline" className="border-[#7F56D9] text-[#7F56D9] hover:bg-purple-50 px-6 py-2.5 text-base font-semibold">
                     <LogIn className="h-4 w-4 mr-2" />
-                    Login
+                    Partner Login
                   </Button>
                 </Link>
-                <Link href="/signup">
+                <Link href="/partner/login">
                   <Button size="lg" className="bg-[#7F56D9] hover:bg-purple-700 text-white px-6 py-2.5 text-base font-semibold">
                     <UserPlus className="h-4 w-4 mr-2" />
-                    Sign Up
+                    Partner Sign Up
                   </Button>
                 </Link>
               </div>

@@ -68,7 +68,21 @@ export function ProgramCatalogCard({
   const ageRange = item.metrics?.institutions ? 'Ages 6 - 13 years' : 'All ages'
 
   // Format languages
-  const languages = 'English, Spanish, Danish' // Default for demo
+  const languageNames: Record<string, string> = {
+    en: 'English',
+    da: 'Danish',
+    es: 'Spanish',
+    fr: 'French',
+    it: 'Italian',
+    pt: 'Portuguese',
+  }
+  const languages =
+    item.languages && item.languages.length > 0
+      ? item.languages
+          .map((code) => languageNames[code] ?? code.toUpperCase())
+          .filter(Boolean)
+          .join(', ')
+      : 'English'
 
   return (
     <Card className={cn('flex h-full flex-col overflow-hidden', className)}>

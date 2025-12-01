@@ -25,11 +25,6 @@ export default function PartnerResourcesPage() {
   const loadOrganizationData = async () => {
     setLoading(true)
     try {
-      const session = getCurrentSession()
-      if (!session || session.role !== 'partner') {
-        return
-      }
-
       // For demo purposes - sample organization data
       const sampleOrg: Organization = {
         id: 'demo-org-id',

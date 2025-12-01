@@ -78,6 +78,7 @@ export interface ProgramCatalogItem {
   brandColor?: string
   sdgFocus: number[]
   startMonthLabel?: string
+  languages: string[]
   metrics: {
     templates: number
     activeProjects: number
@@ -388,6 +389,27 @@ export const buildProgramCatalog = (
     const startMonthLabel =
       toMonthLabel(recommendedMonth) ?? formatMonthFromDate(program.startDate) ?? undefined
 
+    const languages = (() => {
+      const codes = new Set<string>()
+      summary.institutions.forEach((inst) => {
+        if (Array.isArray(inst.languages)) {
+          inst.languages.forEach((lang) => {
+            if (typeof lang === 'string' && lang.trim()) {
+              codes.add(lang.trim())
+            }
+          })
+        }
+      })
+      if (codes.size === 0) {
+        hostPartner?.languages?.forEach((lang) => {
+          if (typeof lang === 'string' && lang.trim()) {
+            codes.add(lang.trim())
+          }
+        })
+      }
+      return Array.from(codes)
+    })()
+
     return {
       programId: program.id,
       name: program.name,
@@ -404,6 +426,7 @@ export const buildProgramCatalog = (
       brandColor: program.brandColor,
       sdgFocus: program.sdgFocus,
       startMonthLabel,
+      languages,
       metrics: {
         templates: summary.metrics.templateCount,
         activeProjects: summary.metrics.activeProjectCount,
