@@ -17,18 +17,32 @@ import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
+type Country = 'Denmark' | 'England'
+
+const countryBadge = (country: Country) => {
+  const styles =
+    country === 'Denmark'
+      ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+      : 'bg-blue-100 text-blue-800 border-blue-200'
+  const label = country === 'Denmark' ? 'Denmark (DK)' : 'England (UK)'
+  return (
+    <Badge variant="outline" className={styles}>
+      {label}
+    </Badge>
+  )
+}
 
 export default function PartnerNetworkPage() {
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
   const [countryCoordinators, setCountryCoordinators] = useState<
-    Array<{ id: string; name: string; country: string; email: string }>
+    Array<{ id: string; name: string; country: Country; email: string }>
   >([])
   const [educationalInstitutions, setEducationalInstitutions] = useState<
     Array<{
       id: string
       name: string
-      country: string
+      country: Country
       category: string
       pointOfContact: string
       email: string
@@ -79,56 +93,62 @@ export default function PartnerNetworkPage() {
       const mockCoordinators = [
         {
           id: 'coord-1',
-          name: 'Maria Garcia',
-          country: 'Mexico',
-          email: 'maria.garcia@unicef.org',
+          name: 'Christian Bindslev',
+          country: 'Denmark',
+          email: 'christian@unicef.dk',
         },
         {
           id: 'coord-2',
-          name: 'Lars Nielsen',
+          name: 'Mette Victoria',
           country: 'Denmark',
-          email: 'lars.nielsen@unicef.dk',
+          email: 'mette.victoria@unicef.dk',
         },
         {
           id: 'coord-3',
-          name: 'Giovanni Rossi',
-          country: 'Italy',
-          email: 'giovanni.rossi@unicef.it',
+          name: 'Amelia Parker',
+          country: 'England',
+          email: 'amelia.parker@unicef.org.uk',
+        },
+        {
+          id: 'coord-4',
+          name: 'James Whitaker',
+          country: 'England',
+          email: 'james.whitaker@unicef.org.uk',
         },
       ]
 
       const mockInstitutions = [
         {
           id: 'inst-1',
-          name: 'Ørestad Gymnasium',
+          name: 'Mørke Rettighedskole',
           country: 'Denmark',
           category: 'School',
           pointOfContact: 'Anne Larsen',
-          email: 'anne@orestad.dk',
+          email: 'anne@moerke-rette.dk',
         },
         {
           id: 'inst-2',
-          name: 'Copenhagen Public Library',
+          name: 'Vesterbjerg Rettighedskole',
           country: 'Denmark',
-          category: 'Library',
+          category: 'School',
           pointOfContact: 'Michael Jensen',
-          email: 'michael@cphlib.dk',
+          email: 'michael@vesterbjerg.dk',
         },
         {
           id: 'inst-3',
-          name: 'Guadalajara Cultural Center',
-          country: 'Mexico',
-          category: 'Municipality Center',
-          pointOfContact: 'Carmen Rodriguez',
-          email: 'carmen@guadalajara.mx',
+          name: 'Manchester Community College',
+          country: 'England',
+          category: 'School',
+          pointOfContact: 'Priya Shah',
+          email: 'priya.shah@mancc.ac.uk',
         },
         {
           id: 'inst-4',
-          name: 'Liceo Scientifico Roma',
-          country: 'Italy',
-          category: 'School',
-          pointOfContact: 'Francesco Bianchi',
-          email: 'francesco@liceoroma.it',
+          name: 'Greater London Youth Centre',
+          country: 'England',
+          category: 'Youth Centre',
+          pointOfContact: 'Elliot Turner',
+          email: 'elliot.turner@londonyouth.org',
         },
       ]
 
@@ -213,7 +233,7 @@ export default function PartnerNetworkPage() {
                     <tr key={coordinator.id} className="border-b hover:bg-gray-50">
                       <td className="px-4 py-3">{coordinator.name}</td>
                       <td className="px-4 py-3">
-                        <Badge variant="secondary">{coordinator.country}</Badge>
+                        {countryBadge(coordinator.country)}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600">{coordinator.email}</td>
                       <td className="px-4 py-3">
@@ -288,7 +308,7 @@ export default function PartnerNetworkPage() {
                     <tr key={institution.id} className="border-b hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium">{institution.name}</td>
                       <td className="px-4 py-3">
-                        <Badge variant="secondary">{institution.country}</Badge>
+                        {countryBadge(institution.country)}
                       </td>
                       <td className="px-4 py-3">
                         <Badge variant="outline">{institution.category}</Badge>
