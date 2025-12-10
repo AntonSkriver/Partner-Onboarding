@@ -9,16 +9,15 @@ import { Plus, Edit, Users, Building2 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
-import {
-  buildProgramSummariesForPartner,
-  buildProgramCatalog,
-  type ProgramSummary,
-} from '@/lib/programs/selectors'
+import { buildProgramCatalog, getProgramsForPartner } from '@/lib/programs/selectors'
 import { ProgramCatalogCard } from '@/components/program/program-catalog-card'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 
 export default function PartnerProgramsPage() {
+  const [sessionRole] = useState<'partner' | 'parent' | 'teacher' | 'student' | null>(
+    () => getCurrentSession()?.role ?? null,
+  )
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
   const { ready: prototypeReady, database } = usePrototypeDb()
@@ -35,37 +34,27 @@ export default function PartnerProgramsPage() {
     return database.partners.length > 0 ? database.partners[0] : null
   }, [database, organization?.name])
 
-  // Get all UNICEF partner IDs to include in the filter
-  const unicefPartnerIds = useMemo(() => {
-    if (!database) return []
-    return database.partners
-      .filter((partner) =>
-        partner.organizationName.toLowerCase().includes('unicef')
-      )
-      .map((partner) => partner.id)
-  }, [database])
-
   const programCatalog = useMemo(() => {
-    if (!database || !partnerRecord || unicefPartnerIds.length === 0) return []
+    if (!database) return []
 
-    const allPrograms = buildProgramCatalog(database)
+    const catalog = buildProgramCatalog(database, { includePrivate: true })
 
-    // Filter to show ALL programs from ANY UNICEF partner (Denmark, England, etc.)
-    // This ensures all UNICEF programs are visible regardless of which partner is logged in
-    const filtered = allPrograms.filter((item) => {
-      const prog = database.programs.find((p) => p.id === item.programId)
-      return (
-        prog && (
-          unicefPartnerIds.includes(prog.partnerId) ||
-          (prog.supportingPartnerId && unicefPartnerIds.includes(prog.supportingPartnerId))
-        )
-      )
+    // Parents can see all programs; partners are limited to their own plus related ones
+    if (sessionRole === 'parent') {
+      return catalog
+    }
+
+    if (!partnerRecord) return []
+
+    const relatedPrograms = getProgramsForPartner(database, partnerRecord.id, {
+      includeRelatedPrograms: true,
     })
+    const allowedProgramIds = new Set(relatedPrograms.map((program) => program.id))
 
-    return filtered
-  }, [database, partnerRecord, unicefPartnerIds])
+    return catalog.filter((item) => allowedProgramIds.has(item.programId))
+  }, [database, partnerRecord, sessionRole])
 
-  const programDataLoading = !prototypeReady || !partnerRecord
+  const programDataLoading = !prototypeReady || !database || (sessionRole !== 'parent' && !partnerRecord)
 
   useEffect(() => {
     loadOrganizationProfile()

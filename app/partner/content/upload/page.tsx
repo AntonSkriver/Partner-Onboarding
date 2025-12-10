@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
-import { buildProgramSummariesForPartner } from '@/lib/programs/selectors'
+import { buildProgramSummariesForPartner, buildProgramSummary } from '@/lib/programs/selectors'
 import { getCurrentSession } from '@/lib/auth/session'
 import { resolvePartnerContext } from '@/lib/auth/partner-context'
 import { Button } from '@/components/ui/button'
@@ -194,51 +194,31 @@ export default function UploadContentPage() {
     setSession(getCurrentSession())
   }, [])
 
-  const partnerRecord = useMemo(() => {
-    if (!database) return null
-    // For UNICEF users, look for "UNICEF Denmark" partner as the primary
-    const match = database.partners.find(
-      (partner) => partner.organizationName.toLowerCase() === 'unicef denmark',
-    )
-    if (match) return match
-
-    // Fallback to first partner
-    return database.partners.length > 0 ? database.partners[0] : null
-  }, [database])
-
-  // Get all UNICEF partner IDs to include in the filter
-  const unicefPartnerIds = useMemo(() => {
-    if (!database) return []
-    return database.partners
-      .filter((partner) =>
-        partner.organizationName.toLowerCase().includes('unicef')
-      )
-      .map((partner) => partner.id)
-  }, [database])
+  const partnerContext = useMemo(
+    () => resolvePartnerContext(session, database),
+    [session, database],
+  )
 
   const programSummaries = useMemo(() => {
-    if (!prototypeReady || !database || !partnerRecord || unicefPartnerIds.length === 0) {
+    if (!prototypeReady || !database) {
       return []
     }
 
-    // Get ALL programs from ALL UNICEF partners (Denmark, England, etc.)
-    // This ensures we show all UNICEF programs regardless of which partner the user is logged in as
-    const allUnicefPrograms: typeof programSummaries = []
-
-    for (const unicefPartnerId of unicefPartnerIds) {
-      const partnerPrograms = buildProgramSummariesForPartner(database, unicefPartnerId, {
-        includeRelatedPrograms: false, // Only get directly owned programs
-      })
-      allUnicefPrograms.push(...partnerPrograms)
+    // Parent role can see all programs for assignment
+    if (session?.role === 'parent') {
+      const allPrograms = database.programs.map((program) => buildProgramSummary(database, program))
+      return Array.from(new Map(allPrograms.map((summary) => [summary.program.id, summary])).values())
     }
 
-    // Deduplicate by program ID
-    const uniquePrograms = Array.from(
-      new Map(allUnicefPrograms.map(summary => [summary.program.id, summary])).values()
-    )
+    // Partners can only see their own and related programs (host/co-host/sponsor)
+    if (!partnerContext.partnerId) {
+      return []
+    }
 
-    return uniquePrograms
-  }, [prototypeReady, database, partnerRecord, unicefPartnerIds])
+    return buildProgramSummariesForPartner(database, partnerContext.partnerId, {
+      includeRelatedPrograms: true,
+    })
+  }, [prototypeReady, database, session?.role, partnerContext])
 
   const form = useForm<ResourceData>({
     resolver: zodResolver(resourceSchema),

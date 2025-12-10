@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { createSession, clearSession, startTeacherPreviewSession } from '@/lib/auth/session'
+import { createSession, clearSession } from '@/lib/auth/session'
 import { resetPrototypeDb } from '@/lib/storage/prototype-db'
 import { seedPrototypeDb } from '@/lib/storage/seeds'
 
@@ -27,7 +27,7 @@ export default function PartnerLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isDemoLoading, setIsDemoLoading] = useState<
-    'parent' | 'partner' | 'school' | 'teacher' | 'unicef-denmark' | 'unicef-england' | null
+    'parent' | 'partner' | 'school' | 'unicef-denmark' | 'unicef-england' | null
   >(null)
   const [isResetting, setIsResetting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -151,13 +151,6 @@ export default function PartnerLoginPage() {
     setIsDemoLoading(null)
   }
 
-  const handleTeacherPreview = () => {
-    setIsDemoLoading('teacher')
-    clearSession()
-    startTeacherPreviewSession()
-    router.push('/teacher/dashboard')
-  }
-
   const handleResetPrototype = () => {
     setIsResetting(true)
     try {
@@ -188,7 +181,7 @@ export default function PartnerLoginPage() {
               Sign in to manage programs, invitations, and school partnerships across your network.
             </p>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -235,14 +228,6 @@ export default function PartnerLoginPage() {
                 disabled={Boolean(isDemoLoading)}
               >
                 {isDemoLoading === 'school' ? 'Loading...' : 'Continue as School'}
-              </Button>
-              <Button
-                variant="outline"
-                className="h-12 border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100"
-                onClick={handleTeacherPreview}
-                disabled={isDemoLoading === 'teacher'}
-              >
-                {isDemoLoading === 'teacher' ? 'Loading...' : 'Continue as Teacher'}
               </Button>
             </div>
 

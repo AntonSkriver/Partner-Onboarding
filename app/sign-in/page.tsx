@@ -2,13 +2,24 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Globe2, Lock, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { clearSession, startTeacherPreviewSession } from '@/lib/auth/session'
 
 export default function SignInPage() {
+  const router = useRouter()
   const [role, setRole] = useState<'teacher' | 'student'>('teacher')
   const [showPassword, setShowPassword] = useState(false)
+  const [isTeacherPreviewLoading, setIsTeacherPreviewLoading] = useState(false)
+
+  const handleTeacherPreview = () => {
+    setIsTeacherPreviewLoading(true)
+    clearSession()
+    startTeacherPreviewSession()
+    router.push('/teacher/dashboard')
+  }
 
   return (
     <div className="min-h-screen bg-white lg:grid lg:grid-cols-2">
@@ -118,6 +129,19 @@ export default function SignInPage() {
               <Button variant="outline" className="w-full border-gray-300">
                 Continue with Google
               </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100"
+                onClick={handleTeacherPreview}
+                disabled={isTeacherPreviewLoading}
+              >
+                {isTeacherPreviewLoading ? 'Loading...' : 'Continue as Teacher'}
+              </Button>
+              <p className="text-center text-xs text-gray-500">
+                Jump into the teacher dashboard with demo data.
+              </p>
 
               <p className="text-center text-sm text-gray-600">
                 Don&apos;t have an account yet?{' '}
