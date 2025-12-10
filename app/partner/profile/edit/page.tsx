@@ -22,7 +22,6 @@ import {
   ArrowLeft,
   CheckCircle,
   Save,
-  X,
   Plus,
   Trash2
 } from 'lucide-react'
@@ -128,6 +127,35 @@ const THEMATIC_TAGS = [
   'Sustainability'
 ]
 
+type ContactEntry = {
+  name: string
+  email: string
+  role: string
+  phone?: string
+  isPrimary?: boolean
+}
+
+const DEFAULT_MISSION =
+  'UNICEF Danmark works to secure all children’s rights through fundraising, education and advocacy in Denmark. We collaborate with schools, organizations and communities to create awareness about children’s global situation and mobilize resources for UNICEF’s work worldwide.'
+
+const DEFAULT_PRIMARY_CONTACT: ContactEntry = {
+  name: 'Christian Bindslev',
+  email: 'Christian@unicef.dk',
+  role: 'Project Leader',
+  phone: '',
+  isPrimary: true,
+}
+
+const DEFAULT_OTHER_CONTACTS: ContactEntry[] = [
+  {
+    name: 'Mette Victoria',
+    email: 'Mette@unicef.dk',
+    role: 'Country Coordinator',
+    phone: '',
+    isPrimary: false,
+  },
+]
+
 const profileSchema = z.object({
   organizationName: z.string().min(2, 'Organization name is required'),
   mission: z.string().min(10, 'Mission statement should be at least 10 characters'),
@@ -150,6 +178,7 @@ export default function EditProfilePage() {
   const [selectedCRCs, setSelectedCRCs] = useState<string[]>([])
   const [activeCRCCategory, setActiveCRCCategory] = useState('general-principles')
   const [selectedThematicAreas, setSelectedThematicAreas] = useState<string[]>([])
+  const [otherContacts, setOtherContacts] = useState<ContactEntry[]>(DEFAULT_OTHER_CONTACTS)
 
   const { ready: prototypeReady, database, updateRecord } = usePrototypeDb()
   const [session, setSession] = useState(() => getCurrentSession())
@@ -167,14 +196,14 @@ export default function EditProfilePage() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       organizationName: '',
-      mission: '',
+      mission: DEFAULT_MISSION,
       thematicAreas: [],
       sdgFocus: [],
       crcFocus: [],
-      primaryContactName: '',
-      primaryContactEmail: '',
-      primaryContactRole: '',
-      primaryContactPhone: '',
+      primaryContactName: DEFAULT_PRIMARY_CONTACT.name,
+      primaryContactEmail: DEFAULT_PRIMARY_CONTACT.email,
+      primaryContactRole: DEFAULT_PRIMARY_CONTACT.role,
+      primaryContactPhone: DEFAULT_PRIMARY_CONTACT.phone ?? '',
     },
   })
 
@@ -183,8 +212,34 @@ export default function EditProfilePage() {
     if (partnerContext?.partnerRecord) {
       const partner = partnerContext.partnerRecord
 
+      const isUnicefDenmark =
+        partner.organizationName?.toLowerCase().includes('unicef denmark') ?? false
+      const mission = isUnicefDenmark
+        ? DEFAULT_MISSION
+        : partner.mission?.trim() || DEFAULT_MISSION
+
+      const primaryContact = (partner as unknown as { primaryContact?: ContactEntry }).primaryContact
+      const normalizedPrimary: ContactEntry = {
+        ...DEFAULT_PRIMARY_CONTACT,
+        ...(primaryContact ?? {}),
+        isPrimary: true,
+      }
+
+      const partnerOtherContacts =
+        (partner as unknown as { otherContacts?: ContactEntry[] }).otherContacts ?? []
+      const normalizedOthers =
+        Array.isArray(partnerOtherContacts) && partnerOtherContacts.length > 0
+          ? partnerOtherContacts.map((contact) => ({
+              name: contact.name ?? '',
+              email: contact.email ?? '',
+              role: contact.role ?? '',
+              phone: contact.phone ?? '',
+              isPrimary: false,
+            }))
+          : DEFAULT_OTHER_CONTACTS
+
       form.setValue('organizationName', partner.organizationName || '')
-      form.setValue('mission', partner.mission || '')
+      form.setValue('mission', mission)
       form.setValue('thematicAreas', partner.thematicTags || [])
       form.setValue('sdgFocus', partner.sdgTags?.map(String) || [])
       form.setValue('crcFocus', partner.childRightsFocus || [])
@@ -193,13 +248,11 @@ export default function EditProfilePage() {
       setSelectedSDGs(partner.sdgTags?.map(String) || [])
       setSelectedCRCs(partner.childRightsFocus || [])
 
-      // Load primary contact if available
-      if (partner.primaryContact) {
-        form.setValue('primaryContactName', partner.primaryContact.name || '')
-        form.setValue('primaryContactEmail', partner.primaryContact.email || '')
-        form.setValue('primaryContactRole', partner.primaryContact.role || '')
-        form.setValue('primaryContactPhone', partner.primaryContact.phone || '')
-      }
+      form.setValue('primaryContactName', normalizedPrimary.name)
+      form.setValue('primaryContactEmail', normalizedPrimary.email)
+      form.setValue('primaryContactRole', normalizedPrimary.role)
+      form.setValue('primaryContactPhone', normalizedPrimary.phone || '')
+      setOtherContacts(normalizedOthers)
     }
   }, [partnerContext, form])
 
@@ -230,11 +283,49 @@ export default function EditProfilePage() {
     form.setValue('thematicAreas', newSelection)
   }
 
+  const handleOtherContactChange = (
+    index: number,
+    field: keyof ContactEntry,
+    value: string,
+  ) => {
+    setOtherContacts((prev) =>
+      prev.map((contact, i) =>
+        i === index
+          ? {
+              ...contact,
+              [field]: value,
+            }
+          : contact,
+      ),
+    )
+  }
+
+  const handleAddContact = () => {
+    setOtherContacts((prev) => [
+      ...prev,
+      { name: '', email: '', role: '', phone: '', isPrimary: false },
+    ])
+  }
+
+  const handleRemoveContact = (index: number) => {
+    setOtherContacts((prev) => prev.filter((_, i) => i !== index))
+  }
+
   const handleSubmit = async (data: ProfileData) => {
     if (!partnerContext?.partnerId || !updateRecord) {
       console.error('Missing partner context or update function')
       return
     }
+
+    const normalizedOtherContacts = otherContacts
+      .map((contact) => ({
+        name: contact.name?.trim() ?? '',
+        email: contact.email?.trim() ?? '',
+        role: contact.role?.trim() ?? '',
+        phone: contact.phone?.trim() ?? '',
+        isPrimary: false,
+      }))
+      .filter((contact) => contact.name || contact.email || contact.role)
 
     setIsLoading(true)
     try {
@@ -250,7 +341,8 @@ export default function EditProfilePage() {
           email: data.primaryContactEmail,
           role: data.primaryContactRole,
           phone: data.primaryContactPhone || '',
-        }
+        },
+        otherContacts: normalizedOtherContacts,
       })
 
       // Simulate save delay
@@ -367,68 +459,163 @@ export default function EditProfilePage() {
             {/* Contact Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
-                <CardDescription>Primary contact details for your organization</CardDescription>
+                <CardTitle>Contacts</CardTitle>
+                <CardDescription>
+                  Keep your project leader and supporting contacts aligned with what appears on your profile.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="primaryContactName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Contact Name *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Full name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <div className="space-y-2">
+                  <div className="text-sm font-semibold text-gray-800">Project Leader (Primary)</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="primaryContactName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Contact Name *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Full name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="primaryContactEmail"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Contact Email *</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="email@example.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="primaryContactEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Contact Email *</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="email@example.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="primaryContactRole"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Role/Title *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., Project Leader" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="primaryContactPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="+45 12 34 56 78" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="primaryContactRole"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Role/Title *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Program Director" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <div className="space-y-3 border-t border-gray-100 pt-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-semibold text-gray-800">Other Contacts</div>
+                      <p className="text-xs text-gray-600">
+                        These appear below the project leader on your public profile.
+                      </p>
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={handleAddContact}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add contact
+                    </Button>
+                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="primaryContactPhone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="+45 12 34 56 78" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {otherContacts.length === 0 ? (
+                    <div className="rounded-lg border border-dashed border-gray-200 p-4 text-sm text-gray-500">
+                      No additional contacts added yet.
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {otherContacts.map((contact, index) => (
+                        <div key={`${contact.email}-${index}`} className="rounded-lg border border-gray-200 p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="text-sm font-medium text-gray-900">
+                              Contact #{index + 1}
+                            </div>
+                            {otherContacts.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700"
+                                onClick={() => handleRemoveContact(index)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Remove
+                              </Button>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <FormItem>
+                              <FormLabel>Name</FormLabel>
+                              <FormControl>
+                                <Input
+                                  value={contact.name}
+                                  onChange={(e) => handleOtherContactChange(index, 'name', e.target.value)}
+                                  placeholder="Full name"
+                                />
+                              </FormControl>
+                            </FormItem>
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="email"
+                                  value={contact.email}
+                                  onChange={(e) => handleOtherContactChange(index, 'email', e.target.value)}
+                                  placeholder="name@organization.org"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                            <FormItem>
+                              <FormLabel>Role/Title</FormLabel>
+                              <FormControl>
+                                <Input
+                                  value={contact.role}
+                                  onChange={(e) => handleOtherContactChange(index, 'role', e.target.value)}
+                                  placeholder="e.g., Country Coordinator"
+                                />
+                              </FormControl>
+                            </FormItem>
+                            <FormItem>
+                              <FormLabel>Phone (Optional)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  value={contact.phone}
+                                  onChange={(e) => handleOtherContactChange(index, 'phone', e.target.value)}
+                                  placeholder="+45 12 34 56 78"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
