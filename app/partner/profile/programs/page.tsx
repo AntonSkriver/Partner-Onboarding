@@ -35,22 +35,35 @@ export default function PartnerProgramsPage() {
     return database.partners.length > 0 ? database.partners[0] : null
   }, [database, organization?.name])
 
+  // Get all UNICEF partner IDs to include in the filter
+  const unicefPartnerIds = useMemo(() => {
+    if (!database) return []
+    return database.partners
+      .filter((partner) =>
+        partner.organizationName.toLowerCase().includes('unicef')
+      )
+      .map((partner) => partner.id)
+  }, [database])
+
   const programCatalog = useMemo(() => {
-    if (!database || !partnerRecord) return []
+    if (!database || !partnerRecord || unicefPartnerIds.length === 0) return []
 
     const allPrograms = buildProgramCatalog(database)
 
-    // Filter to show only programs where this partner is the main host (partnerId)
-    // or a supporting partner (supportingPartnerId)
+    // Filter to show ALL programs from ANY UNICEF partner (Denmark, England, etc.)
+    // This ensures all UNICEF programs are visible regardless of which partner is logged in
     const filtered = allPrograms.filter((item) => {
       const prog = database.programs.find((p) => p.id === item.programId)
       return (
-        prog && (prog.partnerId === partnerRecord.id || prog.supportingPartnerId === partnerRecord.id)
+        prog && (
+          unicefPartnerIds.includes(prog.partnerId) ||
+          (prog.supportingPartnerId && unicefPartnerIds.includes(prog.supportingPartnerId))
+        )
       )
     })
 
     return filtered
-  }, [database, partnerRecord])
+  }, [database, partnerRecord, unicefPartnerIds])
 
   const programDataLoading = !prototypeReady || !partnerRecord
 

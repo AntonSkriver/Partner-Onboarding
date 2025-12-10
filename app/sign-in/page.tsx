@@ -125,9 +125,9 @@ export default function SignInPage() {
                   Sign up
                 </Link>
               </p>
-              <p className="text-center text-sm font-medium text-purple-700">
+              <p className="text-center text-base font-semibold text-purple-700">
                 <Link href="/partner/login" className="hover:text-purple-800">
-                  Sign up as organisation
+                  Sign up as organisation (School or NGO)
                 </Link>
               </p>
             </form>

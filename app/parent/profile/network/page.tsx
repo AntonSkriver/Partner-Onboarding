@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Users,
-  School,
   UserPlus,
   Mail,
   Send,
@@ -24,18 +23,7 @@ export default function ParentNetworkPage() {
   const [countryCoordinators, setCountryCoordinators] = useState<
     Array<{ id: string; name: string; country: string; email: string; role: string }>
   >([])
-  const [educationalInstitutions, setEducationalInstitutions] = useState<
-    Array<{
-      id: string
-      name: string
-      country: string
-      category: string
-      pointOfContact: string
-      email: string
-    }>
-  >([])
   const [showInviteCoordinatorDialog, setShowInviteCoordinatorDialog] = useState(false)
-  const [showInviteInstitutionDialog, setShowInviteInstitutionDialog] = useState(false)
 
   useEffect(() => {
     loadOrganizationData()
@@ -102,44 +90,8 @@ export default function ParentNetworkPage() {
         },
       ]
 
-      const mockInstitutions = [
-        {
-          id: 'inst-1',
-          name: 'Ørestad Gymnasium · Child Rights School',
-          country: 'Denmark',
-          category: 'School',
-          pointOfContact: 'Mette Victoria',
-          email: 'mette@unicef.dk',
-        },
-        {
-          id: 'inst-2',
-          name: 'Aarhus International School · Child Rights School',
-          country: 'Denmark',
-          category: 'School',
-          pointOfContact: 'Mette Victoria',
-          email: 'mette@unicef.dk',
-        },
-        {
-          id: 'inst-3',
-          name: 'London Community School · Child Rights School',
-          country: 'United Kingdom',
-          category: 'School',
-          pointOfContact: 'Amelia Parker',
-          email: 'amelia.parker@unicef.org.uk',
-        },
-        {
-          id: 'inst-4',
-          name: 'Manchester Academy · Child Rights School',
-          country: 'United Kingdom',
-          category: 'School',
-          pointOfContact: 'James Turner',
-          email: 'james.turner@unicef.org.uk',
-        },
-      ]
-
       setOrganization(sampleOrg)
       setCountryCoordinators(mockCoordinators)
-      setEducationalInstitutions(mockInstitutions)
     } catch (err) {
       console.error('Error loading network data:', err)
     } finally {
@@ -176,7 +128,7 @@ export default function ParentNetworkPage() {
         <div>
           <h1 className="text-3xl font-semibold text-gray-900">Network</h1>
           <p className="text-sm text-gray-600">
-            Manage country coordinators and educational institution partnerships.
+            Manage country coordinators for your organization.
           </p>
         </div>
       </div>
@@ -259,89 +211,6 @@ export default function ParentNetworkPage() {
         </CardContent>
       </Card>
 
-      {/* Educational Institutions Section */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <School className="h-4 w-4" />
-                Educational Institutions
-              </CardTitle>
-              <CardDescription>
-                Schools, libraries, municipality centers and other educational partners
-              </CardDescription>
-            </div>
-            <Button
-              className="bg-purple-600 hover:bg-purple-700"
-              onClick={() => setShowInviteInstitutionDialog(true)}
-            >
-              <UserPlus className="mr-2 h-4 w-4" />
-              Invite Institution
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {educationalInstitutions.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Name</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Country</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Category</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Point of Contact</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {educationalInstitutions.map((institution) => (
-                    <tr key={institution.id} className="border-b hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium">{institution.name}</td>
-                      <td className="px-4 py-3">
-                        <Badge variant="secondary">{institution.country}</Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge variant="outline">{institution.category}</Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm">
-                          <div className="font-medium">{institution.pointOfContact}</div>
-                          <div className="text-gray-600">{institution.email}</div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Mail className="mr-1 h-3 w-3" />
-                            Contact
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            View
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="py-8 text-center">
-              <School className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-              <h3 className="mb-2 font-medium text-gray-900">No Educational Institutions</h3>
-              <p className="mb-4 text-gray-500">
-                Connect with schools, libraries, and other educational institutions.
-              </p>
-              <Button onClick={() => setShowInviteInstitutionDialog(true)}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Invite First Institution
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Invitation Dialogs */}
       {showInviteCoordinatorDialog && (
         <Card className="border-purple-200 bg-purple-50">
@@ -378,70 +247,6 @@ export default function ParentNetworkPage() {
                   type="text"
                   className="w-full rounded-md border border-gray-300 px-3 py-2"
                   placeholder="Country"
-                />
-              </div>
-              <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                <Send className="mr-2 h-4 w-4" />
-                Send Invitation
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {showInviteInstitutionDialog && (
-        <Card className="border-purple-200 bg-purple-50">
-          <CardContent className="p-6">
-            <div className="mb-4 flex items-start justify-between">
-              <div>
-                <h3 className="text-lg font-semibold">Invite Educational Institution</h3>
-                <p className="mt-1 text-sm text-gray-600">Send an invitation to an educational institution</p>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => setShowInviteInstitutionDialog(false)}>
-                ✕
-              </Button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Institution Name</label>
-                <input
-                  type="text"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2"
-                  placeholder="School or institution name"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Category</label>
-                <select className="w-full rounded-md border border-gray-300 px-3 py-2">
-                  <option>School</option>
-                  <option>Library</option>
-                  <option>Municipality Center</option>
-                  <option>Cultural Center</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Country</label>
-                <input
-                  type="text"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2"
-                  placeholder="Country"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Point of Contact</label>
-                <input
-                  type="text"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2"
-                  placeholder="Contact person name"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Contact Email</label>
-                <input
-                  type="email"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2"
-                  placeholder="contact@institution.edu"
                 />
               </div>
               <Button className="w-full bg-purple-600 hover:bg-purple-700">

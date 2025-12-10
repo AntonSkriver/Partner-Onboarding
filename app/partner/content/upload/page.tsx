@@ -108,20 +108,51 @@ export default function UploadContentPage() {
     setSession(getCurrentSession())
   }, [])
 
-  const partnerContext = useMemo(
-    () => resolvePartnerContext(session, database ?? null),
-    [database, session],
-  )
-  const partnerRecord = partnerContext.partnerRecord
+  const partnerRecord = useMemo(() => {
+    if (!database) return null
+    // For UNICEF users, look for "UNICEF Denmark" partner as the primary
+    const match = database.partners.find(
+      (partner) => partner.organizationName.toLowerCase() === 'unicef denmark',
+    )
+    if (match) return match
+
+    // Fallback to first partner
+    return database.partners.length > 0 ? database.partners[0] : null
+  }, [database])
+
+  // Get all UNICEF partner IDs to include in the filter
+  const unicefPartnerIds = useMemo(() => {
+    if (!database) return []
+    return database.partners
+      .filter((partner) =>
+        partner.organizationName.toLowerCase().includes('unicef')
+      )
+      .map((partner) => partner.id)
+  }, [database])
 
   const programSummaries = useMemo(() => {
-    if (!prototypeReady || !database || !partnerRecord) {
+    if (!prototypeReady || !database || !partnerRecord || unicefPartnerIds.length === 0) {
       return []
     }
-    return buildProgramSummariesForPartner(database, partnerRecord.id, {
-      includeRelatedPrograms: true,
-    })
-  }, [prototypeReady, database, partnerRecord])
+
+    // Get ALL programs from ALL UNICEF partners (Denmark, England, etc.)
+    // This ensures we show all UNICEF programs regardless of which partner the user is logged in as
+    const allUnicefPrograms: typeof programSummaries = []
+
+    for (const unicefPartnerId of unicefPartnerIds) {
+      const partnerPrograms = buildProgramSummariesForPartner(database, unicefPartnerId, {
+        includeRelatedPrograms: false, // Only get directly owned programs
+      })
+      allUnicefPrograms.push(...partnerPrograms)
+    }
+
+    // Deduplicate by program ID
+    const uniquePrograms = Array.from(
+      new Map(allUnicefPrograms.map(summary => [summary.program.id, summary])).values()
+    )
+
+    return uniquePrograms
+  }, [prototypeReady, database, partnerRecord, unicefPartnerIds])
 
   const form = useForm<ResourceData>({
     resolver: zodResolver(resourceSchema),
