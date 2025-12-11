@@ -100,7 +100,7 @@ export default function PartnersPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-6 pb-32 overflow-hidden">
+      <section className="relative pt-14 pb-32 overflow-hidden">
         {/* Background Map */}
         <div className="absolute inset-0 z-0">
           <Image
