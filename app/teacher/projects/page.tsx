@@ -215,7 +215,7 @@ export default function TeacherProjectsPage() {
           ) : (
             <div className="grid gap-6 md:grid-cols-3">
               {visibleInProgress.map((item) => (
-                <ProjectCard key={item.project.id} item={item} />
+                <ProjectCard key={item.project.id} item={item} membershipIds={membershipIds} />
               ))}
             </div>
           )}
@@ -231,7 +231,7 @@ export default function TeacherProjectsPage() {
           ) : (
             <div className="grid gap-6 md:grid-cols-3">
               {visibleFinished.map((item) => (
-                <ProjectCard key={item.project.id} item={item} />
+                <ProjectCard key={item.project.id} item={item} membershipIds={membershipIds} />
               ))}
             </div>
           )}
@@ -280,12 +280,13 @@ export default function TeacherProjectsPage() {
   )
 }
 
-function ProjectCard({ item }: { item: DecoratedProject }) {
+function ProjectCard({ item, membershipIds }: { item: DecoratedProject; membershipIds: Set<string> }) {
   const { project, template, program, creator } = item
   const [isExpanded, setIsExpanded] = useState(false)
 
   const createdDate = new Date(project.createdAt)
   const hoursSinceCreated = Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60))
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const createdText =
     hoursSinceCreated < 24
       ? `Created ${hoursSinceCreated} hours ago`
@@ -294,8 +295,11 @@ function ProjectCard({ item }: { item: DecoratedProject }) {
   const teacher = creator?.teacher ?? null
   const institution = creator?.institution ?? null
 
-  const teacherName =
-    [teacher?.firstName, teacher?.lastName].filter(Boolean).join(' ') || 'Unknown teacher'
+  const isHost = teacher?.id ? membershipIds.has(teacher.id) : false
+  const teacherName = isHost
+    ? 'You (Host)'
+    : [teacher?.firstName, teacher?.lastName].filter(Boolean).join(' ') || 'Unknown teacher'
+
   const teacherInitials = computeInitials(teacher?.firstName, teacher?.lastName, teacherName)
   const { flag: countryFlag, name: countryName } = getCountryDisplay(institution?.country ?? '')
 
@@ -326,16 +330,39 @@ function ProjectCard({ item }: { item: DecoratedProject }) {
       )}
 
       {/* Content */}
+      {/* Content */}
       <CardContent className="flex flex-1 flex-col space-y-4 p-5">
-        {/* Starting Month Label */}
-        <p className="text-xs font-medium uppercase tracking-wide text-purple-600">
-          Starting Month: {startingMonthLabel}
-        </p>
 
-        {/* Title */}
-        <h3 className="text-lg font-semibold leading-tight text-gray-900">
-          {template?.title ?? project.projectId.replaceAll('-', ' ')}
-        </h3>
+        {/* Header Tags */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            {/* Active/Status Tag */}
+            <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 gap-1.5 px-2 py-1 font-medium rounded-md">
+              <div className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
+              Active
+            </Badge>
+
+            {/* Visibility Tag */}
+            <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 gap-1.5 px-2 py-1 font-medium rounded-md">
+              {program?.program.isPublic ? <Globe2 className="w-3 h-3" /> : <Users2 className="w-3 h-3" />}
+              {program?.program.isPublic ? 'Public' : 'Private'}
+            </Badge>
+          </div>
+
+          <span className="text-xs text-gray-400 font-medium">
+            {new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(createdDate)}
+          </span>
+        </div>
+
+        {/* Title & Host */}
+        <div className="space-y-1">
+          <h3 className="text-xl font-bold leading-tight text-gray-900">
+            {template?.title ?? project.projectId.replaceAll('-', ' ')}
+          </h3>
+          <p className="text-sm text-gray-500">
+            Hosted by <span className={cn("font-medium", isHost ? "text-gray-900" : "text-gray-900")}>{teacherName}</span>
+          </p>
+        </div>
 
         {/* Description */}
         <div className="text-sm text-gray-600">
@@ -555,11 +582,13 @@ function buildFallbackCatalogItem(summary: ProgramSummary): ProgramCatalogItem {
     brandColor: summary.program.brandColor,
     sdgFocus: summary.program.sdgFocus,
     startMonthLabel: undefined,
+    languages: [],
     metrics: {
       templates: summary.templates.length,
       activeProjects: summary.metrics.activeProjectCount,
       institutions: summary.metrics.institutionCount,
       countries: summary.metrics.countries.length,
+      students: summary.metrics.studentCount,
     },
     templates: summary.templates,
   }

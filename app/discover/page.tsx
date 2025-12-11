@@ -51,9 +51,9 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
   const { flag: countryFlag, name: countryName } = getCountryDisplay(project.teacherCountry)
 
   return (
-    <Card className="flex h-full flex-col overflow-hidden hover:shadow-lg transition-shadow">
+    <Card className="flex h-full flex-col overflow-hidden hover:shadow-lg transition-shadow border border-gray-100">
       {/* Hero Image */}
-      <div className="relative h-44 overflow-hidden">
+      <div className="relative h-48 overflow-hidden">
         <Image
           src={project.image}
           alt={project.title}
@@ -64,46 +64,46 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
       </div>
 
       {/* Content */}
-      <CardContent className="flex flex-1 flex-col p-5 space-y-4">
+      <CardContent className="flex flex-1 flex-col p-6 space-y-3">
         {/* Starting Month Label */}
-        <p className="text-xs font-medium text-purple-600 uppercase tracking-wide">
+        <p className="text-sm font-medium text-[#7F56D9]">
           Starting Month: {project.startMonth}
         </p>
 
         {/* Title */}
-        <h3 className="text-lg font-semibold text-gray-900 leading-tight">
+        <h3 className="text-xl font-bold text-gray-900 leading-snug">
           {project.title}
         </h3>
 
         {/* Description */}
-        <div className="text-sm text-gray-600">
-          <p className={cn(!isExpanded && 'line-clamp-2')}>
+        <div className="text-base text-gray-500 leading-relaxed">
+          <p className={cn(!isExpanded && 'line-clamp-3')}>
             {project.description}
           </p>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-purple-600 hover:text-purple-700 text-sm font-medium mt-1"
+            className="text-[#7F56D9] hover:text-[#6941C6] text-sm font-medium mt-1 underline decoration-2 underline-offset-2"
           >
             {isExpanded ? 'Read less' : 'Read more'}
           </button>
         </div>
 
         {/* Metadata Icons */}
-        <div className="space-y-2 text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <Globe2 className="h-4 w-4 text-gray-400" />
+        <div className="space-y-3 text-sm text-gray-500 mt-2">
+          <div className="flex items-center gap-2.5">
+            <Globe2 className="h-4 w-4" />
             <span>{project.projectType}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Users2 className="h-4 w-4 text-gray-400" />
+          <div className="flex items-center gap-2.5">
+            <Users2 className="h-4 w-4" />
             <span>{project.ageRange}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-gray-400" />
+          <div className="flex items-center gap-2.5">
+            <Clock className="h-4 w-4" />
             <span>{project.timezone}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Languages className="h-4 w-4 text-gray-400" />
+          <div className="flex items-center gap-2.5">
+            <Languages className="h-4 w-4" />
             <span>{project.language}</span>
           </div>
         </div>
@@ -112,29 +112,36 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
         <div className="flex-1" />
 
         {/* Created By Section */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center text-xs font-semibold text-white">
-              {project.teacherInitials}
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-3">
+            {/* Teacher Avatar - Using a placeholder image for demo */}
+            <div className="h-10 w-10 rounded-full overflow-hidden border border-gray-200">
+              <Image
+                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop"
+                alt={project.teacherName}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+              />
             </div>
-            <div className="text-xs">
-              <p className="font-medium text-gray-900">{project.teacherName}</p>
-              <Badge
-                variant="outline"
-                className="mt-1 flex items-center gap-1 border-purple-200 text-gray-600"
-              >
-                <span className="text-base leading-none">{countryFlag}</span>
-                <span>{countryName}</span>
-              </Badge>
-              <p className="mt-1 text-gray-500">{project.createdAt}</p>
+            <div className="flex flex-col">
+              <span className="text-xs text-gray-500 mb-0.5">Created by</span>
+              <p className="text-sm font-bold text-gray-900 leading-none mb-1.5">{project.teacherName}</p>
+
+              <div className="flex items-center gap-1.5 bg-gray-50 px-2 py-0.5 rounded-full w-fit">
+                <span className="text-sm shadow-sm">{countryFlag}</span>
+                <span className="text-xs font-medium text-purple-600">{countryName}</span>
+              </div>
+
+              <p className="text-xs text-gray-400 mt-1">{project.createdAt}</p>
             </div>
           </div>
-        </div>
 
-        {/* Action Button */}
-        <Button variant="outline" className="w-full border-purple-600 text-purple-600 hover:bg-purple-50">
-          Request to join
-        </Button>
+          {/* Action Button */}
+          <Button className="bg-[#7F56D9] hover:bg-[#6941C6] text-white px-6 font-medium shadow-sm">
+            Request to join
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )
@@ -199,7 +206,7 @@ const mockProjects = {
     category: "Education"
   })),
   community: Array(175).fill(null).map((_, i) => ({
-    id: i + 200, 
+    id: i + 200,
     title: `Community Project ${i + 1}`,
     description: "Sample community project description",
     participants: Math.floor(Math.random() * 100) + 20
@@ -224,7 +231,7 @@ export default function DiscoverPage() {
   ]
 
   const renderTabContent = () => {
-    switch(activeTab) {
+    switch (activeTab) {
       case 'collaboration':
         return (
           <div className="space-y-6">
@@ -254,7 +261,7 @@ export default function DiscoverPage() {
             </div>
           </div>
         )
-      
+
       case 'partners':
         return (
           <div className="space-y-6">
@@ -304,7 +311,7 @@ export default function DiscoverPage() {
             )}
           </div>
         )
-      
+
       case 'ideas':
         return (
           <div className="text-center py-12">
@@ -312,7 +319,7 @@ export default function DiscoverPage() {
             <p className="text-gray-400">We&apos;re working on curating amazing project ideas for you.</p>
           </div>
         )
-      
+
       case 'community':
         return (
           <div className="text-center py-12">
@@ -320,7 +327,7 @@ export default function DiscoverPage() {
             <p className="text-gray-400">Community-driven projects will be available here soon.</p>
           </div>
         )
-      
+
       default:
         return null
     }
@@ -335,15 +342,15 @@ export default function DiscoverPage() {
             {/* Left side - Logo and nav */}
             <div className="flex items-center gap-8">
               <Link href="/" className="flex items-center gap-3">
-                <Image 
-                  src="/isotipo.png" 
-                  alt="Class2Class Logo" 
-                  width={32} 
+                <Image
+                  src="/isotipo.png"
+                  alt="Class2Class Logo"
+                  width={32}
                   height={32}
                   className="w-8 h-8"
                 />
               </Link>
-              
+
               {/* Sidebar navigation */}
               <nav className="hidden md:flex items-center gap-6">
                 <Link href="/" className="flex items-center gap-2 text-gray-700 hover:text-purple-600">
@@ -440,18 +447,16 @@ export default function DiscoverPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
-                    ? 'border-purple-500 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
               >
                 {tab.label}
-                <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                  activeTab === tab.id 
-                    ? 'bg-purple-100 text-purple-600'
-                    : 'bg-gray-100 text-gray-500'
-                }`}>
+                <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${activeTab === tab.id
+                  ? 'bg-purple-100 text-purple-600'
+                  : 'bg-gray-100 text-gray-500'
+                  }`}>
                   {tab.count}
                 </span>
               </button>
