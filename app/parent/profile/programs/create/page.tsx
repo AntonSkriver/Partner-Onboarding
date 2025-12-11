@@ -32,7 +32,6 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, CheckCircle, Loader2, Sparkles } from 'lucide-react'
-import { resolvePartnerContext } from '@/lib/auth/partner-context'
 import { Badge } from '@/components/ui/badge'
 import { SDGIcon, SDG_DATA } from '@/components/sdg-icons'
 import {
@@ -42,8 +41,8 @@ import {
   STATUS_VALUES,
   friendlyLabel,
   programSchema,
-} from '../shared'
-import type { ProgramFormValues } from '../shared'
+} from '@/app/partner/programs/shared'
+import type { ProgramFormValues } from '@/app/partner/programs/shared'
 
 const CRC_CATEGORIES = [
   {
@@ -154,27 +153,23 @@ export default function CreateProgramPage() {
 
   useEffect(() => {
     if (!session) {
-      router.push('/partner/login')
+      router.push('/login')
       return
     }
 
-    if (session.role !== 'partner') {
-      router.push('/partner/login')
+    if (session.role !== 'parent') {
+      router.push('/login')
     }
   }, [session, router])
 
-  const { partnerId, partnerRecord, partnerUser } = useMemo(
-    () => resolvePartnerContext(session, database ?? null),
-    [database, session],
-  )
+  // For parent organizations, use a default parent organization ID
+  const parentId = session?.userId ? 'parent-unicef' : null
+  const partnerRecord = useMemo(() => {
+    if (!database || !parentId) return null
+    return database.partners.find((p) => p.id === parentId) ?? null
+  }, [database, parentId])
 
-  const fallbackPartnerUser = useMemo(() => {
-    if (!database || !partnerId) return null
-    return database.partnerUsers.find((user) => user.partnerId === partnerId) ?? null
-  }, [database, partnerId])
-
-  const createdById =
-    partnerUser?.id ?? fallbackPartnerUser?.id ?? 'partner-user-prototype-system'
+  const createdById = session?.userId ?? 'parent-user-system'
 
   const form = useForm<ProgramFormValues>({
     resolver: zodResolver(programSchema),
@@ -219,8 +214,8 @@ export default function CreateProgramPage() {
   }
 
   const handleSubmit = async (values: ProgramFormValues) => {
-    if (!partnerId) {
-      setFormError('Unable to resolve your partner organisation. Please try signing in again.')
+    if (!parentId) {
+      setFormError('Unable to resolve your parent organisation. Please try signing in again.')
       return
     }
 
@@ -232,7 +227,7 @@ export default function CreateProgramPage() {
       const hostName = partnerRecord?.organizationName ?? 'Program Host'
       const displayTitle = `${hostName}: ${values.name}`
       const programRecord = createRecord('programs', {
-        partnerId,
+        partnerId: parentId,
         displayTitle,
         name: values.name,
         description: values.description,
@@ -256,7 +251,7 @@ export default function CreateProgramPage() {
 
       createRecord('programPartners', {
         programId: programRecord.id,
-        partnerId,
+        partnerId: parentId,
         role: 'host',
         permissions: {
           canEditProgram: true,
@@ -316,9 +311,9 @@ export default function CreateProgramPage() {
             <Button variant="outline" onClick={() => setCreatedProgram(null)}>
               Create another program
             </Button>
-            <Link href="/partner/dashboard" className="w-full sm:w-auto">
+            <Link href="/parent/profile/programs" className="w-full sm:w-auto">
               <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                Go to Dashboard
+                Go to Programs
               </Button>
             </Link>
           </CardFooter>

@@ -125,7 +125,7 @@ export default function ParentProgramsPage() {
             </p>
           </div>
           <Button className="bg-purple-600 hover:bg-purple-700" asChild>
-            <Link href="/partner/programs/create">
+            <Link href="/parent/profile/programs/create">
               <Plus className="mr-2 h-4 w-4" />
               Create Program
             </Link>
@@ -162,7 +162,7 @@ export default function ParentProgramsPage() {
               Create your first program to start collaborating with schools worldwide.
             </p>
             <Button className="bg-purple-600 hover:bg-purple-700" asChild>
-              <Link href="/partner/programs/create">
+              <Link href="/parent/profile/programs/create">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Program
               </Link>

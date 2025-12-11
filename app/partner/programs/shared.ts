@@ -64,13 +64,9 @@ export const programSchema = z
     name: z.string().min(3, 'Program name must be at least 3 characters long'),
     description: z.string().min(60, 'Provide a short description (minimum 60 characters)'),
     learningGoals: z.string().min(40, 'Outline the learning goals (minimum 40 characters)'),
-    pedagogicalFramework: z
-      .array(z.enum(PEDAGOGICAL_FRAMEWORK_VALUES))
-      .min(1, 'Select at least one pedagogical framework'),
     targetAgeRanges: z.array(z.enum(AGE_RANGE_VALUES)).min(1, 'Select at least one age range'),
-    countriesInScope: z.array(z.string()).min(1, 'Select at least one country'),
     sdgFocus: z.array(z.number()).min(1, 'Choose at least one SDG focus area'),
-    crcFocus: z.array(z.string()).optional(),
+    crcFocus: z.array(z.string()).min(1, 'Choose at least one CRC article'),
     startDate: z.string().min(1, 'Start date is required'),
     endDate: z.string().min(1, 'End date is required'),
     status: z.enum(STATUS_VALUES),
