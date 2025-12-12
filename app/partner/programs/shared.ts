@@ -14,6 +14,14 @@ export const PROGRAM_TYPE_VALUES = [
   'other',
 ] as const
 
+export const COLLABORATION_TYPE_VALUES = [
+  'explore_global_challenges',
+  'cultural_exchange',
+  'create_solutions',
+] as const
+
+export const PROGRAM_LANGUAGE_OPTIONS = ['en', 'da'] as const
+
 export const PEDAGOGICAL_FRAMEWORK_VALUES = [
   'coil',
   'pbl',
@@ -64,7 +72,11 @@ export const programSchema = z
     name: z.string().min(3, 'Program name must be at least 3 characters long'),
     description: z.string().min(60, 'Provide a short description (minimum 60 characters)'),
     learningGoals: z.string().min(40, 'Outline the learning goals (minimum 40 characters)'),
+    collaborationType: z.enum(COLLABORATION_TYPE_VALUES, {
+      required_error: 'Select a collaboration type',
+    }),
     targetAgeRanges: z.array(z.enum(AGE_RANGE_VALUES)).min(1, 'Select at least one age range'),
+    languages: z.array(z.enum(PROGRAM_LANGUAGE_OPTIONS)).min(1, 'Select at least one language'),
     sdgFocus: z.array(z.number()).min(1, 'Choose at least one SDG focus area'),
     crcFocus: z.array(z.string()).min(1, 'Choose at least one CRC article'),
     startDate: z.string().min(1, 'Start date is required'),

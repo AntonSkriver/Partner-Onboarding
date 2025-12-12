@@ -146,7 +146,7 @@ export default function ParentProgramsPage() {
                     <Link href={`/partner/programs/${item.programId}`}>View Details</Link>
                   </Button>
                   <Button className="w-full bg-purple-600 hover:bg-purple-700" asChild>
-                    <Link href={`/partner/programs/${item.programId}/edit`}>Edit Program</Link>
+                    <Link href={`/parent/profile/programs/${item.programId}/edit`}>Edit Program</Link>
                   </Button>
                 </>
               }

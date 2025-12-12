@@ -17,6 +17,7 @@ export interface Program {
   pedagogicalFramework: PedagogicalFramework[];
   learningGoals: string;
   targetAgeRanges: AgeRange[];
+  languages?: string[]; // ISO language codes (e.g., en, da)
   countriesInScope: string[]; // ISO country codes
   sdgFocus: number[]; // UN SDG numbers (1-17)
   crcFocus?: string[]; // UN CRC articles

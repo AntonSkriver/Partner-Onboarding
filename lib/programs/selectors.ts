@@ -77,6 +77,8 @@ export interface ProgramCatalogItem {
   logo?: string
   brandColor?: string
   sdgFocus: number[]
+  projectTypes?: Program['projectTypes']
+  targetAgeRanges?: Program['targetAgeRanges']
   startMonthLabel?: string
   languages: string[]
   metrics: {
@@ -425,8 +427,10 @@ export const buildProgramCatalog = (
       logo: program.logo,
       brandColor: program.brandColor,
       sdgFocus: program.sdgFocus,
+      projectTypes: program.projectTypes,
+      targetAgeRanges: program.targetAgeRanges,
       startMonthLabel,
-      languages,
+      languages: program.languages && program.languages.length > 0 ? program.languages : languages,
       metrics: {
         templates: summary.metrics.templateCount,
         activeProjects: summary.metrics.activeProjectCount,

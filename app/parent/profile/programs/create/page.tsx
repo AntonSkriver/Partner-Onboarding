@@ -44,6 +44,29 @@ import {
 } from '@/app/partner/programs/shared'
 import type { ProgramFormValues } from '@/app/partner/programs/shared'
 
+const COLLABORATION_THEMES = [
+  {
+    value: 'explore_global_challenges',
+    title: 'Explore Global Challenges',
+    description: 'Investigate world issues together and share perspectives.',
+  },
+  {
+    value: 'cultural_exchange',
+    title: 'Explore Cultures',
+    description: 'Swap traditions, identities, and everyday experiences.',
+  },
+  {
+    value: 'create_solutions',
+    title: 'Explore Solutions',
+    description: 'Co-design ideas and prototypes to solve real problems.',
+  },
+] as const
+
+const LANGUAGE_CHOICES = [
+  { value: 'en', label: 'English' },
+  { value: 'da', label: 'Danish' },
+] as const
+
 const CRC_CATEGORIES = [
   {
     id: 'general-principles',
@@ -143,6 +166,7 @@ export default function CreateProgramPage() {
   const [formError, setFormError] = useState<string | null>(null)
   const [selectedSDGs, setSelectedSDGs] = useState<number[]>([])
   const [selectedCRCs, setSelectedCRCs] = useState<string[]>([])
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['en'])
   const [activeCRCCategory, setActiveCRCCategory] = useState('general-principles')
 
   const { ready: dataReady, database, createRecord } = usePrototypeDb()
@@ -177,7 +201,9 @@ export default function CreateProgramPage() {
       name: '',
       description: '',
       learningGoals: '',
+      collaborationType: 'explore_global_challenges',
       targetAgeRanges: [],
+      languages: ['en'],
       sdgFocus: [],
       crcFocus: [],
       startDate: '',
@@ -213,6 +239,15 @@ export default function CreateProgramPage() {
     form.setValue('crcFocus', newSelection)
   }
 
+  const handleLanguageToggle = (code: string) => {
+    const newSelection = selectedLanguages.includes(code)
+      ? selectedLanguages.filter((lang) => lang !== code)
+      : [...selectedLanguages, code]
+
+    setSelectedLanguages(newSelection)
+    form.setValue('languages', newSelection)
+  }
+
   const handleSubmit = async (values: ProgramFormValues) => {
     if (!parentId) {
       setFormError('Unable to resolve your parent organisation. Please try signing in again.')
@@ -231,7 +266,7 @@ export default function CreateProgramPage() {
         displayTitle,
         name: values.name,
         description: values.description,
-        projectTypes: [],
+        languages: values.languages,
         pedagogicalFramework: [],
         learningGoals: values.learningGoals,
         targetAgeRanges: values.targetAgeRanges,
@@ -247,6 +282,7 @@ export default function CreateProgramPage() {
         createdBy: createdById,
         createdAt: now,
         updatedAt: now,
+        projectTypes: [values.collaborationType],
       })
 
       createRecord('programPartners', {
@@ -415,6 +451,40 @@ export default function CreateProgramPage() {
                   )}
                 />
 
+                <FormField
+                  control={form.control}
+                  name="collaborationType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Collaboration theme</FormLabel>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Choose the headline teachers and schools will see on the program card.
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {COLLABORATION_THEMES.map((theme) => {
+                          const isActive = field.value === theme.value
+                          return (
+                            <button
+                              type="button"
+                              key={theme.value}
+                              onClick={() => field.onChange(theme.value)}
+                              className={`w-full text-left rounded-lg border p-3 transition-all ${
+                                isActive
+                                  ? 'border-purple-500 bg-purple-50 shadow-sm'
+                                  : 'border-gray-200 hover:border-purple-300'
+                              }`}
+                            >
+                              <p className="text-sm font-semibold text-gray-900">{theme.title}</p>
+                              <p className="text-xs text-gray-600 mt-1">{theme.description}</p>
+                            </button>
+                          )
+                        })}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <div className="grid gap-6 md:grid-cols-2">
                   <FormField
                     control={form.control}
@@ -507,6 +577,35 @@ export default function CreateProgramPage() {
                               }
                             >
                               {value.replace('-', '–')}
+                            </Badge>
+                          )
+                        })}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="languages"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Program languages</FormLabel>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Which languages will you use to collaborate?
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {LANGUAGE_CHOICES.map((language) => {
+                          const isActive = field.value?.includes(language.value)
+                          return (
+                            <Badge
+                              key={language.value}
+                              variant={isActive ? 'default' : 'outline'}
+                              className="cursor-pointer"
+                              onClick={() => handleLanguageToggle(language.value)}
+                            >
+                              {language.label}
                             </Badge>
                           )
                         })}

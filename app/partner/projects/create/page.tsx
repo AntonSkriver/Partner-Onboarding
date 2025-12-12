@@ -27,6 +27,7 @@ const projectSchema = z.object({
   description: z.string().min(50, 'Description is required (minimum 50 characters)'),
   objectives: z.string().min(30, 'Learning objectives are required (minimum 30 characters)'),
   projectType: z.enum(['hosted', 'template']),
+  collaborationTheme: z.enum(['explore_global', 'explore_cultures', 'explore_solutions']),
   targetAudience: z.enum(['primary', 'secondary', 'both']),
   sdgAlignment: z.array(z.string()).min(1, 'Select at least one SDG'),
   maxSchools: z.number().min(2).max(20).optional(),
@@ -63,6 +64,24 @@ const languages = [
   'English', 'Danish', 'Swedish', 'Norwegian', 'German', 'French', 'Spanish', 'Italian', 'Dutch'
 ]
 
+const collaborationThemes = [
+  {
+    value: 'explore_global',
+    title: 'Explore Global',
+    description: 'Investigate world challenges together.',
+  },
+  {
+    value: 'explore_cultures',
+    title: 'Explore Cultures',
+    description: 'Share identities, traditions, and lived experiences.',
+  },
+  {
+    value: 'explore_solutions',
+    title: 'Explore Solutions',
+    description: 'Design and test ideas to solve real problems.',
+  },
+] as const
+
 const durations = [
   '1 week', '2 weeks', '1 month', '6 weeks', '2 months', '3 months', '6 months', '1 year'
 ]
@@ -81,6 +100,7 @@ export default function CreateProjectPage() {
       description: '',
       objectives: '',
       projectType: 'hosted',
+      collaborationTheme: 'explore_global',
       targetAudience: 'both',
       sdgAlignment: [],
       maxSchools: 5,
@@ -344,6 +364,40 @@ export default function CreateProjectPage() {
                           {...field}
                         />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="collaborationTheme"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Collaboration Theme *</FormLabel>
+                      <p className="text-sm text-gray-600 mb-3">
+                        This label appears on project cards (e.g. Explore Cultures or Explore Solutions).
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {collaborationThemes.map((theme) => {
+                          const isActive = field.value === theme.value
+                          return (
+                            <button
+                              type="button"
+                              key={theme.value}
+                              onClick={() => field.onChange(theme.value)}
+                              className={`w-full text-left rounded-lg border p-3 transition-all ${
+                                isActive
+                                  ? 'border-purple-500 bg-purple-50 shadow-sm'
+                                  : 'border-gray-200 hover:border-purple-300'
+                              }`}
+                            >
+                              <p className="text-sm font-semibold text-gray-900">{theme.title}</p>
+                              <p className="text-xs text-gray-600 mt-1">{theme.description}</p>
+                            </button>
+                          )
+                        })}
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}

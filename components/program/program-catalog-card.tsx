@@ -56,16 +56,34 @@ export function ProgramCatalogCard({
   const [isExpanded, setIsExpanded] = useState(false)
   const hostName = item.hostPartner?.organizationName ?? 'Class2Class.org'
   const hostLogo = item.hostPartner?.logo
-   const supportingName = item.supportingPartner?.organizationName
-   const supportingLogo = item.supportingPartner?.logo
+  const supportingName = item.supportingPartner?.organizationName
+  const supportingLogo = item.supportingPartner?.logo
   const location =
     item.hostPartner?.headquartersCity || item.hostPartner?.country || 'Copenhagen'
 
-  // Get first pedagogical framework or project type as category
-  const category = 'Sustainability and Global Action' // Default category
+  const collaborationLabels: Record<string, string> = {
+    explore_global_challenges: 'Explore Global Challenges',
+    cultural_exchange: 'Explore Cultures',
+    create_solutions: 'Explore Solutions',
+  }
 
-  // Format age ranges
-  const ageRange = item.metrics?.institutions ? 'Ages 6 - 13 years' : 'All ages'
+  const category =
+    item.projectTypes && item.projectTypes.length > 0
+      ? collaborationLabels[item.projectTypes[0]] ?? 'Explore Global Challenges'
+      : 'Explore Global Challenges'
+
+  const formatAgeRange = (range?: string): string => {
+    if (!range) return 'All ages'
+    if (range === '18+') return 'Ages 18+'
+    const [start, end] = range.split('-')
+    if (!end) return `Ages ${start}`
+    return `Ages ${start} - ${end} years`
+  }
+
+  const ageRange =
+    item.targetAgeRanges && item.targetAgeRanges.length > 0
+      ? formatAgeRange(item.targetAgeRanges[0])
+      : 'All ages'
 
   // Format languages
   const languageNames: Record<string, string> = {
@@ -79,7 +97,7 @@ export function ProgramCatalogCard({
   const languages =
     item.languages && item.languages.length > 0
       ? item.languages
-          .map((code) => languageNames[code] ?? code.toUpperCase())
+          .map((code) => languageNames[code.toLowerCase()] ?? code.toUpperCase())
           .filter(Boolean)
           .join(', ')
       : 'English'

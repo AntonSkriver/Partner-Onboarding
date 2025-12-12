@@ -2,13 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import Image from 'next/image'
+import { ArrowLeft, CheckCircle, Loader2, Sparkles } from 'lucide-react'
+
 import { getCurrentSession } from '@/lib/auth/session'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import type { Program } from '@/lib/types/program'
-import Image from 'next/image'
 import {
   Card,
   CardContent,
@@ -21,7 +23,6 @@ import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
 import {
   Select,
@@ -31,59 +32,57 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, CheckCircle, Loader2, Sparkles } from 'lucide-react'
-import { resolvePartnerContext } from '@/lib/auth/partner-context'
 import { Badge } from '@/components/ui/badge'
 import { SDGIcon, SDG_DATA } from '@/components/sdg-icons'
 import {
   AGE_RANGE_VALUES,
-  COUNTRY_OPTIONS,
-  SDG_OPTIONS,
-  STATUS_VALUES,
   COLLABORATION_TYPE_VALUES,
   PROGRAM_LANGUAGE_OPTIONS,
+  SDG_OPTIONS,
+  STATUS_VALUES,
   friendlyLabel,
   programSchema,
-} from '../shared'
-import type { ProgramFormValues } from '../shared'
+} from '@/app/partner/programs/shared'
+import type { ProgramFormValues } from '@/app/partner/programs/shared'
+import { findProgramSummaryById } from '@/lib/programs/selectors'
 
 const CRC_CATEGORIES = [
   {
     id: 'general-principles',
     label: 'General Principles',
     description: 'Core principles of the Convention',
-    articles: ['1', '2', '3', '4']
+    articles: ['1', '2', '3', '4'],
   },
   {
     id: 'civil-rights',
     label: 'Civil Rights & Freedoms',
     description: 'Identity, expression, and participation',
-    articles: ['7', '8', '12', '13', '14', '15', '16', '17']
+    articles: ['7', '8', '12', '13', '14', '15', '16', '17'],
   },
   {
     id: 'family-care',
     label: 'Family & Care',
     description: 'Family environment and protection',
-    articles: ['5', '9', '10', '11', '18', '19', '20', '21', '25']
+    articles: ['5', '9', '10', '11', '18', '19', '20', '21', '25'],
   },
   {
     id: 'health-welfare',
     label: 'Health & Welfare',
     description: 'Health, disability, and standard of living',
-    articles: ['6', '23', '24', '26', '27']
+    articles: ['6', '23', '24', '26', '27'],
   },
   {
     id: 'education-culture',
     label: 'Education & Culture',
     description: 'Education, leisure, and cultural activities',
-    articles: ['28', '29', '30', '31']
+    articles: ['28', '29', '30', '31'],
   },
   {
     id: 'special-protection',
     label: 'Special Protection',
     description: 'Protection from exploitation and abuse',
-    articles: ['22', '32', '33', '34', '35', '36', '37', '38', '39', '40']
-  }
+    articles: ['22', '32', '33', '34', '35', '36', '37', '38', '39', '40'],
+  },
 ]
 
 const crcOptions = [
@@ -129,19 +128,36 @@ const crcOptions = [
   { id: '40', title: 'Juvenile justice', description: 'Fair treatment in justice system' },
 ]
 
-const ProgramCreationSkeleton = () => (
+const ProgramEditSkeleton = () => (
   <div className="min-h-screen bg-gray-50 flex items-center justify-center">
     <div className="flex flex-col items-center gap-4 text-gray-600">
       <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
-      <span>Loading partner data…</span>
+      <span>Loading program data…</span>
     </div>
   </div>
 )
 
-export default function CreateProgramPage() {
+const toFormValues = (program: Program): ProgramFormValues => ({
+  name: program.name,
+  description: program.description,
+  learningGoals: program.learningGoals,
+  collaborationType: program.projectTypes?.[0] ?? COLLABORATION_TYPE_VALUES[0],
+  targetAgeRanges: program.targetAgeRanges ?? [],
+  languages: program.languages && program.languages.length > 0 ? program.languages : ['en'],
+  sdgFocus: program.sdgFocus ?? [],
+  crcFocus: program.crcFocus ?? [],
+  startDate: program.startDate,
+  endDate: program.endDate,
+  status: program.status,
+  isPublic: program.isPublic,
+  programUrl: program.programUrl ?? '',
+})
+
+export default function ParentEditProgramPage() {
   const router = useRouter()
+  const params = useParams<{ programId: string }>()
   const [session, setSession] = useState(() => getCurrentSession())
-  const [createdProgram, setCreatedProgram] = useState<Program | null>(null)
+  const [updatedProgram, setUpdatedProgram] = useState<Program | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [selectedSDGs, setSelectedSDGs] = useState<number[]>([])
@@ -149,7 +165,7 @@ export default function CreateProgramPage() {
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['en'])
   const [activeCRCCategory, setActiveCRCCategory] = useState('general-principles')
 
-  const { ready: dataReady, database, createRecord } = usePrototypeDb()
+  const { ready: dataReady, database, updateRecord } = usePrototypeDb()
 
   useEffect(() => {
     setSession(getCurrentSession())
@@ -157,46 +173,57 @@ export default function CreateProgramPage() {
 
   useEffect(() => {
     if (!session) {
-      router.push('/partner/login')
+      router.push('/login')
       return
     }
 
-    if (session.role !== 'partner') {
-      router.push('/partner/login')
+    if (session.role !== 'parent') {
+      router.push('/login')
     }
   }, [session, router])
 
-  const { partnerId, partnerRecord, partnerUser } = useMemo(
-    () => resolvePartnerContext(session, database ?? null),
-    [database, session],
-  )
+  const programSummary = useMemo(() => {
+    if (!database || !params?.programId) return null
+    return findProgramSummaryById(database, params.programId)
+  }, [database, params?.programId])
 
-  const fallbackPartnerUser = useMemo(() => {
-    if (!database || !partnerId) return null
-    return database.partnerUsers.find((user) => user.partnerId === partnerId) ?? null
-  }, [database, partnerId])
+  const program = programSummary?.program ?? null
 
-  const createdById =
-    partnerUser?.id ?? fallbackPartnerUser?.id ?? 'partner-user-prototype-system'
+  const hostPartner = useMemo(() => {
+    if (!database || !program) return null
+    return database.partners.find((p) => p.id === program.partnerId) ?? null
+  }, [database, program])
 
   const form = useForm<ProgramFormValues>({
     resolver: zodResolver(programSchema),
-    defaultValues: {
-      name: '',
-      description: '',
-      learningGoals: '',
-      collaborationType: 'explore_global_challenges',
-      targetAgeRanges: [],
-      languages: ['en'],
-      sdgFocus: [],
-      crcFocus: [],
-      startDate: '',
-      endDate: '',
-      status: 'draft',
-      isPublic: true,
-      programUrl: '',
-    },
+    defaultValues: program
+      ? toFormValues(program)
+      : {
+          name: '',
+          description: '',
+          learningGoals: '',
+          collaborationType: 'explore_global_challenges',
+          targetAgeRanges: [],
+          languages: ['en'],
+          sdgFocus: [],
+          crcFocus: [],
+          startDate: '',
+          endDate: '',
+          status: 'draft',
+          isPublic: true,
+          programUrl: '',
+        },
   })
+
+  useEffect(() => {
+    if (program) {
+      const values = toFormValues(program)
+      form.reset(values)
+      setSelectedSDGs(values.sdgFocus ?? [])
+      setSelectedCRCs(values.crcFocus ?? [])
+      setSelectedLanguages(values.languages ?? ['en'])
+    }
+  }, [program, form])
 
   const toggleValue = <T,>(value: T, current: T[], onChange: (next: T[]) => void) => {
     const next = current.includes(value)
@@ -207,7 +234,7 @@ export default function CreateProgramPage() {
 
   const handleSDGToggle = (sdgId: number) => {
     const newSelection = selectedSDGs.includes(sdgId)
-      ? selectedSDGs.filter(id => id !== sdgId)
+      ? selectedSDGs.filter((id) => id !== sdgId)
       : [...selectedSDGs, sdgId]
 
     setSelectedSDGs(newSelection)
@@ -216,7 +243,7 @@ export default function CreateProgramPage() {
 
   const handleCRCToggle = (crcId: string) => {
     const newSelection = selectedCRCs.includes(crcId)
-      ? selectedCRCs.filter(id => id !== crcId)
+      ? selectedCRCs.filter((id) => id !== crcId)
       : [...selectedCRCs, crcId]
 
     setSelectedCRCs(newSelection)
@@ -233,8 +260,8 @@ export default function CreateProgramPage() {
   }
 
   const handleSubmit = async (values: ProgramFormValues) => {
-    if (!partnerId) {
-      setFormError('Unable to resolve your partner organisation. Please try signing in again.')
+    if (!program) {
+      setFormError('Program data was not found. Please return to the program list and try again.')
       return
     }
 
@@ -243,65 +270,65 @@ export default function CreateProgramPage() {
 
     try {
       const now = new Date().toISOString()
-      const hostName = partnerRecord?.organizationName ?? 'Program Host'
-      const displayTitle = `${hostName}: ${values.name}`
-      const programRecord = createRecord('programs', {
-        partnerId,
-        displayTitle,
+      const hostName = hostPartner?.organizationName ?? 'Program Host'
+      const displayTitle = program.displayTitle || `${hostName}: ${values.name}`
+
+      const updated = updateRecord('programs', program.id, {
         name: values.name,
         description: values.description,
-        projectTypes: [values.collaborationType],
-        languages: values.languages,
-        pedagogicalFramework: [],
         learningGoals: values.learningGoals,
         targetAgeRanges: values.targetAgeRanges,
-        countriesInScope: [],
         sdgFocus: values.sdgFocus,
         crcFocus: values.crcFocus ?? [],
         startDate: values.startDate,
         endDate: values.endDate,
-        programUrl: values.programUrl || undefined,
-        brandColor: partnerRecord?.brandColor ?? '#7F56D9',
         status: values.status,
         isPublic: values.isPublic,
-        createdBy: createdById,
-        createdAt: now,
+        programUrl: values.programUrl || undefined,
+        projectTypes: [values.collaborationType],
+        languages: values.languages,
+        displayTitle,
         updatedAt: now,
       })
 
-      createRecord('programPartners', {
-        programId: programRecord.id,
-        partnerId,
-        role: 'host',
-        permissions: {
-          canEditProgram: true,
-          canInviteCoordinators: true,
-          canViewAllData: true,
-          canManageProjects: true,
-          canRemoveParticipants: true,
-        },
-        invitedBy: createdById,
-        invitedAt: now,
-        status: 'accepted',
-        acceptedAt: now,
-        createdAt: now,
-        updatedAt: now,
-      })
+      if (!updated) {
+        throw new Error('Program not found in storage')
+      }
 
-      setCreatedProgram(programRecord)
+      setUpdatedProgram(updated)
     } catch (error) {
-      console.error('Failed to create program', error)
-      setFormError('We were unable to create the program. Please try again.')
+      console.error('Failed to update program', error)
+      setFormError('We were unable to save the changes. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  if (!dataReady || !session) {
-    return <ProgramCreationSkeleton />
+  if (!session || !dataReady) {
+    return <ProgramEditSkeleton />
   }
 
-  if (createdProgram) {
+  if (!program) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <Card className="max-w-lg w-full text-center space-y-4">
+          <CardHeader>
+            <CardTitle className="text-2xl">Program not found</CardTitle>
+            <CardDescription>
+              We couldn&apos;t locate this program in the prototype store. It may have been deleted.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="justify-center">
+            <Link href="/parent/profile/programs">
+              <Button variant="outline">Back to programs</Button>
+            </Link>
+          </CardFooter>
+        </Card>
+      </div>
+    )
+  }
+
+  if (updatedProgram) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="max-w-xl w-full">
@@ -311,29 +338,31 @@ export default function CreateProgramPage() {
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
             </div>
-            <CardTitle className="text-2xl">Program Created</CardTitle>
+            <CardTitle className="text-2xl">Program updated</CardTitle>
             <CardDescription>
-              {createdProgram.name} is now available in your partner dashboard. Invite co-partners
-              and coordinators to begin onboarding.
+              {updatedProgram.name} has been saved. Stakeholders will see the latest configuration
+              when they review the prototype dashboards.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-lg border border-purple-100 bg-purple-50 p-4">
               <h3 className="font-medium text-purple-900">Next steps</h3>
               <ul className="mt-2 text-sm text-purple-800 space-y-1 list-disc list-inside">
-                <li>Review the program overview from your dashboard</li>
-                <li>Invite co-partners and country coordinators</li>
-                <li>Connect participating institutions and teachers</li>
+                <li>Review the updated overview page</li>
+                <li>Invite co-partners and coordinators</li>
+                <li>Test downstream flows with the latest data</li>
               </ul>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-            <Button variant="outline" onClick={() => setCreatedProgram(null)}>
-              Create another program
-            </Button>
-            <Link href="/partner/dashboard" className="w-full sm:w-auto">
+            <Link href={`/parent/profile/programs/${program.id}/edit`} className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full">
+                Keep editing
+              </Button>
+            </Link>
+            <Link href="/parent/profile/programs" className="w-full sm:w-auto">
               <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                Go to Dashboard
+                Back to programs
               </Button>
             </Link>
           </CardFooter>
@@ -351,11 +380,10 @@ export default function CreateProgramPage() {
               <Sparkles className="h-4 w-4" />
               <span>Program Builder</span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Create a New Program</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Edit Program</h1>
             <p className="text-gray-600 mt-2 max-w-3xl">
-              Design a collaboration that aligns with your mission. We&apos;ll add it to the
-              prototype database so the dashboard and upcoming flows can reference the same local
-              data.
+              Update the configuration for your program. Changes are saved to the prototype
+              localStorage store so dashboards and invitation flows stay aligned.
             </p>
           </div>
           <Button
@@ -378,7 +406,7 @@ export default function CreateProgramPage() {
           <CardHeader>
             <CardTitle>Program Overview</CardTitle>
             <CardDescription>
-              Share the core details partners and institutions need to understand your learning
+              Update the key details partners and institutions use to understand your learning
               initiative.
             </CardDescription>
           </CardHeader>
@@ -515,10 +543,7 @@ export default function CreateProgramPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Status</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select status" />
@@ -544,7 +569,10 @@ export default function CreateProgramPage() {
                       <FormItem>
                         <FormLabel>Program website (optional)</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://example.org/program/climate-changemakers" {...field} />
+                          <Input
+                            placeholder="https://example.org/program/climate-changemakers"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -566,9 +594,7 @@ export default function CreateProgramPage() {
                               key={value}
                               variant={isActive ? 'default' : 'outline'}
                               className="cursor-pointer"
-                              onClick={() =>
-                                toggleValue(value, field.value ?? [], field.onChange)
-                              }
+                              onClick={() => toggleValue(value, field.value ?? [], field.onChange)}
                             >
                               {value.replace('-', '–')}
                             </Badge>
@@ -619,7 +645,9 @@ export default function CreateProgramPage() {
                   render={() => (
                     <FormItem>
                       <FormLabel>SDG Alignment *</FormLabel>
-                      <p className="text-sm text-gray-600 mb-3">Which UN Sustainable Development Goals does this program support?</p>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Which UN Sustainable Development Goals does this program support?
+                      </p>
                       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                         {SDG_OPTIONS.map((sdg) => {
                           const isSelected = selectedSDGs.includes(sdg.value)
@@ -632,11 +660,13 @@ export default function CreateProgramPage() {
                               className="flex flex-col items-center cursor-pointer group"
                               onClick={() => handleSDGToggle(sdg.value)}
                             >
-                              <div className={`relative transition-all ${
-                                isSelected
-                                  ? 'ring-4 ring-purple-500 ring-offset-2 rounded-lg shadow-lg scale-105'
-                                  : 'opacity-70 hover:opacity-100 hover:scale-105'
-                              }`}>
+                              <div
+                                className={`relative transition-all ${
+                                  isSelected
+                                    ? 'ring-4 ring-purple-500 ring-offset-2 rounded-lg shadow-lg scale-105'
+                                    : 'opacity-70 hover:opacity-100 hover:scale-105'
+                                }`}
+                              >
                                 <SDGIcon
                                   number={sdgNumber}
                                   size="md"
@@ -653,9 +683,11 @@ export default function CreateProgramPage() {
                       </div>
                       {selectedSDGs.length > 0 && (
                         <div className="mt-4 space-y-2">
-                          <p className="text-sm font-medium text-gray-700">Selected SDGs ({selectedSDGs.length}):</p>
+                          <p className="text-sm font-medium text-gray-700">
+                            Selected SDGs ({selectedSDGs.length}):
+                          </p>
                           <div className="flex flex-wrap gap-2">
-                            {selectedSDGs.map(sdgId => {
+                            {selectedSDGs.map((sdgId) => {
                               const sdgData = SDG_DATA[sdgId]
                               return sdgData ? (
                                 <Badge key={sdgId} variant="secondary" className="text-xs">
@@ -677,22 +709,25 @@ export default function CreateProgramPage() {
                   render={() => (
                     <FormItem>
                       <FormLabel>CRC Alignment *</FormLabel>
-                      <p className="text-sm text-gray-600 mb-3">Which UN Convention on the Rights of the Child articles does this program address?</p>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Which UN Convention on the Rights of the Child articles does this program
+                        address?
+                      </p>
                       <Tabs value={activeCRCCategory} onValueChange={setActiveCRCCategory}>
                         <TabsList className="grid grid-cols-3 lg:grid-cols-6 w-full mb-4">
-                          {CRC_CATEGORIES.map(category => (
+                          {CRC_CATEGORIES.map((category) => (
                             <TabsTrigger key={category.id} value={category.id} className="text-xs">
                               {category.label}
                             </TabsTrigger>
                           ))}
                         </TabsList>
 
-                        {CRC_CATEGORIES.map(category => (
+                        {CRC_CATEGORIES.map((category) => (
                           <TabsContent key={category.id} value={category.id} className="mt-4">
                             <p className="text-sm text-gray-600 mb-4">{category.description}</p>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                              {category.articles.map(articleId => {
-                                const crc = crcOptions.find(c => c.id === articleId)
+                              {category.articles.map((articleId) => {
+                                const crc = crcOptions.find((c) => c.id === articleId)
                                 const isSelected = selectedCRCs.includes(articleId)
                                 const iconPath = `/crc/icons/article-${articleId.padStart(2, '0')}.png`
 
@@ -702,11 +737,13 @@ export default function CreateProgramPage() {
                                     className="flex flex-col items-center cursor-pointer group"
                                     onClick={() => handleCRCToggle(articleId)}
                                   >
-                                    <div className={`relative w-16 h-16 mb-[22px] transition-all ${
-                                      isSelected
-                                        ? 'ring-4 ring-purple-500 ring-offset-2 rounded-lg shadow-lg scale-105'
-                                        : 'opacity-70 hover:opacity-100 hover:scale-105'
-                                    }`}>
+                                    <div
+                                      className={`relative w-16 h-16 mb-[22px] transition-all ${
+                                        isSelected
+                                          ? 'ring-4 ring-purple-500 ring-offset-2 rounded-lg shadow-lg scale-105'
+                                          : 'opacity-70 hover:opacity-100 hover:scale-105'
+                                      }`}
+                                    >
                                       <Image
                                         src={iconPath}
                                         alt={`CRC Article ${articleId}: ${crc?.title || ''}`}
@@ -732,8 +769,8 @@ export default function CreateProgramPage() {
                             Selected CRC Articles ({selectedCRCs.length}):
                           </p>
                           <div className="flex flex-wrap gap-2">
-                            {selectedCRCs.map(crcId => {
-                              const crc = crcOptions.find(c => c.id === crcId)
+                            {selectedCRCs.map((crcId) => {
+                              const crc = crcOptions.find((c) => c.id === crcId)
                               return crc ? (
                                 <Badge key={crcId} variant="secondary" className="text-xs">
                                   Article {crc.id}: {crc.title}
@@ -770,7 +807,7 @@ export default function CreateProgramPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => router.push('/partner/dashboard')}
+                    onClick={() => router.push('/parent/profile/programs')}
                   >
                     Cancel
                   </Button>
@@ -782,10 +819,10 @@ export default function CreateProgramPage() {
                     {isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving program…
+                        Saving changes…
                       </>
                     ) : (
-                      'Create program'
+                      'Save changes'
                     )}
                   </Button>
                 </div>

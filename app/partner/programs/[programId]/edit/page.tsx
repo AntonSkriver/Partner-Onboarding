@@ -43,6 +43,8 @@ import {
   CRC_ARTICLE_OPTIONS,
   SDG_OPTIONS,
   STATUS_VALUES,
+  COLLABORATION_TYPE_VALUES,
+  PROGRAM_LANGUAGE_OPTIONS,
   friendlyLabel,
   programSchema,
 } from '../../shared'
@@ -62,8 +64,10 @@ const toFormValues = (program: Program): ProgramFormValues => ({
   name: program.name,
   description: program.description,
   learningGoals: program.learningGoals,
+  collaborationType: program.projectTypes?.[0] ?? COLLABORATION_TYPE_VALUES[0],
   pedagogicalFramework: program.pedagogicalFramework,
   targetAgeRanges: program.targetAgeRanges,
+  languages: program.languages && program.languages.length > 0 ? program.languages : ['en'],
   countriesInScope: program.countriesInScope,
   sdgFocus: program.sdgFocus,
   crcFocus: program.crcFocus ?? [],
@@ -117,8 +121,10 @@ export default function EditProgramPage() {
       name: '',
       description: '',
       learningGoals: '',
+      collaborationType: 'explore_global_challenges',
       pedagogicalFramework: [],
       targetAgeRanges: [],
+      languages: ['en'],
       countriesInScope: [],
       sdgFocus: [],
       crcFocus: [],
@@ -168,6 +174,8 @@ export default function EditProgramPage() {
         status: values.status,
         isPublic: values.isPublic,
         programUrl: values.programUrl || undefined,
+        projectTypes: [values.collaborationType],
+        languages: values.languages,
         updatedAt: now,
       })
 
@@ -343,6 +351,50 @@ export default function EditProgramPage() {
                   )}
                 />
 
+                <FormField
+                  control={form.control}
+                  name="collaborationType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Collaboration theme</FormLabel>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Choose the headline teachers and schools will see on the program card.
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {COLLABORATION_TYPE_VALUES.map((value) => {
+                          const labelMap: Record<(typeof COLLABORATION_TYPE_VALUES)[number], string> = {
+                            explore_global_challenges: 'Explore Global Challenges',
+                            cultural_exchange: 'Explore Cultures',
+                            create_solutions: 'Explore Solutions',
+                          }
+                          const descriptionMap: Record<(typeof COLLABORATION_TYPE_VALUES)[number], string> = {
+                            explore_global_challenges: 'Investigate world issues together and share perspectives.',
+                            cultural_exchange: 'Swap traditions, identities, and everyday experiences.',
+                            create_solutions: 'Co-design ideas and prototypes to solve real problems.',
+                          }
+                          const isActive = field.value === value
+                          return (
+                            <button
+                              type="button"
+                              key={value}
+                              onClick={() => field.onChange(value)}
+                              className={`w-full text-left rounded-lg border p-3 transition-all ${
+                                isActive
+                                  ? 'border-purple-500 bg-purple-50 shadow-sm'
+                                  : 'border-gray-200 hover:border-purple-300'
+                              }`}
+                            >
+                              <p className="text-sm font-semibold text-gray-900">{labelMap[value]}</p>
+                              <p className="text-xs text-gray-600 mt-1">{descriptionMap[value]}</p>
+                            </button>
+                          )
+                        })}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <div className="grid gap-6 md:grid-cols-2">
                   <FormField
                     control={form.control}
@@ -432,6 +484,39 @@ export default function EditProgramPage() {
                               }
                             >
                               {value.replace('-', '–')}
+                            </Badge>
+                          )
+                        })}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="languages"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Program languages</FormLabel>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Which languages will you use to collaborate?
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {PROGRAM_LANGUAGE_OPTIONS.map((code) => {
+                          const labelMap: Record<(typeof PROGRAM_LANGUAGE_OPTIONS)[number], string> = {
+                            en: 'English',
+                            da: 'Danish',
+                          }
+                          const isActive = field.value?.includes(code)
+                          return (
+                            <Badge
+                              key={code}
+                              variant={isActive ? 'default' : 'outline'}
+                              className="cursor-pointer"
+                              onClick={() => toggleValue(code, field.value ?? [], field.onChange)}
+                            >
+                              {labelMap[code]}
                             </Badge>
                           )
                         })}
