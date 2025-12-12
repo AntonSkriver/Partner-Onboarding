@@ -74,7 +74,7 @@ export default function PartnersPage() {
 
         {/* User Profile / Right Nav */}
         <div className="hidden md:flex items-center space-x-4">
-          <Link href="/sign-in">
+          <Link href="/partner/login">
             <Button variant="outline" className="border-[#8B5CF6] text-[#8B5CF6] hover:bg-purple-50">
               Login
             </Button>
