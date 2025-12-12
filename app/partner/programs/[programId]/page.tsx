@@ -36,6 +36,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -678,23 +679,7 @@ function OverviewField({ label, value }: { label: string; value: string }) {
   )
 }
 
-function EmptyState({
-  icon,
-  title,
-  description,
-}: {
-  icon: ReactNode
-  title: string
-  description: string
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-600">
-      <div className="rounded-full bg-white p-2 shadow-sm">{icon}</div>
-      <p className="font-medium text-gray-900">{title}</p>
-      <p className="text-xs text-gray-500">{description}</p>
-    </div>
-  )
-}
+
 
 function formatDate(value?: string | null) {
   if (!value) return '—'

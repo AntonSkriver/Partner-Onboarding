@@ -180,6 +180,7 @@ const buildSeedPrograms = (): PrototypeDatabase['programs'] => [
     programUrl: 'https://prototype.class2class.org/programs/build-the-change',
     brandColor: '#F0B90B',
     logo: '/programs/build-the-change/logo.svg',
+    heroImageUrl: 'https://images.unsplash.com/photo-1472162072942-cd5147eb3902?w=800&h=480&fit=crop',
     status: 'active',
     isPublic: true,
     createdAt: '2025-01-05T08:00:00.000Z',

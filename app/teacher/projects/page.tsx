@@ -12,10 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useTeacherContext } from '@/hooks/use-teacher-context'
 import { cn } from '@/lib/utils'
-import { ProgramCatalogCard } from '@/components/program/program-catalog-card'
 import {
-  buildProgramCatalog,
-  type ProgramCatalogItem,
   type ProgramSummary,
 } from '@/lib/programs/selectors'
 import { getCountryDisplay } from '@/lib/countries'
@@ -41,7 +38,7 @@ const finishedStatuses = new Set(['completed', 'archived'])
 
 export default function TeacherProjectsPage() {
   const { ready, database, programSummaries, membershipIds, session } = useTeacherContext()
-  const [activeTab, setActiveTab] = useState<'in-progress' | 'finished' | 'programs'>('in-progress')
+  const [activeTab, setActiveTab] = useState<'in-progress' | 'finished'>('in-progress')
   const [searchTerm, setSearchTerm] = useState('')
 
   const decoratedProjects: DecoratedProject[] = useMemo(() => {
@@ -102,23 +99,6 @@ export default function TeacherProjectsPage() {
   }, [finishedProjects, searchTerm])
 
   const activeProjectsCount = decoratedProjects.filter(({ project }) => project.status === 'active').length
-
-  const programCatalogMap = useMemo(() => {
-    if (!database) return new Map<string, ProgramCatalogItem>()
-    return new Map(
-      buildProgramCatalog(database, { includePrivate: true }).map((item) => [item.programId, item]),
-    )
-  }, [database])
-
-  const projectsByProgramId = useMemo(() => {
-    const map = new Map<string, DecoratedProject[]>()
-    for (const item of decoratedProjects) {
-      const list = map.get(item.project.programId) ?? []
-      list.push(item)
-      map.set(item.project.programId, list)
-    }
-    return map
-  }, [decoratedProjects])
 
   if (!ready) {
     return (
@@ -200,9 +180,6 @@ export default function TeacherProjectsPage() {
           <TabsTrigger value="finished">
             Finished ({finishedProjects.length})
           </TabsTrigger>
-          <TabsTrigger value="programs">
-            Partner programs ({programSummaries.length})
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="in-progress" className="space-y-4">
@@ -237,46 +214,9 @@ export default function TeacherProjectsPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="programs" className="space-y-4">
-          {programSummaries.length === 0 ? (
-            <Card className="border-dashed border-purple-200 bg-purple-50/60">
-              <CardContent className="p-6 text-sm text-purple-700">
-                Join a partner program from Discover to unlock tailored resources and collaborations.
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-6 lg:grid-cols-2">
-              {programSummaries.map((summary) => {
-                const catalogItem =
-                  programCatalogMap.get(summary.program.id) ??
-                  buildFallbackCatalogItem(summary)
-                const projectCount = projectsByProgramId.get(summary.program.id)?.length ?? 0
 
-                return (
-                  <ProgramCatalogCard
-                    key={summary.program.id}
-                    item={catalogItem}
-                    membershipStatus="member"
-                    actions={
-                      <div className="flex flex-col gap-2">
-                        <Button variant="outline" className="w-full" asChild>
-                          <Link href={`/discover/programs/${summary.program.id}`}>View program</Link>
-                        </Button>
-                        <p className="text-center text-xs text-gray-500">
-                          {projectCount === 0
-                            ? 'No projects yet'
-                            : `${projectCount} project${projectCount === 1 ? '' : 's'} in progress`}
-                        </p>
-                      </div>
-                    }
-                  />
-                )
-              })}
-            </div>
-          )}
-        </TabsContent>
       </Tabs>
-    </div>
+    </div >
   )
 }
 
@@ -565,33 +505,4 @@ function formatLanguages(codes?: string[] | null): string {
   return labels.join(', ')
 }
 
-function buildFallbackCatalogItem(summary: ProgramSummary): ProgramCatalogItem {
-  return {
-    programId: summary.program.id,
-    name: summary.program.name,
-    displayTitle: summary.program.displayTitle ?? summary.program.name,
-    marketingTagline: summary.program.marketingTagline,
-    description: summary.program.description,
-    status: summary.program.status,
-    isPublic: summary.program.isPublic,
-    hostPartner: undefined,
-    supportingPartner: undefined,
-    supportingRole: summary.program.supportingPartnerRole,
-    coverImageUrl: summary.program.logo ?? undefined,
-    logo: summary.program.logo ?? undefined,
-    brandColor: summary.program.brandColor,
-  sdgFocus: summary.program.sdgFocus,
-  projectTypes: summary.program.projectTypes,
-  targetAgeRanges: summary.program.targetAgeRanges,
-  startMonthLabel: undefined,
-  languages: summary.program.languages ?? [],
-  metrics: {
-    templates: summary.templates.length,
-    activeProjects: summary.metrics.activeProjectCount,
-    institutions: summary.metrics.institutionCount,
-      countries: summary.metrics.countries.length,
-      students: summary.metrics.studentCount,
-    },
-    templates: summary.templates,
-  }
-}
+
