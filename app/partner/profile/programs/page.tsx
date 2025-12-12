@@ -51,7 +51,9 @@ export default function PartnerProgramsPage() {
     })
     const allowedProgramIds = new Set(relatedPrograms.map((program) => program.id))
 
-    return catalog.filter((item) => allowedProgramIds.has(item.programId))
+    return catalog
+      .filter((item) => allowedProgramIds.has(item.programId))
+      .filter((item) => !item.name.includes('Save the Children'))
   }, [database, partnerRecord, sessionRole])
 
   const programDataLoading = !prototypeReady || !database || (sessionRole !== 'parent' && !partnerRecord)

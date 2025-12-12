@@ -102,7 +102,9 @@ export function PartnerShell({ children }: PartnerShellProps) {
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive =
-                pathname === item.href || pathname.startsWith(`${item.href}/`)
+                pathname === item.href ||
+                pathname.startsWith(`${item.href}/`) ||
+                (item.label === 'Programs' && pathname.startsWith('/partner/programs'))
 
               return (
                 <Link

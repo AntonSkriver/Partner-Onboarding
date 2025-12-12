@@ -156,8 +156,8 @@ export default function PartnerProgramDetailPage() {
   const statusBadgeClass = statusStyles[summary.program.status] ?? 'bg-gray-100 text-gray-600'
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
-      <div className="mx-auto w-full max-w-5xl px-4 py-10">
+    <div className="pb-16">
+      <div className="w-full max-w-5xl">
         <div className="mb-6 flex items-center justify-between">
           <Button variant="ghost" size="sm" asChild className="px-0 text-purple-600 hover:text-purple-700">
             <Link href="/partner/profile/programs">
