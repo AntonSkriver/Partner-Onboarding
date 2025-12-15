@@ -427,8 +427,12 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
               const dateLabel = formatMonthFromDate(project.createdAt) ?? 'Flexible'
 
               // We'll use the host partner/teacher details if available, or fallbacks
-              const teachers = summary.teachers.filter(t => t.programId === project.programId)
-              const primaryTeacher = teachers[0] // Simplified for demo
+              const teachers = summary.teachers.filter((t) => t.programId === project.programId)
+              const projectTeacher =
+                project.createdByType === 'teacher'
+                  ? teachers.find((t) => t.id === project.createdById)
+                  : undefined
+              const primaryTeacher = projectTeacher ?? teachers[0]
 
               // Find the institution for the teacher to get the country
               const teacherInstitution = primaryTeacher
