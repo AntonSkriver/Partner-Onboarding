@@ -204,10 +204,17 @@ export default function UploadContentPage() {
       return []
     }
 
-    // Parent role can see all programs for assignment
+    // Parent role can only see programs from their own organization
     if (session?.role === 'parent') {
-      const allPrograms = database.programs.map((program) => buildProgramSummary(database, program))
-      return Array.from(new Map(allPrograms.map((summary) => [summary.program.id, summary])).values())
+      // UNICEF parent organization includes both Denmark and England partners
+      const allowedPartnerIds = new Set(['partner-unicef', 'partner-unicef-england'])
+
+      // Filter programs to only show those hosted by the parent organization's partners
+      const parentPrograms = database.programs
+        .filter((program) => allowedPartnerIds.has(program.partnerId))
+        .map((program) => buildProgramSummary(database, program))
+
+      return Array.from(new Map(parentPrograms.map((summary) => [summary.program.id, summary])).values())
     }
 
     // Partners can only see their own and related programs (host/co-host/sponsor)
