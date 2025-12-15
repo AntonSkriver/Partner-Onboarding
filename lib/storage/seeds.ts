@@ -981,7 +981,7 @@ const buildSeedProjects = (): PrototypeDatabase['programProjects'] => [
     createdByType: 'teacher',
     createdById: 'teacher-morke-ulla',
     status: 'active',
-    coverImageUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&h=480&fit=crop',
+    coverImageUrl: '/images/community-inclusion.png',
     createdAt: '2025-03-12T09:30:00.000Z',
     updatedAt: '2025-03-12T09:30:00.000Z',
   },
