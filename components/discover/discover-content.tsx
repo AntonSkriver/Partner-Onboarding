@@ -20,7 +20,7 @@ type DiscoverContentProps = {
 }
 
 type CollaborationProject = {
-  id: number
+  id: string
   title: string
   subtitle: string
   startMonth: string
@@ -34,6 +34,10 @@ type CollaborationProject = {
   teacherInitials: string
   teacherCountry: string
   createdAt: string
+  // New fields for partner programs
+  isPartnerProgram?: boolean
+  partnerName?: string
+  programName?: string
 }
 
 function ProjectCard({ project }: { project: CollaborationProject }) {
@@ -41,7 +45,7 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
   const { flag: countryFlag, name: countryName } = getCountryDisplay(project.teacherCountry)
 
   return (
-    <Card className="flex h-full flex-col overflow-hidden border border-gray-100 transition-shadow hover:shadow-lg">
+    <Card className="flex h-full flex-col overflow-hidden border border-gray-100 transition-shadow hover:shadow-lg relative">
       <div className="relative h-48 overflow-hidden">
         <Image
           src={project.image}
@@ -50,14 +54,28 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
           height={300}
           className="h-full w-full object-cover"
         />
+        {project.isPartnerProgram && (
+          <div className="absolute top-2 right-2">
+            <span className="inline-flex items-center rounded-md bg-white/90 px-2 py-1 text-xs font-medium text-purple-700 shadow-sm backdrop-blur-sm">
+              Partner Program
+            </span>
+          </div>
+        )}
       </div>
 
       <CardContent className="flex flex-1 flex-col space-y-3 p-6">
-        <p className="text-sm font-medium text-[#7F56D9]">
-          Starting Month: {project.startMonth}
-        </p>
+        <div className="flex justify-between items-start">
+          <p className="text-sm font-medium text-[#7F56D9]">
+            Starting Month: {project.startMonth}
+          </p>
+          {project.programName && (
+            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full truncate max-w-[120px]">
+              {project.programName}
+            </span>
+          )}
+        </div>
 
-        <h3 className="text-xl font-bold leading-snug text-gray-900">{project.title}</h3>
+        <h3 className="text-xl font-bold leading-snug text-gray-900 line-clamp-2">{project.title}</h3>
 
         <div className="text-base leading-relaxed text-gray-500">
           <p className={cn(!isExpanded && 'line-clamp-3')}>{project.description}</p>
@@ -72,7 +90,7 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
         <div className="mt-2 space-y-3 text-sm text-gray-500">
           <div className="flex items-center gap-2.5">
             <Globe2 className="h-4 w-4" />
-            <span>{project.projectType}</span>
+            <span className="capitalize">{project.projectType}</span>
           </div>
           <div className="flex items-center gap-2.5">
             <Users2 className="h-4 w-4" />
@@ -92,14 +110,13 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
 
         <div className="flex items-center justify-between border-t border-gray-100 pt-3">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 overflow-hidden rounded-full border border-gray-200">
-              <Image
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop"
-                alt={project.teacherName}
-                width={40}
-                height={40}
-                className="h-full w-full object-cover"
-              />
+            <div className="h-10 w-10 overflow-hidden rounded-full border border-gray-200 bg-gray-100 flex items-center justify-center">
+              {/* Use initials if no image, though mock has image. For now assuming mock image fits or fallback */}
+              {project.teacherInitials ? (
+                <span className="text-xs font-bold text-gray-600">{project.teacherInitials}</span>
+              ) : (
+                <Users2 className="w-5 h-5 text-gray-400" />
+              )}
             </div>
             <div className="flex flex-col">
               <span className="mb-0.5 text-xs text-gray-500">Created by</span>
@@ -111,13 +128,13 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
                 <span className="text-sm shadow-sm">{countryFlag}</span>
                 <span className="text-xs font-medium text-purple-600">{countryName}</span>
               </div>
-
-              <p className="mt-1 text-xs text-gray-400">{project.createdAt}</p>
             </div>
           </div>
 
-          <Button className="px-6 font-medium shadow-sm" variant="default">
-            Request to join
+          <Button className="px-6 font-medium shadow-sm" variant="default" asChild>
+            <Link href={`/teacher/discover/projects/${project.id}`}>
+              View Details
+            </Link>
           </Button>
         </div>
       </CardContent>
@@ -128,7 +145,7 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
 const mockProjects = {
   collaboration: [
     {
-      id: 1,
+      id: '1',
       title: 'A Small Step To Save The World',
       subtitle: 'Change Is Started From ...',
       startMonth: 'September',
@@ -146,7 +163,7 @@ const mockProjects = {
       createdAt: 'Created 3 days ago',
     },
     {
-      id: 2,
+      id: '2',
       title: 'Machine Learning Prediction System',
       subtitle: '',
       startMonth: 'August',
@@ -164,7 +181,7 @@ const mockProjects = {
       createdAt: 'Created 1 week ago',
     },
     {
-      id: 3,
+      id: '3',
       title: 'Community Building Together',
       subtitle: '',
       startMonth: 'August',
@@ -185,7 +202,7 @@ const mockProjects = {
   ideas: Array(87)
     .fill(null)
     .map((_, i) => ({
-      id: i + 100,
+      id: `idea-${i + 100}`,
       title: `Project Idea ${i + 1}`,
       description: 'Sample project idea description',
       category: 'Education',
@@ -193,12 +210,43 @@ const mockProjects = {
   community: Array(175)
     .fill(null)
     .map((_, i) => ({
-      id: i + 200,
+      id: `community-${i + 200}`,
       title: `Community Project ${i + 1}`,
       description: 'Sample community project description',
       participants: Math.floor(Math.random() * 100) + 20,
     })),
 }
+
+const mapDbProjectToUi = (
+  project: any, // ProgramProject from DB
+  database: any // Full DB
+): CollaborationProject => {
+  const program = database.programs.find((p: any) => p.id === project.programId)
+  const template = database.programTemplates.find((t: any) => t.id === project.templateId)
+  const teacher = database.institutionTeachers.find((t: any) => t.id === project.createdById)
+  const institution = teacher ? database.institutions.find((i: any) => i.id === teacher.institutionId) : null
+
+  return {
+    id: project.id,
+    title: template?.title ?? 'Untitled Project',
+    subtitle: '',
+    startMonth: template?.recommendedStartMonth ?? 'Flexible',
+    image: project.coverImageUrl ?? template?.heroImageUrl ?? program?.heroImageUrl ?? 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=500&h=300&fit=crop',
+    description: template?.summary ?? 'No description available',
+    projectType: program?.projectTypes?.[0]?.replaceAll('_', ' ') ?? 'Global Project',
+    ageRange: program?.targetAgeRanges?.[0] ?? 'All ages',
+    timezone: 'Varies',
+    language: institution?.languages?.join(', ') ?? 'English',
+    teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : 'Partner Teacher',
+    teacherInitials: teacher ? `${teacher.firstName?.[0] ?? ''}${teacher.lastName?.[0] ?? ''}` : 'PT',
+    teacherCountry: institution?.country ?? 'US',
+    createdAt: 'Recently',
+    isPartnerProgram: true,
+    partnerName: database.partners.find((p: any) => p.id === program?.partnerId)?.organizationName,
+    programName: program?.displayTitle ?? program?.name
+  }
+}
+
 
 export function DiscoverContent({
   layout = 'standalone',
@@ -206,18 +254,27 @@ export function DiscoverContent({
 }: DiscoverContentProps) {
   const [activeTab, setActiveTab] = useState('collaboration')
   const [searchQuery, setSearchQuery] = useState('')
-  const { ready: dataReady, database, reset } = usePrototypeDb()
+  const { ready: dataReady, database } = usePrototypeDb()
 
-  const programCatalog = useMemo(
-    () => (database ? buildProgramCatalog(database) : []),
-    [database],
-  )
+  const allCollaborationProjects = useMemo(() => {
+    let projects = [...mockProjects.collaboration]
+    if (database) {
+      // Find all ACTIVE, PUBLIC projects from programs
+      // Or just map all program projects for now
+      const dbProjects = database.programProjects
+        .filter(p => p.status === 'active' || p.status === 'draft') // Including draft for demo visibility
+        .map(p => mapDbProjectToUi(p, database))
+
+      projects = [...projects, ...dbProjects]
+    }
+    return projects
+  }, [database])
 
   const tabs = [
-    { id: 'collaboration', label: 'Open for collaboration', count: 35 },
+    { id: 'collaboration', label: 'Open for collaboration', count: allCollaborationProjects.length },
     { id: 'ideas', label: 'Project Ideas', count: 87 },
     { id: 'community', label: 'Community projects', count: 175 },
-    { id: 'partners', label: 'Partner programs', count: programCatalog.length },
+    // Removed Partner Programs tab
   ]
 
   const renderTabContent = () => {
@@ -246,61 +303,13 @@ export function DiscoverContent({
               endeavors.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
-              {mockProjects.collaboration.map((project) => (
+              {allCollaborationProjects.map((project) => (
                 <ProjectCard key={project.id} project={project} />
               ))}
             </div>
           </div>
         )
 
-      case 'partners':
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-3 w-3 rounded-full bg-purple-500" />
-                <h2 className="text-lg font-semibold text-gray-900">Partner programs</h2>
-              </div>
-            </div>
-            <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <p className="text-sm text-gray-600">
-                Explore signature programs crafted by partner organisations. Each program includes templates and
-                real classroom projects you can adapt.
-              </p>
-              <Button
-                variant="ghost"
-                className="self-start text-sm text-purple-600 hover:text-purple-700"
-                onClick={() => reset()}
-                disabled={!dataReady}
-              >
-                Reset demo data
-              </Button>
-            </div>
-            {!dataReady ? (
-              <div className="flex items-center justify-center py-12 text-sm text-gray-500">
-                Loading partner programs…
-              </div>
-            ) : programCatalog.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-6 text-center text-sm text-purple-800">
-                No partner programs are published yet. Check back soon to see new collaborative offerings.
-              </div>
-            ) : (
-              <div className="grid gap-6 md:grid-cols-3">
-                {programCatalog.map((item) => (
-                  <ProgramCatalogCard
-                    key={item.programId}
-                    item={item}
-                    actions={
-                      <Button variant="outline" className="w-full" asChild>
-                        <Link href={`${discoverBasePath}/programs/${item.programId}`}>View details</Link>
-                      </Button>
-                    }
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )
 
       case 'ideas':
         return (
