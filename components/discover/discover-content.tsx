@@ -1,0 +1,403 @@
+'use client'
+
+import Image from 'next/image'
+import Link from 'next/link'
+import { useMemo, useState } from 'react'
+import { Plus, Search, Globe2, Users2, Clock, Languages } from 'lucide-react'
+
+import { ProgramCatalogCard } from '@/components/program/program-catalog-card'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { usePrototypeDb } from '@/hooks/use-prototype-db'
+import { getCountryDisplay } from '@/lib/countries'
+import { buildProgramCatalog } from '@/lib/programs/selectors'
+import { cn } from '@/lib/utils'
+
+type DiscoverContentProps = {
+  layout?: 'standalone' | 'embedded'
+  discoverBasePath?: string
+}
+
+type CollaborationProject = {
+  id: number
+  title: string
+  subtitle: string
+  startMonth: string
+  image: string
+  description: string
+  projectType: string
+  ageRange: string
+  timezone: string
+  language: string
+  teacherName: string
+  teacherInitials: string
+  teacherCountry: string
+  createdAt: string
+}
+
+function ProjectCard({ project }: { project: CollaborationProject }) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const { flag: countryFlag, name: countryName } = getCountryDisplay(project.teacherCountry)
+
+  return (
+    <Card className="flex h-full flex-col overflow-hidden border border-gray-100 transition-shadow hover:shadow-lg">
+      <div className="relative h-48 overflow-hidden">
+        <Image
+          src={project.image}
+          alt={project.title}
+          width={500}
+          height={300}
+          className="h-full w-full object-cover"
+        />
+      </div>
+
+      <CardContent className="flex flex-1 flex-col space-y-3 p-6">
+        <p className="text-sm font-medium text-[#7F56D9]">
+          Starting Month: {project.startMonth}
+        </p>
+
+        <h3 className="text-xl font-bold leading-snug text-gray-900">{project.title}</h3>
+
+        <div className="text-base leading-relaxed text-gray-500">
+          <p className={cn(!isExpanded && 'line-clamp-3')}>{project.description}</p>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="mt-1 text-sm font-medium text-[#7F56D9] underline decoration-2 underline-offset-2 hover:text-[#6941C6]"
+          >
+            {isExpanded ? 'Read less' : 'Read more'}
+          </button>
+        </div>
+
+        <div className="mt-2 space-y-3 text-sm text-gray-500">
+          <div className="flex items-center gap-2.5">
+            <Globe2 className="h-4 w-4" />
+            <span>{project.projectType}</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Users2 className="h-4 w-4" />
+            <span>{project.ageRange}</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Clock className="h-4 w-4" />
+            <span>{project.timezone}</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Languages className="h-4 w-4" />
+            <span>{project.language}</span>
+          </div>
+        </div>
+
+        <div className="flex-1" />
+
+        <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 overflow-hidden rounded-full border border-gray-200">
+              <Image
+                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop"
+                alt={project.teacherName}
+                width={40}
+                height={40}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="flex flex-col">
+              <span className="mb-0.5 text-xs text-gray-500">Created by</span>
+              <p className="mb-1.5 text-sm font-bold leading-none text-gray-900">
+                {project.teacherName}
+              </p>
+
+              <div className="flex w-fit items-center gap-1.5 rounded-full bg-gray-50 px-2 py-0.5">
+                <span className="text-sm shadow-sm">{countryFlag}</span>
+                <span className="text-xs font-medium text-purple-600">{countryName}</span>
+              </div>
+
+              <p className="mt-1 text-xs text-gray-400">{project.createdAt}</p>
+            </div>
+          </div>
+
+          <Button className="px-6 font-medium shadow-sm" variant="default">
+            Request to join
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+const mockProjects = {
+  collaboration: [
+    {
+      id: 1,
+      title: 'A Small Step To Save The World',
+      subtitle: 'Change Is Started From ...',
+      startMonth: 'September',
+      image:
+        'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=500&h=300&fit=crop',
+      description:
+        'This project began with a simple yet powerful idea to make students aware of environmental sustainability through local action and global collaboration.',
+      projectType: 'Explore Global Challenges',
+      ageRange: 'Ages 9 - 13 years',
+      timezone: '+1 hour from you',
+      language: 'English, Spanish',
+      teacherName: 'Maria Garcia',
+      teacherInitials: 'MG',
+      teacherCountry: 'Spain',
+      createdAt: 'Created 3 days ago',
+    },
+    {
+      id: 2,
+      title: 'Machine Learning Prediction System',
+      subtitle: '',
+      startMonth: 'August',
+      image:
+        'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=500&h=300&fit=crop',
+      description:
+        'The project is all about machine learning with python to create a model to predict disease patterns and understand data science concepts through practical application.',
+      projectType: 'Create Solutions',
+      ageRange: 'Ages 15 - 18 years',
+      timezone: '+5 hours from you',
+      language: 'English',
+      teacherName: 'Raj Patel',
+      teacherInitials: 'RP',
+      teacherCountry: 'India',
+      createdAt: 'Created 1 week ago',
+    },
+    {
+      id: 3,
+      title: 'Community Building Together',
+      subtitle: '',
+      startMonth: 'August',
+      image:
+        'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=500&h=300&fit=crop',
+      description:
+        'This project is designed to engage students both creatively and intellectually by exploring local communities, sharing traditions, and building cross-cultural understanding.',
+      projectType: 'Cultural Exchange',
+      ageRange: 'Ages 11 - 15 years',
+      timezone: '-6 hours from you',
+      language: 'English, French',
+      teacherName: 'Sophie Martin',
+      teacherInitials: 'SM',
+      teacherCountry: 'Canada',
+      createdAt: 'Created 2 weeks ago',
+    },
+  ],
+  ideas: Array(87)
+    .fill(null)
+    .map((_, i) => ({
+      id: i + 100,
+      title: `Project Idea ${i + 1}`,
+      description: 'Sample project idea description',
+      category: 'Education',
+    })),
+  community: Array(175)
+    .fill(null)
+    .map((_, i) => ({
+      id: i + 200,
+      title: `Community Project ${i + 1}`,
+      description: 'Sample community project description',
+      participants: Math.floor(Math.random() * 100) + 20,
+    })),
+}
+
+export function DiscoverContent({
+  layout = 'standalone',
+  discoverBasePath = '/discover',
+}: DiscoverContentProps) {
+  const [activeTab, setActiveTab] = useState('collaboration')
+  const [searchQuery, setSearchQuery] = useState('')
+  const { ready: dataReady, database, reset } = usePrototypeDb()
+
+  const programCatalog = useMemo(
+    () => (database ? buildProgramCatalog(database) : []),
+    [database],
+  )
+
+  const tabs = [
+    { id: 'collaboration', label: 'Open for collaboration', count: 35 },
+    { id: 'ideas', label: 'Project Ideas', count: 87 },
+    { id: 'community', label: 'Community projects', count: 175 },
+    { id: 'partners', label: 'Partner programs', count: programCatalog.length },
+  ]
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'collaboration':
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-3 w-3 rounded-full bg-purple-500" />
+                <h2 className="text-lg font-semibold text-gray-900">Open for collaborations</h2>
+              </div>
+              <div className="flex items-center gap-3">
+                <select className="rounded border border-gray-300 px-3 py-1 text-sm text-gray-600">
+                  <option>Newest first</option>
+                  <option>Oldest first</option>
+                </select>
+                <Button className="bg-purple-600 text-white hover:bg-purple-700">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Post a project
+                </Button>
+              </div>
+            </div>
+            <p className="mb-6 text-sm text-gray-600">
+              Browse active projects from teachers worldwide seeking partner classrooms for collaborative
+              endeavors.
+            </p>
+            <div className="grid gap-6 md:grid-cols-3">
+              {mockProjects.collaboration.map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
+            </div>
+          </div>
+        )
+
+      case 'partners':
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-3 w-3 rounded-full bg-purple-500" />
+                <h2 className="text-lg font-semibold text-gray-900">Partner programs</h2>
+              </div>
+            </div>
+            <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <p className="text-sm text-gray-600">
+                Explore signature programs crafted by partner organisations. Each program includes templates and
+                real classroom projects you can adapt.
+              </p>
+              <Button
+                variant="ghost"
+                className="self-start text-sm text-purple-600 hover:text-purple-700"
+                onClick={() => reset()}
+                disabled={!dataReady}
+              >
+                Reset demo data
+              </Button>
+            </div>
+            {!dataReady ? (
+              <div className="flex items-center justify-center py-12 text-sm text-gray-500">
+                Loading partner programs…
+              </div>
+            ) : programCatalog.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/60 p-6 text-center text-sm text-purple-800">
+                No partner programs are published yet. Check back soon to see new collaborative offerings.
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-3">
+                {programCatalog.map((item) => (
+                  <ProgramCatalogCard
+                    key={item.programId}
+                    item={item}
+                    actions={
+                      <Button variant="outline" className="w-full" asChild>
+                        <Link href={`${discoverBasePath}/programs/${item.programId}`}>View details</Link>
+                      </Button>
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )
+
+      case 'ideas':
+        return (
+          <div className="py-12 text-center">
+            <h3 className="mb-2 text-lg font-medium text-gray-500">Project Ideas Coming Soon</h3>
+            <p className="text-gray-400">We&apos;re working on curating amazing project ideas for you.</p>
+          </div>
+        )
+
+      case 'community':
+        return (
+          <div className="py-12 text-center">
+            <h3 className="mb-2 text-lg font-medium text-gray-500">Community Projects Coming Soon</h3>
+            <p className="text-gray-400">Community-driven projects will be available here soon.</p>
+          </div>
+        )
+
+      default:
+        return null
+    }
+  }
+
+  return (
+    <div
+      className={cn(
+        'w-full',
+        layout === 'standalone' ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8' : '',
+      )}
+    >
+      <div className="mb-8">
+        <h1 className="mb-2 text-3xl font-bold text-gray-900">Discover Projects</h1>
+        <p className="text-gray-600">
+          Find, join, or create collaborative projects to connect your students with classrooms from around the
+          world.
+        </p>
+      </div>
+
+      <div className="mb-8 flex flex-col gap-4 md:flex-row">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+          <Input
+            placeholder="Search for projects"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-purple-50/50 pl-10"
+          />
+        </div>
+        <div className="flex gap-4">
+          <select className="rounded-lg border border-gray-300 px-4 py-2 text-sm">
+            <option>All ages groups</option>
+            <option>Elementary</option>
+            <option>Middle School</option>
+            <option>High School</option>
+          </select>
+          <select className="rounded-lg border border-gray-300 px-4 py-2 text-sm">
+            <option>All months</option>
+            <option>August</option>
+            <option>September</option>
+            <option>October</option>
+          </select>
+          <select className="rounded-lg border border-gray-300 px-4 py-2 text-sm">
+            <option>All collaboration types</option>
+            <option>Virtual Exchange</option>
+            <option>Research Project</option>
+            <option>Creative Arts</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="mb-8 border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                'whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium',
+                activeTab === tab.id
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+              )}
+            >
+              {tab.label}
+              <span
+                className={cn(
+                  'ml-2 rounded-full px-2 py-0.5 text-xs',
+                  activeTab === tab.id ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-500',
+                )}
+              >
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      <div>{renderTabContent()}</div>
+    </div>
+  )
+}

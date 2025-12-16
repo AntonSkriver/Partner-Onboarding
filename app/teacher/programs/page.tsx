@@ -64,7 +64,7 @@ export default function TeacherProgramsPage() {
                     description="You haven't joined any partner programs yet. Browse the Discover page to find opportunities."
                     action={
                         <Button asChild>
-                            <Link href="/discover">Browse Programs</Link>
+                            <Link href="/teacher/discover">Browse Programs</Link>
                         </Button>
                     }
                 />
@@ -110,7 +110,7 @@ export default function TeacherProgramsPage() {
                                         </Badge>
 
                                         <Button asChild size="sm" variant="outline" className="gap-1">
-                                            <Link href={`/discover/programs/${summary.program.id}`}>
+                                            <Link href={`/teacher/discover/programs/${summary.program.id}`}>
                                                 View Details <ArrowRight className="h-3.5 w-3.5" />
                                             </Link>
                                         </Button>

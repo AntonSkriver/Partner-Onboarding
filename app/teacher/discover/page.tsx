@@ -1,14 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { DiscoverContent } from '@/components/discover/discover-content'
 
 export default function TeacherDiscoverPage() {
-  const router = useRouter()
-
-  useEffect(() => {
-    router.replace('/discover')
-  }, [router])
-
-  return null
+  return <DiscoverContent layout="embedded" discoverBasePath="/teacher/discover" />
 }

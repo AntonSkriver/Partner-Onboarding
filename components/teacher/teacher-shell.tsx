@@ -31,7 +31,7 @@ interface TeacherShellProps {
 
 const navItems = [
   { href: '/teacher/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/discover', label: 'Discover', icon: Compass },
+  { href: '/teacher/discover', label: 'Discover', icon: Compass },
   { href: '/teacher/projects', label: 'My Projects', icon: Layers },
   { href: '/teacher/programs', label: 'My Programs', icon: FolderOpen },
 ]

@@ -5,12 +5,7 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft,
-  CalendarDays,
-  Globe2,
-  Layers,
-  MapPin,
   Users,
-  Sparkles,
   School,
   UserCheck,
 } from 'lucide-react'
@@ -27,6 +22,10 @@ import {
   getCurrentSession,
   type UserSession,
 } from '@/lib/auth/session'
+
+type ProgramDetailPageProps = {
+  basePath?: string
+}
 
 const friendlyLabel = (value: string): string =>
   value
@@ -63,7 +62,7 @@ const formatRelative = (isoDate: string | undefined): string | null => {
   }).format(date)
 }
 
-export default function DiscoverProgramDetailPage() {
+export function ProgramDetailPage({ basePath = '/discover' }: ProgramDetailPageProps) {
   const params = useParams<{ programId: string }>()
   const router = useRouter()
   const { ready, database } = usePrototypeDb()
@@ -127,7 +126,7 @@ export default function DiscoverProgramDetailPage() {
           <p className="mt-2 text-sm text-gray-600">
             This program isn&apos;t available in the prototype catalogue. It may be unpublished or renamed.
           </p>
-          <Button className="mt-6" onClick={() => router.push('/discover')}>
+          <Button className="mt-6" onClick={() => router.push(basePath)}>
             Back to Discover
           </Button>
         </div>
@@ -151,7 +150,7 @@ export default function DiscoverProgramDetailPage() {
       <div className="mx-auto w-full max-w-5xl px-4 pt-8">
         <div className="flex items-center justify-between gap-4">
           <Button variant="ghost" className="text-sm text-gray-600 hover:text-purple-600" asChild>
-            <Link href="/discover" className="flex items-center gap-2">
+            <Link href={basePath} className="flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" />
               Back to Discover
             </Link>
@@ -430,9 +429,6 @@ export default function DiscoverProgramDetailPage() {
   )
 }
 
-const QuickFact = ({ label, value }: { label: string; value: string | number }) => (
-  <div className="space-y-1 text-sm text-gray-600">
-    <p className="text-xs uppercase text-gray-500">{label}</p>
-    <p className="text-lg font-semibold text-gray-900">{value}</p>
-  </div>
-)
+export default function DiscoverProgramDetailPage() {
+  return <ProgramDetailPage />
+}

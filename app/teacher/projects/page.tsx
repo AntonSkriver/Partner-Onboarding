@@ -143,7 +143,7 @@ export default function TeacherProjectsPage() {
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Button variant="outline" asChild>
-            <Link href="/discover">Get Inspired</Link>
+            <Link href="/teacher/discover">Get Inspired</Link>
           </Button>
           <Button className="bg-purple-600 text-white hover:bg-purple-700">New Project</Button>
         </div>
@@ -504,5 +504,4 @@ function formatLanguages(codes?: string[] | null): string {
 
   return labels.join(', ')
 }
-
 
