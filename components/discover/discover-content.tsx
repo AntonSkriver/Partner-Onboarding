@@ -38,16 +38,18 @@ type CollaborationProject = {
   // New fields for partner programs
   isPartnerProgram?: boolean
   partnerName?: string
+  partnerLogo?: string
   programName?: string
 }
 
 function ProjectCard({ project }: { project: CollaborationProject }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const { flag: countryFlag, name: countryName } = getCountryDisplay(project.teacherCountry)
+  const isUnicef = project.partnerName?.toLowerCase().includes('unicef')
 
   return (
     <Card className="flex h-full flex-col overflow-hidden border border-gray-100 transition-shadow hover:shadow-lg relative">
-      <div className="relative h-40 overflow-hidden">
+      <div className="relative h-40 overflow-visible">
         <Image
           src={project.image}
           alt={project.title}
@@ -55,23 +57,31 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
           height={300}
           className="h-full w-full object-cover"
         />
-        {project.isPartnerProgram && (
-          <div className="absolute top-2 right-2">
-            <span className="inline-flex items-center rounded-md bg-white/90 px-2 py-1 text-xs font-medium text-purple-700 shadow-sm backdrop-blur-sm">
-              Partner Program
-            </span>
+
+        {isUnicef && (
+          <div
+            className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 -rotate-3 drop-shadow-xl"
+            style={{ width: 'calc(100% - 8px)' }}
+          >
+            <Image
+              src="/images/unicef-banner.svg"
+              alt="UNICEF partner program"
+              width={760}
+              height={160}
+              className="h-auto w-full"
+              loading="lazy"
+            />
           </div>
         )}
       </div>
 
       <CardContent className="flex flex-1 flex-col space-y-2 p-4">
         <div className="flex justify-between items-start">
-          <p className="text-sm font-medium text-[#7F56D9]">
-            Starting Month: {project.startMonth}
-          </p>
-          {project.programName && (
-            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full truncate max-w-[120px]">
-              {project.programName}
+          <p className="text-sm font-medium text-[#7F56D9]">Starting Month: {project.startMonth}</p>
+          {isUnicef && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#0da9e6] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-white/80" />
+              UNICEF partner
             </span>
           )}
         </div>
@@ -247,6 +257,7 @@ const mapDbProjectToUi = (
   const template = database.programTemplates.find((t: any) => t.id === project.templateId)
   const teacher = database.institutionTeachers.find((t: any) => t.id === project.createdById)
   const institution = teacher ? database.institutions.find((i: any) => i.id === teacher.institutionId) : null
+  const partner = program ? database.partners.find((p: any) => p.id === program.partnerId) : null
 
   let createdAt = project.createdAt || new Date().toISOString()
 
@@ -273,7 +284,8 @@ const mapDbProjectToUi = (
     teacherCountry: institution?.country ?? 'US',
     createdAt: createdAt,
     isPartnerProgram: true,
-    partnerName: database.partners.find((p: any) => p.id === program?.partnerId)?.organizationName,
+    partnerName: partner?.organizationName,
+    partnerLogo: partner?.logo,
     programName: program?.displayTitle ?? program?.name,
     teacherAvatar: undefined as string | undefined // Initialize as optional string
   }

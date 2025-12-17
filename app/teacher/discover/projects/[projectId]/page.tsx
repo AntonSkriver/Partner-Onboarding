@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { ArrowLeft, Clock, Languages, Share2, FileText } from 'lucide-react'
+import { ArrowLeft, Clock, Globe2, Languages, Share2, Users2, FileText, Sparkles, Shield } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -226,7 +226,20 @@ export default function ProjectDetailsPage() {
 
                 <div className="flex flex-col lg:flex-row gap-4 items-start">
                     <div className="flex-1 space-y-4 min-w-0">
-                        <div className="rounded-xl bg-[#d9c8ff] border border-purple-100 shadow-sm p-3 space-y-2.5">
+                        <div className="rounded-xl bg-[#d9c8ff] border border-purple-100 shadow-sm p-3 space-y-2.5 relative overflow-hidden">
+                            {db?.partner && (
+                                <div className="absolute top-3 right-3 bg-white rounded-lg shadow-md p-2 border border-purple-100">
+                                    {partnerLogo ? (
+                                        <div className="relative w-16 h-16">
+                                            <Image src={partnerLogo} alt={partnerName || 'Partner'} fill className="object-contain" />
+                                        </div>
+                                    ) : (
+                                        <div className="w-16 h-16 bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xl rounded">
+                                            {partnerName?.[0] ?? 'P'}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                             <div className="flex items-center gap-2.5 bg-white/85 rounded-lg px-3 py-2 w-full sm:w-auto">
                                 <div className="relative h-8 w-8 rounded-full overflow-hidden border border-purple-50 shrink-0">
                                     {teacherAvatar ? (
@@ -243,8 +256,18 @@ export default function ProjectDetailsPage() {
                                 </p>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row gap-3 items-start">
-                                <div className="w-[150px] rounded-lg bg-white border border-purple-50 shadow-sm overflow-hidden">
+                            <div className="flex flex-col sm:flex-row gap-3 items-start relative">
+                                {partnerName?.includes('UNICEF') && (
+                                    <div className="absolute top-0 right-0 w-24 h-24 z-10 pointer-events-none overflow-hidden">
+                                        <Image
+                                            src="/images/unicef-corner.png"
+                                            alt="UNICEF"
+                                            fill
+                                            className="object-contain object-top-right transform translate-x-1 translate-y-1"
+                                        />
+                                    </div>
+                                )}
+                                <div className="w-[150px] rounded-lg bg-white border border-purple-50 shadow-sm overflow-hidden shrink-0">
                                     <div className="relative aspect-[3/4]">
                                         <Image
                                             src={image || ''}
@@ -256,21 +279,20 @@ export default function ProjectDetailsPage() {
                                 </div>
 
                                 <div className="flex-1 space-y-2">
-                                    <h1 className="text-xl font-semibold text-gray-900 leading-tight">{title}</h1>
-
-                                    <div className="flex gap-6">
-                                        <div>
-                                            <p className="text-xs font-semibold text-gray-600 mb-1">Type of collaboration</p>
-                                            <Badge className="bg-[#FEF3C7] text-[#92400E] border-[#FDE68A] hover:bg-[#FEF3C7] font-medium px-3 py-1">
-                                                {collaborationType}
-                                            </Badge>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-semibold text-gray-600 mb-1">Age group</p>
-                                            <p className="text-sm font-medium text-gray-900">{ageGroup}</p>
+                                    <div className="flex items-center gap-1.5 flex-wrap pr-12">
+                                        {/* Removed Partner Name Badge as requested for cleaner look with banner */}
+                                        <div className="flex items-center gap-1 rounded-full bg-white border border-purple-50 px-2.5 py-1 shadow-sm">
+                                            <Shield className="h-3.5 w-3.5 text-purple-600" />
+                                            <span className="text-[11px] font-semibold text-gray-800">{collaborationType}</span>
                                         </div>
                                     </div>
 
+                                    <div className="space-y-0.5">
+                                        <h1 className="text-xl font-semibold text-gray-900 leading-tight pr-8">{title}</h1>
+                                        {programName && (
+                                            <p className="text-xs text-gray-700">{db?.program?.marketingTagline ?? 'Cross-class collaboration to grow community and belonging.'}</p>
+                                        )}
+                                    </div>
                                     <div>
                                         <h3 className="text-sm font-semibold text-gray-900 mb-1.5">What is this project about?</h3>
                                         <p className={cn('text-sm text-gray-700 leading-relaxed', !isExpanded && 'line-clamp-3')}>

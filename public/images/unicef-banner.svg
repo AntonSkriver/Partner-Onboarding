@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 280" role="img" aria-label="UNICEF partner program banner">
+  <defs>
+    <linearGradient id="ribbonGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1ab4f7"/>
+      <stop offset="55%" stop-color="#0fa3e4"/>
+      <stop offset="100%" stop-color="#0a8fcb"/>
+    </linearGradient>
+    <linearGradient id="highlightGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.34"/>
+      <stop offset="60%" stop-color="#ffffff" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="softShadow" x="-10%" y="-15%" width="120%" height="130%">
+      <feOffset dx="0" dy="10" result="off"/>
+      <feGaussianBlur in="off" stdDeviation="18" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.35 0" result="shadow"/>
+      <feMerge>
+        <feMergeNode in="shadow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g filter="url(#softShadow)">
+    <path
+      d="M46 94 L214 42 L1116 18 C1138 17 1161 31 1169 53 L1136 222 C1132 240 1115 254 1096 254 L98 240 C64 238 36 216 30 182 L22 142 C19 124 28 105 46 94 Z"
+      fill="url(#ribbonGradient)"
+      stroke="#0a8fcb"
+      stroke-width="3"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M74 120 L214 74 L1088 54 C1105 53 1120 63 1124 79 L1098 216 C1095 230 1082 240 1068 238 L120 224 C98 222 82 206 78 184 Z"
+      fill="url(#highlightGradient)"
+      opacity="0.75"
+    />
+
+    <line x1="260" y1="62" x2="1020" y2="42" stroke="#ffffff" stroke-opacity="0.25" stroke-width="3" stroke-linecap="round"/>
+    <line x1="232" y1="210" x2="996" y2="222" stroke="#ffffff" stroke-opacity="0.13" stroke-width="3" stroke-linecap="round"/>
+    <line x1="188" y1="104" x2="1048" y2="78" stroke="#ffffff" stroke-opacity="0.16" stroke-width="2.5" stroke-linecap="round"/>
+
+    <g>
+      <circle cx="84" cy="124" r="16" fill="#f8f2e7" stroke="#0f6ba8" stroke-width="3"/>
+      <circle cx="84" cy="124" r="7" fill="#d29646"/>
+      <circle cx="1098" cy="204" r="16" fill="#f8f2e7" stroke="#0f6ba8" stroke-width="3"/>
+      <circle cx="1098" cy="204" r="7" fill="#d29646"/>
+    </g>
+
+    <text x="600" y="148" text-anchor="middle" fill="#ffffff" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="54" letter-spacing="2">
+      UNICEF PROGRAM
+    </text>
+    <text x="600" y="188" text-anchor="middle" fill="#ffffff" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-weight="600" font-size="22" letter-spacing="0.5" opacity="0.9">
+      Global classroom collaboration
+    </text>
+  </g>
+</svg>
