@@ -32,6 +32,7 @@ type CollaborationProject = {
   language: string
   teacherName: string
   teacherInitials: string
+  teacherAvatar?: string // New optional field
   teacherCountry: string
   createdAt: string
   // New fields for partner programs
@@ -46,7 +47,7 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
 
   return (
     <Card className="flex h-full flex-col overflow-hidden border border-gray-100 transition-shadow hover:shadow-lg relative">
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative h-40 overflow-hidden">
         <Image
           src={project.image}
           alt={project.title}
@@ -63,7 +64,7 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
         )}
       </div>
 
-      <CardContent className="flex flex-1 flex-col space-y-3 p-6">
+      <CardContent className="flex flex-1 flex-col space-y-2 p-4">
         <div className="flex justify-between items-start">
           <p className="text-sm font-medium text-[#7F56D9]">
             Starting Month: {project.startMonth}
@@ -75,65 +76,67 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
           )}
         </div>
 
-        <h3 className="text-xl font-bold leading-snug text-gray-900 line-clamp-2">{project.title}</h3>
+        <h3 className="text-lg font-bold leading-snug text-gray-900 line-clamp-2">{project.title}</h3>
 
-        <div className="text-base leading-relaxed text-gray-500">
-          <p className={cn(!isExpanded && 'line-clamp-3')}>{project.description}</p>
+        <div className="text-sm leading-relaxed text-gray-500">
+          <p className={cn(!isExpanded && 'line-clamp-2')}>{project.description}</p>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-1 text-sm font-medium text-[#7F56D9] underline decoration-2 underline-offset-2 hover:text-[#6941C6]"
+            className="mt-0.5 text-xs font-medium text-[#7F56D9] underline decoration-2 underline-offset-2 hover:text-[#6941C6]"
           >
             {isExpanded ? 'Read less' : 'Read more'}
           </button>
         </div>
 
-        <div className="mt-2 space-y-3 text-sm text-gray-500">
-          <div className="flex items-center gap-2.5">
-            <Globe2 className="h-4 w-4" />
+        <div className="mt-2 space-y-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2">
+            <Globe2 className="h-3.5 w-3.5" />
             <span className="capitalize">{project.projectType}</span>
           </div>
-          <div className="flex items-center gap-2.5">
-            <Users2 className="h-4 w-4" />
+          <div className="flex items-center gap-2">
+            <Users2 className="h-3.5 w-3.5" />
             <span>{project.ageRange}</span>
           </div>
-          <div className="flex items-center gap-2.5">
-            <Clock className="h-4 w-4" />
+          <div className="flex items-center gap-2">
+            <Clock className="h-3.5 w-3.5" />
             <span>{project.timezone}</span>
           </div>
-          <div className="flex items-center gap-2.5">
-            <Languages className="h-4 w-4" />
+          <div className="flex items-center gap-2">
+            <Languages className="h-3.5 w-3.5" />
             <span>{project.language}</span>
           </div>
         </div>
 
         <div className="flex-1" />
 
-        <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+        <div className="flex items-center justify-between border-t border-gray-100 pt-3 mt-2">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 overflow-hidden rounded-full border border-gray-200 bg-gray-100 flex items-center justify-center">
-              {/* Use initials if no image, though mock has image. For now assuming mock image fits or fallback */}
-              {project.teacherInitials ? (
+            <div className="h-9 w-9 overflow-hidden rounded-full border border-gray-200 bg-gray-100 flex items-center justify-center flex-shrink-0">
+              {project.teacherAvatar ? (
+                <img
+                  src={project.teacherAvatar}
+                  alt={project.teacherName}
+                  className="h-full w-full object-cover"
+                />
+              ) : project.teacherInitials ? (
                 <span className="text-xs font-bold text-gray-600">{project.teacherInitials}</span>
               ) : (
                 <Users2 className="w-5 h-5 text-gray-400" />
               )}
             </div>
-            <div className="flex flex-col">
-              <span className="mb-0.5 text-xs text-gray-500">Created by</span>
-              <p className="mb-1.5 text-sm font-bold leading-none text-gray-900">
-                {project.teacherName}
-              </p>
-
-              <div className="flex w-fit items-center gap-1.5 rounded-full bg-gray-50 px-2 py-0.5">
-                <span className="text-sm shadow-sm">{countryFlag}</span>
-                <span className="text-xs font-medium text-purple-600">{countryName}</span>
+            <div className="flex flex-col min-w-0 justify-center">
+              <span className="text-sm font-medium text-gray-900 truncate">{project.teacherName}</span>
+              <div className="flex items-center gap-1.5 leading-none mt-0.5">
+                <span className="text-sm shadow-sm flex-shrink-0">{countryFlag}</span>
+                <span className="text-xs font-medium text-purple-600 truncate">{countryName}</span>
               </div>
+              <span className="text-[10px] text-gray-400 mt-0.5 truncate">{timeAgo(project.createdAt)}</span>
             </div>
           </div>
 
-          <Button className="px-6 font-medium shadow-sm" variant="default" asChild>
+          <Button className="px-4 h-8 text-sm font-medium shadow-sm flex-shrink-0 ml-2 bg-[#7F56D9] hover:bg-[#6941C6]" variant="default" asChild>
             <Link href={`/teacher/discover/projects/${project.id}`}>
-              View Details
+              Request to join
             </Link>
           </Button>
         </div>
@@ -160,7 +163,7 @@ const mockProjects = {
       teacherName: 'Maria Garcia',
       teacherInitials: 'MG',
       teacherCountry: 'Spain',
-      createdAt: 'Created 3 days ago',
+      createdAt: '2025-01-01T00:00:00.000Z', // Placeholder, overwritten in useMemo
     },
     {
       id: '2',
@@ -193,9 +196,9 @@ const mockProjects = {
       ageRange: 'Ages 11 - 15 years',
       timezone: '-6 hours from you',
       language: 'English, French',
-      teacherName: 'Sophie Martin',
-      teacherInitials: 'SM',
-      teacherCountry: 'Canada',
+      teacherName: 'Jonas Madsen',
+      teacherInitials: 'JM',
+      teacherCountry: 'Denmark',
       createdAt: 'Created 2 weeks ago',
     },
   ],
@@ -217,6 +220,25 @@ const mockProjects = {
     })),
 }
 
+// Helper for relative time
+function timeAgo(dateString: string) {
+  const date = new Date(dateString)
+  const now = new Date()
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+  let interval = seconds / 31536000
+  if (interval > 1) return Math.floor(interval) + " years ago"
+  interval = seconds / 2592000
+  if (interval > 1) return Math.floor(interval) + " months ago"
+  interval = seconds / 86400
+  if (interval > 1) return Math.floor(interval) + " days ago"
+  interval = seconds / 3600
+  if (interval > 1) return Math.floor(interval) + " hours ago"
+  interval = seconds / 60
+  if (interval > 1) return Math.floor(interval) + " minutes ago"
+  return "Just now"
+}
+
 const mapDbProjectToUi = (
   project: any, // ProgramProject from DB
   database: any // Full DB
@@ -226,7 +248,16 @@ const mapDbProjectToUi = (
   const teacher = database.institutionTeachers.find((t: any) => t.id === project.createdById)
   const institution = teacher ? database.institutions.find((i: any) => i.id === teacher.institutionId) : null
 
-  return {
+  let createdAt = project.createdAt || new Date().toISOString()
+
+  // Enforce specific order via timestamps as requested
+  if (project.id === 'program-project-communities-belonging-ulla') { // Ulla Jensen
+    createdAt = new Date().toISOString() // Just now
+  } else if (project.id === 'program-project-communities-belonging') { // Karin Albrectsen
+    createdAt = new Date(Date.now() - 3600000).toISOString() // 1 hour ago
+  }
+
+  const uiProject = {
     id: project.id,
     title: template?.title ?? 'Untitled Project',
     subtitle: '',
@@ -240,11 +271,17 @@ const mapDbProjectToUi = (
     teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : 'Partner Teacher',
     teacherInitials: teacher ? `${teacher.firstName?.[0] ?? ''}${teacher.lastName?.[0] ?? ''}` : 'PT',
     teacherCountry: institution?.country ?? 'US',
-    createdAt: 'Recently',
+    createdAt: createdAt,
     isPartnerProgram: true,
     partnerName: database.partners.find((p: any) => p.id === program?.partnerId)?.organizationName,
-    programName: program?.displayTitle ?? program?.name
+    programName: program?.displayTitle ?? program?.name,
+    teacherAvatar: undefined as string | undefined // Initialize as optional string
   }
+
+  // Logic moved to useMemo to cover mock projects as well
+  return uiProject
+
+  return uiProject
 }
 
 
@@ -257,7 +294,16 @@ export function DiscoverContent({
   const { ready: dataReady, database } = usePrototypeDb()
 
   const allCollaborationProjects = useMemo(() => {
-    let projects = [...mockProjects.collaboration]
+    // Modify mockProjects timestamps for consistent sorting if needed
+    const mockWithDates = mockProjects.collaboration.map(p => {
+      if (p.id === '1') { // "A Small Step"
+        return { ...p, createdAt: new Date(Date.now() - 7200000).toISOString() } // 2 hours ago
+      }
+      return { ...p, createdAt: new Date(Date.now() - 86400000 * 3).toISOString() } // older
+    })
+
+    let projects = [...mockWithDates]
+
     if (database) {
       // Find all ACTIVE, PUBLIC projects from programs
       // Or just map all program projects for now
@@ -267,7 +313,42 @@ export function DiscoverContent({
 
       projects = [...projects, ...dbProjects]
     }
-    return projects
+
+    // Apply avatar overrides to ALL projects (mock and DB)
+    projects = projects.map(p => {
+      const project = { ...p }
+      // Override for Ulla Jensen as per request
+      if (project.teacherName?.includes('Ulla Jensen')) {
+        project.image = '/images/ulla-jensen-project.jpg' // User uploaded image
+        project.teacherAvatar = '/images/avatars/ulla-new.jpg' // Asian woman
+      }
+      if (project.teacherName?.includes('Karin Albrectsen')) {
+        project.teacherAvatar = '/images/avatars/karin-new.jpg' // Blond woman
+      }
+      if (project.teacherName?.includes('Maria Garcia')) {
+        project.teacherAvatar = '/images/avatars/maria-new.jpg' // Black woman
+      }
+      if (project.teacherName?.includes('Raj Patel')) {
+        project.teacherAvatar = '/images/avatars/raj-new.jpg' // Man 1
+      }
+      if (project.teacherName?.includes('Jonas Madsen')) {
+        project.teacherAvatar = '/images/avatars/jonas-final.jpg?v=final' // Confirmed blond guy
+      }
+      if (project.title?.includes('Teen Voices Across Borders')) {
+        project.teacherAvatar = '/images/avatars/avatar-3.png'
+      }
+      if (project.title?.includes('Fun English Through Cooking')) {
+        project.teacherAvatar = '/images/avatars/avatar-4.png'
+      }
+      return project
+    })
+
+    const sortedProjects = projects.sort((a, b) => {
+      // Sort by createdAt descending
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
+
+    return sortedProjects
   }, [database])
 
   const tabs = [
