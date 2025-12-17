@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { ArrowLeft, Clock, Globe2, Languages, Share2, Users2, FileText, Sparkles, Shield } from 'lucide-react'
+import { ArrowLeft, Clock, Languages, Share2, FileText } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -148,7 +148,7 @@ export default function ProjectDetailsPage() {
 
     const ageGroup = isMock
         ? mock?.ageRange
-        : (db?.program?.targetAgeRanges?.map(range => `${range.replace('-', ' - ')} yrs`).join(' • ') ?? 'All ages')
+        : (db?.program?.targetAgeRanges?.[0] ? `${db.program.targetAgeRanges[0].replace('-', ' - ')} years old` : 'All ages')
 
     const startWindow = isMock
         ? mock?.startMonth
@@ -230,7 +230,7 @@ export default function ProjectDetailsPage() {
                             <div className="flex items-center gap-2.5 bg-white/85 rounded-lg px-3 py-2 w-full sm:w-auto">
                                 <div className="relative h-8 w-8 rounded-full overflow-hidden border border-purple-50 shrink-0">
                                     {teacherAvatar ? (
-                                        <Image src={teacherAvatar} alt={creatorName} fill className="object-cover" />
+                                        <Image src={teacherAvatar} alt={creatorName || 'Teacher'} fill className="object-cover" />
                                     ) : (
                                         <div className="h-full w-full bg-purple-100 flex items-center justify-center text-purple-700 font-semibold text-xs">
                                             {creatorInitials}
@@ -256,52 +256,23 @@ export default function ProjectDetailsPage() {
                                 </div>
 
                                 <div className="flex-1 space-y-2">
-                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                        {partnerName && (
-                                            <div className="flex items-center gap-1 rounded-full bg-white border border-purple-50 px-2.5 py-1 shadow-sm">
-                                                <Sparkles className="h-3.5 w-3.5 text-purple-600" />
-                                                <span className="text-[11px] font-semibold text-gray-800">{partnerName}</span>
-                                            </div>
-                                        )}
-                                        <div className="flex items-center gap-1 rounded-full bg-white border border-purple-50 px-2.5 py-1 shadow-sm">
-                                            <Shield className="h-3.5 w-3.5 text-purple-600" />
-                                            <span className="text-[11px] font-semibold text-gray-800">{collaborationType}</span>
-                                        </div>
-                                        {programName && (
-                                            <Badge className="bg-white text-purple-700 border border-purple-100 shadow-sm text-[11px]">
-                                                {programName}
+                                    <h1 className="text-xl font-semibold text-gray-900 leading-tight">{title}</h1>
+
+                                    <div className="flex gap-6">
+                                        <div>
+                                            <p className="text-xs font-semibold text-gray-600 mb-1">Type of collaboration</p>
+                                            <Badge className="bg-[#FEF3C7] text-[#92400E] border-[#FDE68A] hover:bg-[#FEF3C7] font-medium px-3 py-1">
+                                                {collaborationType}
                                             </Badge>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-0.5">
-                                        <h1 className="text-xl font-semibold text-gray-900 leading-tight">{title}</h1>
-                                        {programName && (
-                                            <p className="text-xs text-gray-700">{db?.program?.marketingTagline ?? 'Cross-class collaboration to grow community and belonging.'}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-xl">
-                                        <div className="rounded-lg bg-white border border-purple-50 p-2 shadow-sm">
-                                            <p className="text-[10px] font-semibold text-gray-600 uppercase">Type of collaboration</p>
-                                            <p className="text-sm font-medium text-gray-900 mt-0.5">{collaborationType}</p>
                                         </div>
-                                        <div className="rounded-lg bg-white border border-purple-50 p-2 shadow-sm">
-                                            <p className="text-[10px] font-semibold text-gray-600 uppercase">Age group</p>
-                                            <p className="text-sm font-medium text-gray-900 mt-0.5">{ageGroup}</p>
-                                        </div>
-                                        <div className="rounded-lg bg-white border border-purple-50 p-2 shadow-sm">
-                                            <p className="text-[10px] font-semibold text-gray-600 uppercase">Languages</p>
-                                            <p className="text-sm font-medium text-gray-900 mt-0.5">{languageSupport}</p>
-                                        </div>
-                                        <div className="rounded-lg bg-white border border-purple-50 p-2 shadow-sm">
-                                            <p className="text-[10px] font-semibold text-gray-600 uppercase">Start window</p>
-                                            <p className="text-sm font-medium text-gray-900 mt-0.5">{startWindow}</p>
+                                        <div>
+                                            <p className="text-xs font-semibold text-gray-600 mb-1">Age group</p>
+                                            <p className="text-sm font-medium text-gray-900">{ageGroup}</p>
                                         </div>
                                     </div>
 
-                                    <div className="rounded-xl bg-white border border-purple-50 shadow-sm p-3">
-                                        <h3 className="text-sm font-semibold text-gray-900 mb-1">What is this project about?</h3>
+                                    <div>
+                                        <h3 className="text-sm font-semibold text-gray-900 mb-1.5">What is this project about?</h3>
                                         <p className={cn('text-sm text-gray-700 leading-relaxed', !isExpanded && 'line-clamp-3')}>
                                             {description}
                                         </p>
@@ -343,29 +314,29 @@ export default function ProjectDetailsPage() {
                         </Card>
                     </div>
 
-                    <div className="w-full lg:w-[360px] flex-shrink-0 space-y-3">
+                    <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2.5">
                         <Card className="border border-purple-100 bg-white shadow-sm">
-                            <CardContent className="p-4 space-y-2">
-                                <p className="text-sm text-gray-700">Be part of this project</p>
-                                <Button className="w-full bg-[#7f56d9] hover:bg-[#6b47bf] text-white shadow-md h-9 text-sm">
+                            <CardContent className="p-3 space-y-2">
+                                <p className="text-xs text-gray-700">Be part of this project</p>
+                                <Button className="w-full bg-[#7f56d9] hover:bg-[#6b47bf] text-white shadow-md h-8 text-sm">
                                     Request to join
                                 </Button>
-                                <Button variant="outline" className="w-full gap-2 h-9 text-sm">
-                                    <Share2 className="w-4 h-4" />
+                                <Button variant="outline" className="w-full gap-2 h-8 text-sm">
+                                    <Share2 className="w-3.5 h-3.5" />
                                     Share project
                                 </Button>
                             </CardContent>
                         </Card>
 
                         <Card className="border border-purple-50 shadow-sm">
-                            <CardContent className="p-4 space-y-3">
-                                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                                    Teachers involved <span className="text-gray-400 font-normal">(1)</span>
+                            <CardContent className="p-3 space-y-2.5">
+                                <h3 className="text-xs font-semibold text-gray-900 flex items-center gap-1.5">
+                                    Teachers involved <span className="text-gray-400 font-normal text-[11px]">(1)</span>
                                 </h3>
-                                <div className="flex items-start gap-3">
-                                    <div className="h-9 w-9 rounded-full overflow-hidden relative border border-purple-100 shrink-0">
+                                <div className="flex items-start gap-2.5">
+                                    <div className="h-8 w-8 rounded-full overflow-hidden relative border border-purple-100 shrink-0">
                                         {teacherAvatar ? (
-                                            <Image src={teacherAvatar} alt={creatorName} fill className="object-cover" />
+                                            <Image src={teacherAvatar} alt={creatorName || 'Teacher'} fill className="object-cover" />
                                         ) : (
                                             <div className="h-full w-full bg-gray-100 flex items-center justify-center text-gray-600 font-semibold">
                                                 {creatorInitials}
@@ -373,12 +344,12 @@ export default function ProjectDetailsPage() {
                                         )}
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-gray-900 leading-tight text-sm">
-                                            {creatorName} <span className="text-[11px] font-normal text-gray-500 ml-1">(Host)</span>
+                                        <p className="font-semibold text-gray-900 leading-tight text-xs">
+                                            {creatorName} <span className="text-[10px] font-normal text-gray-500 ml-1">(Host)</span>
                                         </p>
-                                        <div className="flex items-center gap-1.5 mt-1">
-                                            <span className="text-sm leading-none">{flag}</span>
-                                            <span className="text-[11px] text-gray-500 pb-0.5">{countryName}</span>
+                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                            <span className="text-xs leading-none">{flag}</span>
+                                            <span className="text-[10px] text-gray-500 pb-0.5">{countryName}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -387,21 +358,21 @@ export default function ProjectDetailsPage() {
 
                         {db?.program && db?.partner && (
                             <Card className="border border-purple-50 shadow-sm">
-                                <CardContent className="p-4 space-y-3">
-                                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                                        Partner involved <span className="text-gray-400 font-normal">(1)</span>
+                                <CardContent className="p-3 space-y-2.5">
+                                    <h3 className="text-xs font-semibold text-gray-900 flex items-center gap-1.5">
+                                        Partner involved <span className="text-gray-400 font-normal text-[11px]">(1)</span>
                                     </h3>
-                                    <div className="flex items-start gap-3">
+                                    <div className="flex items-start gap-2.5">
                                         {partnerLogo ? (
                                             <div
-                                                className="relative w-9 h-9 rounded-full overflow-hidden border border-purple-100 shrink-0 cursor-pointer"
+                                                className="relative w-8 h-8 rounded-full overflow-hidden border border-purple-100 shrink-0 cursor-pointer"
                                                 onClick={() => db.partner && router.push(`/teacher/partners/${db.partner.id}`)}
                                             >
                                                 <Image src={partnerLogo} alt={partnerName || 'Partner'} fill className="object-cover" />
                                             </div>
                                         ) : (
                                             <div
-                                                className="w-9 h-9 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center font-semibold shrink-0 cursor-pointer text-sm"
+                                                className="w-8 h-8 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center font-semibold shrink-0 cursor-pointer text-xs"
                                                 onClick={() => db.partner && router.push(`/teacher/partners/${db.partner.id}`)}
                                             >
                                                 {partnerName?.[0] ?? 'P'}
@@ -409,15 +380,15 @@ export default function ProjectDetailsPage() {
                                         )}
                                         <div className="flex-1">
                                             <p
-                                                className="font-semibold text-gray-900 leading-tight truncate cursor-pointer hover:text-purple-700 text-sm"
+                                                className="font-semibold text-gray-900 leading-tight truncate cursor-pointer hover:text-purple-700 text-xs"
                                                 onClick={() => db.partner && router.push(`/teacher/partners/${db.partner.id}`)}
                                             >
                                                 {partnerName}
                                             </p>
-                                            <p className="text-[11px] text-gray-500 mt-0.5">Partner organization</p>
+                                            <p className="text-[10px] text-gray-500 mt-0.5">Partner organization</p>
                                             <button
                                                 onClick={() => db.program && router.push(`/teacher/discover/programs/${db.program.id}`)}
-                                                className="text-[11px] font-medium text-purple-700 hover:text-purple-800 mt-2"
+                                                className="text-[10px] font-medium text-purple-700 hover:text-purple-800 mt-1.5"
                                             >
                                                 View program
                                             </button>
@@ -428,33 +399,19 @@ export default function ProjectDetailsPage() {
                         )}
 
                         <Card className="border border-purple-50 shadow-sm">
-                            <CardContent className="p-4 space-y-3">
-                                <div className="flex items-start gap-3">
-                                    <Clock className="w-4 h-4 text-gray-400 mt-0.5" />
+                            <CardContent className="p-3 space-y-2">
+                                <div className="flex items-start gap-2.5">
+                                    <Clock className="w-3.5 h-3.5 text-gray-400 mt-0.5" />
                                     <div>
-                                        <p className="text-sm font-medium text-gray-900">Timeline</p>
-                                        <p className="text-sm text-gray-600">Starts in {startWindow} · {duration}</p>
+                                        <p className="text-xs font-medium text-gray-900">Timeline</p>
+                                        <p className="text-xs text-gray-600">Starts in {startWindow} · {duration}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-start gap-3">
-                                    <Users2 className="w-4 h-4 text-gray-400 mt-0.5" />
+                                <div className="flex items-start gap-2.5">
+                                    <Languages className="w-3.5 h-3.5 text-gray-400 mt-0.5" />
                                     <div>
-                                        <p className="text-sm font-medium text-gray-900">Age group</p>
-                                        <p className="text-sm text-gray-600">{ageGroup}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <Globe2 className="w-4 h-4 text-gray-400 mt-0.5" />
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">Project type</p>
-                                        <p className="text-sm text-gray-600 capitalize">{collaborationType}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <Languages className="w-4 h-4 text-gray-400 mt-0.5" />
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">Language</p>
-                                        <p className="text-sm text-gray-600">{languageSupport}</p>
+                                        <p className="text-xs font-medium text-gray-900">Language</p>
+                                        <p className="text-xs text-gray-600">{languageSupport}</p>
                                     </div>
                                 </div>
                             </CardContent>
