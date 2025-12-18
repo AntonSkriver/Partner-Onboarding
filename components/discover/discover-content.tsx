@@ -48,7 +48,7 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
   const isUnicef = project.partnerName?.toLowerCase().includes('unicef')
 
   return (
-    <Card className="flex h-full flex-col overflow-hidden border border-gray-100 transition-shadow hover:shadow-lg relative">
+    <Card className="flex h-full flex-col overflow-hidden border border-gray-100 transition-shadow hover:shadow-lg relative gap-0 py-0">
       <div className="relative h-40 overflow-visible">
         <Image
           src={project.image}
@@ -60,8 +60,8 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
 
         {isUnicef && (
           <div className="pointer-events-none absolute left-3 top-3">
-            <div className="flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 shadow-lg ring-1 ring-black/5 backdrop-blur-sm">
-              <div className="relative h-7 w-auto">
+            <div className="flex items-center gap-2 rounded-full bg-white/90 px-2.5 py-1 shadow-lg ring-1 ring-black/5 backdrop-blur-sm">
+              <div className="relative h-6 w-auto">
                 <Image
                   src="/images/unicef-logo.svg"
                   alt="UNICEF"
@@ -369,7 +369,7 @@ export function DiscoverContent({
     switch (activeTab) {
       case 'collaboration':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-3 w-3 rounded-full bg-purple-500" />
@@ -386,7 +386,7 @@ export function DiscoverContent({
                 </Button>
               </div>
             </div>
-            <p className="mb-6 text-sm text-gray-600">
+            <p className="text-sm text-gray-600">
               Browse active projects from teachers worldwide seeking partner classrooms for collaborative
               endeavors.
             </p>
