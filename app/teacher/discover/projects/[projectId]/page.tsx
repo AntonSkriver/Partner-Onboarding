@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { ArrowLeft, Clock, Globe2, Languages, Share2, Users2, FileText, Sparkles, Shield } from 'lucide-react'
+import { ArrowLeft, Clock, Languages, Share2, FileText, Sparkles } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -70,6 +70,15 @@ export default function ProjectDetailsPage() {
     const projectId = params.projectId as string
     const { database } = usePrototypeDb()
     const [isExpanded, setIsExpanded] = useState(false)
+
+    const resolveAvatar = (name?: string | null) => {
+        if (name?.includes('Ulla Jensen')) return '/images/avatars/ulla-new.jpg'
+        if (name?.includes('Karin Albrectsen')) return '/images/avatars/karin-new.jpg'
+        if (name?.includes('Maria Garcia')) return '/images/avatars/maria-new.jpg'
+        if (name?.includes('Raj Patel')) return '/images/avatars/raj-new.jpg'
+        if (name?.includes('Jonas Madsen')) return '/images/avatars/jonas-final.jpg?v=final'
+        return null
+    }
 
     const projectData = useMemo(() => {
         // 1. Check Mock Projects
@@ -158,14 +167,46 @@ export default function ProjectDetailsPage() {
         ? `${db.template.estimatedDurationWeeks} week${db.template.estimatedDurationWeeks > 1 ? 's' : ''}`
         : 'Flexible pacing'
 
-    const teacherAvatar = useMemo(() => {
-        if (creatorName?.includes('Ulla Jensen')) return '/images/avatars/ulla-new.jpg'
-        if (creatorName?.includes('Karin Albrectsen')) return '/images/avatars/karin-new.jpg'
-        if (creatorName?.includes('Maria Garcia')) return '/images/avatars/maria-new.jpg'
-        if (creatorName?.includes('Raj Patel')) return '/images/avatars/raj-new.jpg'
-        if (creatorName?.includes('Jonas Madsen')) return '/images/avatars/jonas-final.jpg?v=final'
-        return null
-    }, [creatorName])
+    const teacherAvatar = useMemo(() => resolveAvatar(creatorName), [creatorName])
+
+    const involvedTeachers = useMemo(() => {
+        const list: {
+            name: string
+            initials: string
+            avatar: string | null
+            flag: string
+            countryName: string
+            role: string
+        }[] = []
+
+        list.push({
+            name: creatorName ?? 'Teacher',
+            initials: creatorInitials,
+            avatar: teacherAvatar,
+            flag,
+            countryName,
+            role: 'Host',
+        })
+
+        if (db?.project?.id === 'program-project-communities-belonging-ulla' && database) {
+            const karin = database.institutionTeachers.find((t: any) => t.id === 'teacher-aarhus-karin')
+            if (karin) {
+                const karinInstitution = database.institutions.find((i: any) => i.id === karin.institutionId)
+                const { flag: karinFlag, name: karinCountry } = getCountryDisplay(karinInstitution?.country ?? 'DK')
+
+                list.push({
+                    name: `${karin.firstName} ${karin.lastName}`,
+                    initials: `${karin.firstName?.[0] ?? ''}${karin.lastName?.[0] ?? ''}`,
+                    avatar: resolveAvatar(`${karin.firstName} ${karin.lastName}`),
+                    flag: karinFlag,
+                    countryName: karinCountry,
+                    role: 'Co-host',
+                })
+            }
+        }
+
+        return list
+    }, [creatorName, creatorInitials, teacherAvatar, flag, countryName, db?.project?.id, database])
 
     const resources = useMemo(() => {
         const base = [
@@ -227,19 +268,6 @@ export default function ProjectDetailsPage() {
                 <div className="flex flex-col lg:flex-row gap-4 items-start">
                     <div className="flex-1 space-y-4 min-w-0">
                         <div className="rounded-xl bg-[#d9c8ff] border border-purple-100 shadow-sm p-3 space-y-2.5 relative overflow-hidden">
-                            {db?.partner && (
-                                <div className="absolute top-3 right-3 bg-white rounded-lg shadow-md p-2 border border-purple-100">
-                                    {partnerLogo ? (
-                                        <div className="relative w-16 h-16">
-                                            <Image src={partnerLogo} alt={partnerName || 'Partner'} fill className="object-contain" />
-                                        </div>
-                                    ) : (
-                                        <div className="w-16 h-16 bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xl rounded">
-                                            {partnerName?.[0] ?? 'P'}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
                             <div className="flex items-center gap-2.5 bg-white/85 rounded-lg px-3 py-2 w-full sm:w-auto">
                                 <div className="relative h-8 w-8 rounded-full overflow-hidden border border-purple-50 shrink-0">
                                     {teacherAvatar ? (
@@ -256,17 +284,21 @@ export default function ProjectDetailsPage() {
                                 </p>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row gap-3 items-start relative">
-                                {partnerName?.includes('UNICEF') && (
-                                    <div className="absolute top-0 right-0 w-24 h-24 z-10 pointer-events-none overflow-hidden">
+                            {partnerName?.includes('UNICEF') && (
+                                <div className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#b3e0ff] px-2.5 py-0.5 shadow-sm">
+                                    <div className="relative h-5 w-5">
                                         <Image
-                                            src="/images/unicef-corner.png"
+                                            src="/images/unicef-emblem.svg"
                                             alt="UNICEF"
                                             fill
-                                            className="object-contain object-top-right transform translate-x-1 translate-y-1"
+                                            className="object-contain"
                                         />
                                     </div>
-                                )}
+                                    <span className="text-[11px] font-semibold text-[#0099e5]">UNICEF partner project</span>
+                                </div>
+                            )}
+
+                            <div className="flex flex-col sm:flex-row gap-3 items-start relative">
                                 <div className="w-[150px] rounded-lg bg-white border border-purple-50 shadow-sm overflow-hidden shrink-0">
                                     <div className="relative aspect-[3/4]">
                                         <Image
@@ -280,10 +312,9 @@ export default function ProjectDetailsPage() {
 
                                 <div className="flex-1 space-y-2">
                                     <div className="flex items-center gap-1.5 flex-wrap pr-12">
-                                        {/* Removed Partner Name Badge as requested for cleaner look with banner */}
-                                        <div className="flex items-center gap-1 rounded-full bg-white border border-purple-50 px-2.5 py-1 shadow-sm">
-                                            <Shield className="h-3.5 w-3.5 text-purple-600" />
-                                            <span className="text-[11px] font-semibold text-gray-800">{collaborationType}</span>
+                                        <div className="flex items-center gap-1.5 rounded-full bg-amber-100 border border-amber-200 px-2.5 py-1 shadow-sm">
+                                            <Sparkles className="h-3.5 w-3.5 text-amber-700" />
+                                            <span className="text-[11px] font-semibold text-amber-800">{collaborationType}</span>
                                         </div>
                                     </div>
 
@@ -353,38 +384,42 @@ export default function ProjectDetailsPage() {
                         <Card className="border border-purple-50 shadow-sm">
                             <CardContent className="p-3 space-y-2.5">
                                 <h3 className="text-xs font-semibold text-gray-900 flex items-center gap-1.5">
-                                    Teachers involved <span className="text-gray-400 font-normal text-[11px]">(1)</span>
+                                    Teachers involved <span className="text-gray-400 font-normal text-[11px]">({involvedTeachers.length})</span>
                                 </h3>
-                                <div className="flex items-start gap-2.5">
-                                    <div className="h-8 w-8 rounded-full overflow-hidden relative border border-purple-100 shrink-0">
-                                        {teacherAvatar ? (
-                                            <Image src={teacherAvatar} alt={creatorName || 'Teacher'} fill className="object-cover" />
-                                        ) : (
-                                            <div className="h-full w-full bg-gray-100 flex items-center justify-center text-gray-600 font-semibold">
-                                                {creatorInitials}
+                                <div className="space-y-2">
+                                    {involvedTeachers.map((teacher) => (
+                                        <div key={`${teacher.name}-${teacher.role}`} className="flex items-start gap-2.5">
+                                            <div className="h-8 w-8 rounded-full overflow-hidden relative border border-purple-100 shrink-0">
+                                                {teacher.avatar ? (
+                                                    <Image src={teacher.avatar} alt={teacher.name} fill className="object-cover" />
+                                                ) : (
+                                                    <div className="h-full w-full bg-gray-100 flex items-center justify-center text-gray-600 font-semibold">
+                                                        {teacher.initials}
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-900 leading-tight text-xs">
-                                            {creatorName} <span className="text-[10px] font-normal text-gray-500 ml-1">(Host)</span>
-                                        </p>
-                                        <div className="flex items-center gap-1.5 mt-0.5">
-                                            <span className="text-xs leading-none">{flag}</span>
-                                            <span className="text-[10px] text-gray-500 pb-0.5">{countryName}</span>
+                                            <div>
+                                                <p className="font-semibold text-gray-900 leading-tight text-xs">
+                                                    {teacher.name} <span className="text-[10px] font-normal text-gray-500 ml-1">({teacher.role})</span>
+                                                </p>
+                                                <div className="flex items-center gap-1.5 mt-0.5">
+                                                    <span className="text-xs leading-none">{teacher.flag}</span>
+                                                    <span className="text-[10px] text-gray-500 pb-0.5">{teacher.countryName}</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    ))}
                                 </div>
                             </CardContent>
                         </Card>
 
                         {db?.program && db?.partner && (
                             <Card className="border border-purple-50 shadow-sm">
-                                <CardContent className="p-3 space-y-2.5">
-                                    <h3 className="text-xs font-semibold text-gray-900 flex items-center gap-1.5">
-                                        Partner involved <span className="text-gray-400 font-normal text-[11px]">(1)</span>
-                                    </h3>
-                                    <div className="flex items-start gap-2.5">
+                            <CardContent className="p-3 space-y-2.5">
+                                <h3 className="text-xs font-semibold text-gray-900 flex items-center gap-1.5">
+                                    Partner involved <span className="text-gray-400 font-normal text-[11px]">(1)</span>
+                                </h3>
+                                <div className="flex items-start gap-2.5">
                                         {partnerLogo ? (
                                             <div
                                                 className="relative w-8 h-8 rounded-full overflow-hidden border border-purple-100 shrink-0 cursor-pointer"
@@ -404,21 +439,30 @@ export default function ProjectDetailsPage() {
                                             <p
                                                 className="font-semibold text-gray-900 leading-tight truncate cursor-pointer hover:text-purple-700 text-xs"
                                                 onClick={() => db.partner && router.push(`/teacher/partners/${db.partner.id}`)}
-                                            >
-                                                {partnerName}
-                                            </p>
-                                            <p className="text-[10px] text-gray-500 mt-0.5">Partner organization</p>
-                                            <button
-                                                onClick={() => db.program && router.push(`/teacher/discover/programs/${db.program.id}`)}
-                                                className="text-[10px] font-medium text-purple-700 hover:text-purple-800 mt-1.5"
-                                            >
-                                                View program
-                                            </button>
-                                        </div>
+                                        >
+                                            {partnerName}
+                                        </p>
+                                        <p className="text-[10px] text-gray-500 mt-0.5">Partner organization</p>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        )}
+                                </div>
+                                <div className="flex gap-2 pt-1">
+                                    <Button
+                                        variant="outline"
+                                        className="h-8 px-3 text-xs border-purple-200 text-purple-700 hover:bg-purple-50"
+                                        onClick={() => db.partner && router.push(`/teacher/partners/${db.partner.id}`)}
+                                    >
+                                        View partner
+                                    </Button>
+                                    <Button
+                                        className="h-8 px-3 text-xs bg-[#7f56d9] hover:bg-[#6b47bf] text-white"
+                                        onClick={() => db.program && router.push(`/teacher/discover/programs/${db.program.id}`)}
+                                    >
+                                        View program
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
                         <Card className="border border-purple-50 shadow-sm">
                             <CardContent className="p-3 space-y-2">
