@@ -59,31 +59,26 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
         />
 
         {isUnicef && (
-          <div
-            className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 -rotate-3 drop-shadow-xl"
-            style={{ width: 'calc(100% - 8px)' }}
-          >
-            <Image
-              src="/images/unicef-banner.svg"
-              alt="UNICEF partner program"
-              width={760}
-              height={160}
-              className="h-auto w-full"
-              loading="lazy"
-            />
+          <div className="pointer-events-none absolute left-3 top-3">
+            <div className="flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 shadow-lg ring-1 ring-black/5 backdrop-blur-sm">
+              <div className="relative h-7 w-auto">
+                <Image
+                  src="/images/unicef-logo.svg"
+                  alt="UNICEF"
+                  width={130}
+                  height={34}
+                  className="h-full w-auto"
+                  loading="lazy"
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>
 
       <CardContent className="flex flex-1 flex-col space-y-2 p-4">
-        <div className="flex justify-between items-start">
+        <div className="flex items-start">
           <p className="text-sm font-medium text-[#7F56D9]">Starting Month: {project.startMonth}</p>
-          {isUnicef && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#0da9e6] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-white/80" />
-              UNICEF partner
-            </span>
-          )}
         </div>
 
         <h3 className="text-lg font-bold leading-snug text-gray-900 line-clamp-2">{project.title}</h3>
