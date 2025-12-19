@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { ArrowLeft, Clock, Languages, Share2, FileText, Sparkles } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -285,21 +286,38 @@ export default function ProjectDetailsPage() {
                             </div>
 
                             {partnerName?.includes('UNICEF') && (
-                                <div className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#b3e0ff] px-2.5 py-0.5 shadow-sm">
-                                    <div className="relative h-5 w-5">
+                                <motion.div
+                                    className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#00AEEF] to-[#0088CC] px-3 py-1.5 shadow-md overflow-hidden relative"
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                                >
+                                    {/* Shimmer effect */}
+                                    <motion.div
+                                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent"
+                                        initial={{ x: '-100%' }}
+                                        animate={{ x: '200%' }}
+                                        transition={{
+                                            duration: 2,
+                                            repeat: Infinity,
+                                            repeatDelay: 3,
+                                            ease: "easeInOut"
+                                        }}
+                                    />
+                                    <div className="relative h-6 w-6 z-10">
                                         <Image
                                             src="/images/unicef-emblem.svg"
                                             alt="UNICEF"
                                             fill
-                                            className="object-contain"
+                                            className="object-contain brightness-0 invert drop-shadow-sm"
                                         />
                                     </div>
-                                    <span className="text-[11px] font-semibold text-[#0099e5]">UNICEF partner project</span>
-                                </div>
+                                    <span className="text-[12px] font-semibold text-white z-10 drop-shadow-sm">UNICEF Partner Project</span>
+                                </motion.div>
                             )}
 
                             <div className="flex flex-col sm:flex-row gap-3 items-start relative">
-                                <div className="w-[150px] rounded-lg bg-white border border-purple-50 shadow-sm overflow-hidden shrink-0">
+                                <div className="w-[150px] rounded-lg bg-white border border-purple-50 shadow-sm overflow-hidden shrink-0 relative">
                                     <div className="relative aspect-[3/4]">
                                         <Image
                                             src={image || ''}

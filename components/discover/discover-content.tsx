@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { Plus, Search, Globe2, Users2, Clock, Languages } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 import { ProgramCatalogCard } from '@/components/program/program-catalog-card'
 import { Button } from '@/components/ui/button'
@@ -59,20 +60,54 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
         />
 
         {isUnicef && (
-          <div className="pointer-events-none absolute left-3 top-3">
-            <div className="flex items-center gap-2 rounded-full bg-white/90 px-2.5 py-1 shadow-lg ring-1 ring-black/5 backdrop-blur-sm">
-              <div className="relative h-6 w-auto">
+          <motion.div
+            className="pointer-events-none absolute top-0 right-0 z-10 overflow-hidden w-28 h-28"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Diagonal corner ribbon */}
+            <motion.div
+              className="absolute top-[16px] -right-[30px] w-[140px] bg-gradient-to-r from-[#00AEEF] via-[#29B6F6] to-[#00AEEF] py-2 rotate-45 shadow-lg flex items-center justify-center"
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{
+                type: "spring",
+                stiffness: 150,
+                damping: 20,
+                delay: 0.2
+              }}
+            >
+              {/* Animated shimmer */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                initial={{ x: '-100%' }}
+                animate={{ x: '200%' }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  repeatDelay: 3,
+                  ease: "easeInOut"
+                }}
+              />
+
+              {/* UNICEF content */}
+              <div className="relative z-10 flex items-center gap-1.5">
                 <Image
-                  src="/images/unicef-logo.svg"
+                  src="/images/unicef-emblem.svg"
                   alt="UNICEF"
-                  width={130}
-                  height={34}
-                  className="h-full w-auto"
-                  loading="lazy"
+                  width={26}
+                  height={26}
+                  className="drop-shadow-sm brightness-0 invert"
                 />
+                <span className="text-white text-[10px] font-bold tracking-wider drop-shadow-sm">UNICEF</span>
               </div>
-            </div>
-          </div>
+            </motion.div>
+
+            {/* Ribbon fold shadows */}
+            <div className="absolute top-[42px] right-0 w-0 h-0 border-l-[6px] border-l-[#0277BD] border-b-[6px] border-b-transparent" />
+            <div className="absolute top-0 right-[42px] w-0 h-0 border-t-[6px] border-t-transparent border-r-[6px] border-r-[#0277BD]" />
+          </motion.div>
         )}
       </div>
 
