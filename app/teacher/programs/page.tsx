@@ -75,7 +75,9 @@ export default function TeacherProgramsPage() {
                     {programSummaries.map((summary) => {
                         const partner = database.partners.find(p => p.id === summary.program.partnerId)
                         const isUnicef = partner?.organizationName?.toLowerCase().includes('unicef') || summary.program.name?.toLowerCase().includes('unicef')
-                        const isSaveTheChildren = partner?.organizationName?.toLowerCase().includes('save the children') || summary.program.name?.toLowerCase().includes('save the children')
+                        const isSaveTheChildren = partner?.organizationName?.toLowerCase().includes('save the children') ||
+                            summary.program.name?.toLowerCase().includes('save the children') ||
+                            summary.program.name?.toLowerCase().includes('build the change')
                         return (
                             <Card key={summary.program.id} className="flex h-full flex-col overflow-hidden hover:shadow-lg transition-all duration-200">
                                 <div className="relative h-40 bg-gray-100">
@@ -112,7 +114,7 @@ export default function TeacherProgramsPage() {
                                                     transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3, ease: "easeInOut" }}
                                                 />
                                                 <div className="relative z-10 flex items-center gap-1.5">
-                                                    <Image src="/images/unicef-emblem.svg" alt="UNICEF" width={26} height={26} className="drop-shadow-sm brightness-0 invert" />
+                                                    <Image src="/partners/unicef-logo.png" alt="UNICEF" width={26} height={26} className="drop-shadow-sm brightness-0 invert" />
                                                     <span className="text-white text-[10px] font-bold tracking-wider drop-shadow-sm">UNICEF</span>
                                                 </div>
                                             </motion.div>
@@ -142,8 +144,11 @@ export default function TeacherProgramsPage() {
                                                     transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3, ease: "easeInOut" }}
                                                 />
                                                 <div className="relative z-10 flex items-center gap-1">
-                                                    <Image src="/partners/save-the-children.svg" alt="Save the Children" width={22} height={22} className="drop-shadow-sm brightness-0 invert" />
-                                                    <span className="text-white text-[8px] font-bold tracking-wider drop-shadow-sm">STC</span>
+                                                    <Image src="/partners/save-the-children-logo.png" alt="Save the Children" width={24} height={24} className="drop-shadow-sm brightness-0 invert" />
+                                                    <div className="flex flex-col leading-none">
+                                                        <span className="text-white text-[7px] font-bold tracking-wide drop-shadow-sm">Save the</span>
+                                                        <span className="text-white text-[7px] font-bold tracking-wide drop-shadow-sm">Children</span>
+                                                    </div>
                                                 </div>
                                             </motion.div>
                                             <div className="absolute top-[42px] right-0 w-0 h-0 border-l-[6px] border-l-[#B71C1C] border-b-[6px] border-b-transparent" />

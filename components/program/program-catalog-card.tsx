@@ -104,7 +104,9 @@ export function ProgramCatalogCard({
       : 'English'
 
   const isUnicef = hostName?.toLowerCase().includes('unicef')
-  const isSaveTheChildren = hostName?.toLowerCase().includes('save the children') || item.displayTitle?.toLowerCase().includes('save the children')
+  const isSaveTheChildren = hostName?.toLowerCase().includes('save the children') ||
+    item.displayTitle?.toLowerCase().includes('save the children') ||
+    item.displayTitle?.toLowerCase().includes('build the change')
 
   return (
     <Card className={cn('flex h-full flex-col overflow-hidden', className)}>
@@ -150,7 +152,7 @@ export function ProgramCatalogCard({
               />
               <div className="relative z-10 flex items-center gap-1.5">
                 <Image
-                  src="/images/unicef-emblem.svg"
+                  src="/partners/unicef-logo.png"
                   alt="UNICEF"
                   width={26}
                   height={26}
@@ -186,13 +188,16 @@ export function ProgramCatalogCard({
               />
               <div className="relative z-10 flex items-center gap-1">
                 <Image
-                  src="/partners/save-the-children.svg"
+                  src="/partners/save-the-children-logo.png"
                   alt="Save the Children"
-                  width={22}
-                  height={22}
+                  width={24}
+                  height={24}
                   className="drop-shadow-sm brightness-0 invert"
                 />
-                <span className="text-white text-[8px] font-bold tracking-wider drop-shadow-sm">STC</span>
+                <div className="flex flex-col leading-none">
+                  <span className="text-white text-[7px] font-bold tracking-wide drop-shadow-sm">Save the</span>
+                  <span className="text-white text-[7px] font-bold tracking-wide drop-shadow-sm">Children</span>
+                </div>
               </div>
             </motion.div>
             <div className="absolute top-[42px] right-0 w-0 h-0 border-l-[6px] border-l-[#B71C1C] border-b-[6px] border-b-transparent" />

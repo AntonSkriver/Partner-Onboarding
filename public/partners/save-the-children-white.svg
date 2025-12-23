@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Save the Children logo - child with raised arms in circle (white version) -->
+  <g fill="white" stroke="white">
+    <!-- Circle outline -->
+    <circle cx="50" cy="50" r="42" fill="none" stroke="white" stroke-width="6"/>
+    <!-- Child head -->
+    <circle cx="50" cy="32" r="12" fill="white"/>
+    <!-- Child body -->
+    <path d="M35 48 Q50 42 65 48 L58 82 Q50 86 42 82 Z" fill="white"/>
+    <!-- Left arm raised -->
+    <path d="M38 52 Q22 38 12 32" stroke="white" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <!-- Right arm raised -->
+    <path d="M62 52 Q78 38 88 32" stroke="white" stroke-width="7" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>

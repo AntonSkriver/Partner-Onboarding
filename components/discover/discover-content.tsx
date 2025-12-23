@@ -47,6 +47,9 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const { flag: countryFlag, name: countryName } = getCountryDisplay(project.teacherCountry)
   const isUnicef = project.partnerName?.toLowerCase().includes('unicef')
+  const isSaveTheChildren = project.partnerName?.toLowerCase().includes('save the children') ||
+    project.programName?.toLowerCase().includes('save the children') ||
+    project.programName?.toLowerCase().includes('build the change')
 
   return (
     <Card className="flex h-full flex-col overflow-hidden border border-gray-100 transition-shadow hover:shadow-lg relative gap-0 py-0">
@@ -94,7 +97,7 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
               {/* UNICEF content */}
               <div className="relative z-10 flex items-center gap-1.5">
                 <Image
-                  src="/images/unicef-emblem.svg"
+                  src="/partners/unicef-logo.png"
                   alt="UNICEF"
                   width={26}
                   height={26}
@@ -107,6 +110,45 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
             {/* Ribbon fold shadows */}
             <div className="absolute top-[42px] right-0 w-0 h-0 border-l-[6px] border-l-[#0277BD] border-b-[6px] border-b-transparent" />
             <div className="absolute top-0 right-[42px] w-0 h-0 border-t-[6px] border-t-transparent border-r-[6px] border-r-[#0277BD]" />
+          </motion.div>
+        )}
+
+        {/* Save the Children Ribbon Banner */}
+        {isSaveTheChildren && (
+          <motion.div
+            className="pointer-events-none absolute top-0 right-0 z-10 overflow-hidden w-28 h-28"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div
+              className="absolute top-[16px] -right-[30px] w-[140px] bg-gradient-to-r from-[#E31B23] via-[#FF3B3B] to-[#E31B23] py-2 rotate-45 shadow-lg flex items-center justify-center"
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 150, damping: 20, delay: 0.2 }}
+            >
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                initial={{ x: '-100%' }}
+                animate={{ x: '200%' }}
+                transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3, ease: "easeInOut" }}
+              />
+              <div className="relative z-10 flex items-center gap-1">
+                <Image
+                  src="/partners/save-the-children-logo.png"
+                  alt="Save the Children"
+                  width={24}
+                  height={24}
+                  className="drop-shadow-sm brightness-0 invert"
+                />
+                <div className="flex flex-col leading-none">
+                  <span className="text-white text-[7px] font-bold tracking-wide drop-shadow-sm">Save the</span>
+                  <span className="text-white text-[7px] font-bold tracking-wide drop-shadow-sm">Children</span>
+                </div>
+              </div>
+            </motion.div>
+            <div className="absolute top-[42px] right-0 w-0 h-0 border-l-[6px] border-l-[#B71C1C] border-b-[6px] border-b-transparent" />
+            <div className="absolute top-0 right-[42px] w-0 h-0 border-t-[6px] border-t-transparent border-r-[6px] border-r-[#B71C1C]" />
           </motion.div>
         )}
       </div>

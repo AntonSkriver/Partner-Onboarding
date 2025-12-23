@@ -6,7 +6,7 @@ import {
   StoredPartnerUser,
 } from '@/lib/storage/prototype-db'
 
-const PROTOTYPE_SEED_VERSION = 5
+const PROTOTYPE_SEED_VERSION = 6
 
 const buildSeedPartners = (): StoredPartner[] => [
   {
@@ -1274,8 +1274,9 @@ export const seedPrototypeDb = (options: SeedOptions = {}): {
 
   if (!options.force) {
     const alreadySeeded = Boolean(current.metadata.seededAt) || current.programs.length > 0
+    const isCurrentVersion = current.metadata.version === PROTOTYPE_SEED_VERSION
 
-    if (alreadySeeded) {
+    if (alreadySeeded && isCurrentVersion) {
       return {
         seeded: false,
         reason: 'already-seeded',
