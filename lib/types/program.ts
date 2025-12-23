@@ -223,6 +223,9 @@ export interface ProgramProject {
   createdByType: 'partner' | 'coordinator' | 'teacher';
   createdById: string;
 
+  // Participants (teachers who joined but didn't create the project)
+  participantIds?: string[];
+
   // Co-partner association (optional)
   associatedCoPartnerId?: string; // Links project to specific co-partner
 

@@ -191,8 +191,8 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
 
         <div className="flex-1" />
 
-        <div className="flex items-center justify-between border-t border-gray-100 pt-3 mt-2">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between border-t border-gray-100 pt-3 mt-2 gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <div className="h-9 w-9 overflow-hidden rounded-full border border-gray-200 bg-gray-100 flex items-center justify-center flex-shrink-0">
               {project.teacherAvatar ? (
                 <img
@@ -206,7 +206,7 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
                 <Users2 className="w-5 h-5 text-gray-400" />
               )}
             </div>
-            <div className="flex flex-col min-w-0 justify-center">
+            <div className="flex flex-col min-w-0 justify-center flex-1">
               <span className="text-sm font-medium text-gray-900 truncate">{project.teacherName}</span>
               <div className="flex items-center gap-1.5 leading-none mt-0.5">
                 <span className="text-sm shadow-sm flex-shrink-0">{countryFlag}</span>
@@ -216,7 +216,7 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
             </div>
           </div>
 
-          <Button className="px-4 h-8 text-sm font-medium shadow-sm flex-shrink-0 ml-2 bg-[#7F56D9] hover:bg-[#6941C6]" variant="default" asChild>
+          <Button className="px-3 h-8 text-xs font-medium shadow-sm flex-shrink-0 bg-[#7F56D9] hover:bg-[#6941C6] whitespace-nowrap" variant="default" asChild>
             <Link href={`/teacher/discover/projects/${project.id}`}>
               Request to join
             </Link>
@@ -338,6 +338,8 @@ const mapDbProjectToUi = (
     createdAt = new Date().toISOString() // Just now
   } else if (project.id === 'program-project-communities-belonging') { // Karin Albrectsen
     createdAt = new Date(Date.now() - 3600000).toISOString() // 1 hour ago
+  } else if (project.id === 'program-project-build-change-garden') { // Sustainable School Garden - 4th position
+    createdAt = new Date(Date.now() - 9000000).toISOString() // 2.5 hours ago
   }
 
   const uiProject = {
@@ -417,6 +419,9 @@ export function DiscoverContent({
       }
       if (project.teacherName?.includes('Jonas Madsen')) {
         project.teacherAvatar = '/images/avatars/jonas-final.jpg?v=final' // Confirmed blond guy
+      }
+      if (project.teacherName?.includes('Anne Holm')) {
+        project.teacherAvatar = '/images/avatars/anne-holm.png'
       }
       if (project.title?.includes('Teen Voices Across Borders')) {
         project.teacherAvatar = '/images/avatars/avatar-3.png'

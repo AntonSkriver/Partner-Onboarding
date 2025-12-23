@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Search, Sparkles, Users, Globe2, Users2, Clock, Languages } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -44,7 +45,10 @@ export default function TeacherProjectsPage() {
   const decoratedProjects: DecoratedProject[] = useMemo(() => {
     if (!database) return []
     return database.programProjects
-      .filter((project) => membershipIds.has(project.createdById))
+      .filter((project) =>
+        membershipIds.has(project.createdById) ||
+        project.participantIds?.some(id => membershipIds.has(id))
+      )
       .map((project) => {
         const program = programSummaries.find((summary) => summary.program.id === project.programId) ?? null
         const template = program?.templates.find((entry) => entry.id === project.templateId)
@@ -220,6 +224,16 @@ export default function TeacherProjectsPage() {
   )
 }
 
+// Avatar mapping for teachers
+const TEACHER_AVATARS: Record<string, string> = {
+  'Anne Holm': '/images/avatars/anne-holm.png',
+  'Karin Albrectsen': '/images/avatars/karin-new.jpg',
+  'Ulla Jensen': '/images/avatars/ulla-new.jpg',
+  'Maria Garcia': '/images/avatars/maria-new.jpg',
+  'Raj Patel': '/images/avatars/raj-new.jpg',
+  'Jonas Madsen': '/images/avatars/jonas-final.jpg',
+}
+
 function ProjectCard({ item, membershipIds }: { item: DecoratedProject; membershipIds: Set<string> }) {
   const { project, template, program, creator } = item
   const [isExpanded, setIsExpanded] = useState(false)
@@ -236,12 +250,19 @@ function ProjectCard({ item, membershipIds }: { item: DecoratedProject; membersh
   const institution = creator?.institution ?? null
 
   const isHost = teacher?.id ? membershipIds.has(teacher.id) : false
-  const teacherName = isHost
-    ? 'You (Host)'
-    : [teacher?.firstName, teacher?.lastName].filter(Boolean).join(' ') || 'Unknown teacher'
+  const isParticipant = !isHost && project.participantIds?.some(id => membershipIds.has(id))
+  const fullTeacherName = [teacher?.firstName, teacher?.lastName].filter(Boolean).join(' ') || 'Unknown teacher'
+  const teacherName = isHost ? 'You (Host)' : fullTeacherName
+  const roleLabel = isParticipant ? 'Joined' : null
+  const teacherAvatar = TEACHER_AVATARS[fullTeacherName]
 
   const teacherInitials = computeInitials(teacher?.firstName, teacher?.lastName, teacherName)
   const { flag: countryFlag, name: countryName } = getCountryDisplay(institution?.country ?? '')
+
+  // Detect partner type for ribbon banners
+  const programName = program?.program.displayTitle ?? program?.program.name ?? ''
+  const isUnicef = programName.toLowerCase().includes('unicef') || programName.toLowerCase().includes('communities')
+  const isSaveTheChildren = programName.toLowerCase().includes('save the children') || programName.toLowerCase().includes('build the change')
 
   const primaryProjectTypeKey = pickPrimaryProjectType(program?.program.projectTypes ?? [])
   const projectTypeLabel = formatProjectType(primaryProjectTypeKey)
@@ -266,6 +287,69 @@ function ProjectCard({ item, membershipIds }: { item: DecoratedProject; membersh
             sizes="(min-width: 768px) 320px, 100vw"
             className="h-full w-full object-cover"
           />
+
+          {/* UNICEF Ribbon Banner */}
+          {isUnicef && (
+            <motion.div
+              className="pointer-events-none absolute top-0 right-0 z-10 overflow-hidden w-28 h-28"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div
+                className="absolute top-[16px] -right-[30px] w-[140px] bg-gradient-to-r from-[#00AEEF] via-[#29B6F6] to-[#00AEEF] py-2 rotate-45 shadow-lg flex items-center justify-center"
+                initial={{ x: 50, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 150, damping: 20, delay: 0.2 }}
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '200%' }}
+                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3, ease: "easeInOut" }}
+                />
+                <div className="relative z-10 flex items-center gap-1.5">
+                  <Image src="/partners/unicef-logo.png" alt="UNICEF" width={26} height={26} className="drop-shadow-sm brightness-0 invert" />
+                  <span className="text-white text-[10px] font-bold tracking-wider drop-shadow-sm">UNICEF</span>
+                </div>
+              </motion.div>
+              <div className="absolute top-[42px] right-0 w-0 h-0 border-l-[6px] border-l-[#0277BD] border-b-[6px] border-b-transparent" />
+              <div className="absolute top-0 right-[42px] w-0 h-0 border-t-[6px] border-t-transparent border-r-[6px] border-r-[#0277BD]" />
+            </motion.div>
+          )}
+
+          {/* Save the Children Ribbon Banner */}
+          {isSaveTheChildren && (
+            <motion.div
+              className="pointer-events-none absolute top-0 right-0 z-10 overflow-hidden w-28 h-28"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div
+                className="absolute top-[16px] -right-[30px] w-[140px] bg-gradient-to-r from-[#E31B23] via-[#FF3B3B] to-[#E31B23] py-2 rotate-45 shadow-lg flex items-center justify-center"
+                initial={{ x: 50, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 150, damping: 20, delay: 0.2 }}
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '200%' }}
+                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3, ease: "easeInOut" }}
+                />
+                <div className="relative z-10 flex items-center gap-1">
+                  <Image src="/partners/save-the-children-logo.png" alt="Save the Children" width={24} height={24} className="drop-shadow-sm brightness-0 invert" />
+                  <div className="flex flex-col leading-none">
+                    <span className="text-white text-[7px] font-bold tracking-wide drop-shadow-sm">Save the</span>
+                    <span className="text-white text-[7px] font-bold tracking-wide drop-shadow-sm">Children</span>
+                  </div>
+                </div>
+              </motion.div>
+              <div className="absolute top-[42px] right-0 w-0 h-0 border-l-[6px] border-l-[#B71C1C] border-b-[6px] border-b-transparent" />
+              <div className="absolute top-0 right-[42px] w-0 h-0 border-t-[6px] border-t-transparent border-r-[6px] border-r-[#B71C1C]" />
+            </motion.div>
+          )}
         </div>
       )}
 
@@ -274,22 +358,30 @@ function ProjectCard({ item, membershipIds }: { item: DecoratedProject; membersh
       <CardContent className="flex flex-1 flex-col space-y-4 p-5">
 
         {/* Header Tags */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
             {/* Active/Status Tag */}
             <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 gap-1.5 px-2 py-1 font-medium rounded-md">
               <div className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
               Active
             </Badge>
 
-            {/* Visibility Tag */}
-            <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 gap-1.5 px-2 py-1 font-medium rounded-md">
-              {program?.program.isPublic ? <Globe2 className="w-3 h-3" /> : <Users2 className="w-3 h-3" />}
-              {program?.program.isPublic ? 'Public' : 'Private'}
-            </Badge>
+            {/* Joined Tag (for projects user joined but didn't create) */}
+            {roleLabel ? (
+              <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 gap-1.5 px-2 py-1 font-medium rounded-md">
+                <Users2 className="w-3 h-3" />
+                {roleLabel}
+              </Badge>
+            ) : (
+              /* Visibility Tag - only show when not joined */
+              <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 gap-1.5 px-2 py-1 font-medium rounded-md">
+                {program?.program.isPublic ? <Globe2 className="w-3 h-3" /> : <Users2 className="w-3 h-3" />}
+                {program?.program.isPublic ? 'Public' : 'Private'}
+              </Badge>
+            )}
           </div>
 
-          <span className="text-xs text-gray-400 font-medium">
+          <span className="text-xs text-gray-400 font-medium whitespace-nowrap flex-shrink-0">
             {new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(createdDate)}
           </span>
         </div>
@@ -344,19 +436,20 @@ function ProjectCard({ item, membershipIds }: { item: DecoratedProject; membersh
         {/* Created By Section */}
         <div className="flex items-center justify-between border-t border-gray-100 pt-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500 text-xs font-semibold text-white">
-              {teacherInitials}
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-500 text-xs font-semibold text-white overflow-hidden flex-shrink-0">
+              {teacherAvatar ? (
+                <img src={teacherAvatar} alt={teacherName} className="h-full w-full object-cover" />
+              ) : (
+                teacherInitials
+              )}
             </div>
             <div className="text-xs">
               <p className="font-medium text-gray-900">{teacherName}</p>
-              <Badge
-                variant="outline"
-                className="mt-1 flex items-center gap-1 border-purple-200 text-gray-600"
-              >
-                <span className="text-base leading-none">{countryFlag}</span>
-                <span>{countryName}</span>
-              </Badge>
-              <p className="mt-1 text-gray-500">{createdText}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-sm">{countryFlag}</span>
+                <span className="text-purple-600 font-medium">{countryName}</span>
+              </div>
+              <p className="mt-0.5 text-gray-400 text-[10px]">{createdText}</p>
             </div>
           </div>
         </div>

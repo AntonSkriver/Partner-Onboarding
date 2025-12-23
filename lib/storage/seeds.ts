@@ -6,7 +6,7 @@ import {
   StoredPartnerUser,
 } from '@/lib/storage/prototype-db'
 
-const PROTOTYPE_SEED_VERSION = 6
+const PROTOTYPE_SEED_VERSION = 8
 
 const buildSeedPartners = (): StoredPartner[] => [
   {
@@ -980,6 +980,7 @@ const buildSeedProjects = (): PrototypeDatabase['programProjects'] => [
     templateId: 'template-communities-belonging-circles',
     createdByType: 'teacher',
     createdById: 'teacher-morke-ulla',
+    participantIds: ['teacher-aarhus-anne'], // Anne Holm joined this project
     status: 'active',
     coverImageUrl: '/images/community-inclusion.png',
     createdAt: '2025-03-12T09:30:00.000Z',
@@ -992,7 +993,7 @@ const buildSeedProjects = (): PrototypeDatabase['programProjects'] => [
     templateId: 'template-communities-action-lab',
     createdByType: 'teacher',
     createdById: 'teacher-aarhus-anne',
-    status: 'draft',
+    status: 'active',
     coverImageUrl: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&h=480&fit=crop',
     createdAt: '2025-03-02T08:15:00.000Z',
     updatedAt: '2025-03-02T08:15:00.000Z',
