@@ -129,20 +129,6 @@ export default function TeacherProjectsPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-semibold text-gray-900">My Projects</h1>
-            <p className="text-sm text-gray-600">
-              {session?.name ? `${session.name},` : 'You'} have {activeProjectsCount} active projects
-              across {programSummaries.length} partner programs.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2 text-xs text-purple-700">
-            <Badge className="bg-purple-100 text-purple-700">
-              <Sparkles className="mr-1 h-3 w-3" />
-              {activeProjectsCount} active
-            </Badge>
-            <Badge variant="outline" className="border-purple-200 text-purple-700">
-              <Users className="mr-1 h-3 w-3" />
-              {programSummaries.length} programs
-            </Badge>
           </div>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">

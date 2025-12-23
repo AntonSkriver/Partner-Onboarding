@@ -110,40 +110,10 @@ export default function TeacherDashboardPage() {
     <div className="space-y-10">
       {/* Header Section */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div>
           <h1 className="text-3xl font-semibold text-gray-900">
             Hi, {session.name ?? 'Teacher'}
           </h1>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <LinkIcon className="h-5 w-5 text-purple-600" />
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">{peerConnections}</p>
-                <p className="text-xs text-gray-600">Connections</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <FolderKanban className="h-5 w-5 text-purple-600" />
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">{teacherProjects.length}</p>
-                <p className="text-xs text-gray-600">Projects</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5 text-purple-600" />
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">28</p>
-                <p className="text-xs text-gray-600">Students</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Globe2 className="h-5 w-5 text-purple-600" />
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">2</p>
-                <p className="text-xs text-gray-600">Partner programs</p>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div>
