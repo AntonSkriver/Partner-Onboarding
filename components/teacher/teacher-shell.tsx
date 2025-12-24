@@ -12,6 +12,8 @@ import {
   ArrowLeft,
   Users,
   FolderOpen,
+  Building2,
+  Link2,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -32,8 +34,10 @@ interface TeacherShellProps {
 const navItems = [
   { href: '/teacher/dashboard', label: 'Dashboard', icon: Home },
   { href: '/teacher/discover', label: 'Discover', icon: Compass },
+  { href: '/teacher/connect', label: 'Connect', icon: Link2 },
   { href: '/teacher/projects', label: 'My Projects', icon: Layers },
   { href: '/teacher/programs', label: 'My Programs', icon: FolderOpen },
+  { href: '/teacher/school', label: 'My School', icon: Building2 },
 ]
 
 export function TeacherShell({ children }: TeacherShellProps) {

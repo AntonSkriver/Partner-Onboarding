@@ -423,6 +423,18 @@ export function DiscoverContent({
       if (project.teacherName?.includes('Anne Holm')) {
         project.teacherAvatar = '/images/avatars/anne-holm.png'
       }
+      if (project.teacherName?.includes('Sofie Larsen')) {
+        project.teacherAvatar = '/images/avatars/sofie-larsen.png'
+      }
+      if (project.teacherName?.includes('Sara Ricci')) {
+        project.teacherAvatar = '/images/avatars/sara-ricci.png'
+      }
+      if (project.teacherName?.includes('Lucas Souza')) {
+        project.teacherAvatar = '/images/avatars/lucas-souza.png'
+      }
+      if (project.teacherName?.includes('Peter Andersen')) {
+        project.teacherAvatar = '/images/avatars/peter-andersen.png'
+      }
       if (project.title?.includes('Teen Voices Across Borders')) {
         project.teacherAvatar = '/images/avatars/avatar-3.png'
       }

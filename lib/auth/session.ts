@@ -189,9 +189,9 @@ export function redirectBasedOnRole(defaultPath = '/'): void {
 }
 
 const TEACHER_PREVIEW_TEMPLATE: Omit<UserSession, 'loginTime'> = {
-  email: 'anne.holm@aarhuscommunity.dk',
+  email: 'anne.holm@orestadgym.dk',
   role: 'teacher',
-  organization: 'Aarhus Community School',
+  organization: 'Ørestad Gymnasium',
   name: 'Anne Holm',
 }
 

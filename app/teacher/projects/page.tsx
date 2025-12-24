@@ -218,6 +218,10 @@ const TEACHER_AVATARS: Record<string, string> = {
   'Maria Garcia': '/images/avatars/maria-new.jpg',
   'Raj Patel': '/images/avatars/raj-new.jpg',
   'Jonas Madsen': '/images/avatars/jonas-final.jpg',
+  'Sofie Larsen': '/images/avatars/sofie-larsen.png',
+  'Sara Ricci': '/images/avatars/sara-ricci.png',
+  'Lucas Souza': '/images/avatars/lucas-souza.png',
+  'Peter Andersen': '/images/avatars/peter-andersen.png',
 }
 
 function ProjectCard({ item, membershipIds }: { item: DecoratedProject; membershipIds: Set<string> }) {
