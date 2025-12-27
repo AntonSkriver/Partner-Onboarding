@@ -383,10 +383,14 @@ export default function PartnerOverviewPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <div className="text-2xl font-bold text-purple-600">{programSummaries.length}</div>
-                <div className="text-sm text-gray-600">Active Programs</div>
+                <div className="text-sm text-gray-600">Programs</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-blue-600">12</div>
+                <div className="text-sm text-gray-600">Schools</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-green-600">{resources.length}</div>

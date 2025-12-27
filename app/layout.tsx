@@ -1,6 +1,6 @@
-
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Roboto, Open_Sans } from "next/font/google";
+import { Toaster } from 'sonner';
 import "./globals.css";
 import { LanguageProvider } from '@/components/language-provider';
 
@@ -44,6 +44,7 @@ export default function RootLayout({
         <LanguageProvider>
           {children}
         </LanguageProvider>
+        <Toaster />
       </body>
     </html>
   );

@@ -1,8 +1,9 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { toast } from 'sonner'
 import {
   ArrowLeft,
   Building2,
@@ -12,14 +13,26 @@ import {
   BookOpen,
   FileText,
   Video,
-  ExternalLink,
   Mail,
+  UserPlus,
+  Check,
+  Clock,
 } from 'lucide-react'
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { useTeacherContext } from '@/hooks/use-teacher-context'
 import { getCountryDisplay } from '@/lib/countries'
 
@@ -30,11 +43,61 @@ const TEACHER_AVATARS: Record<string, string> = {
   'Peter Andersen': '/images/avatars/peter-andersen.png',
 }
 
+// Convert grade level to age range
+function getAgeRange(gradeLevel?: string): string {
+  const mapping: Record<string, string> = {
+    'Primary': '6-11 years old',
+    'Secondary': '12-15 years old',
+    'High School': '15-18 years old',
+    'high_school': '15-18 years old',
+  }
+  return mapping[gradeLevel ?? ''] ?? '12-18 years old'
+}
+
 export default function TeacherSchoolPage() {
-  const { ready, myInstitutions, database, membershipIds, session } = useTeacherContext()
+  const { ready, myInstitutions, database, membershipIds } = useTeacherContext()
 
   // Get the first institution (primary school)
   const school = myInstitutions[0]
+
+  // Confirmation dialog state
+  const [connectDialogOpen, setConnectDialogOpen] = useState(false)
+  const [teacherToConnect, setTeacherToConnect] = useState<{
+    id: string
+    fullName: string
+    avatar: string | null
+  } | null>(null)
+
+  // Track sent connection requests
+  const [sentRequests, setSentRequests] = useState<Set<string>>(new Set())
+
+  // Open confirmation dialog
+  const handleConnectClick = (teacher: { id: string; fullName: string; avatar: string | null }) => {
+    setTeacherToConnect(teacher)
+    setConnectDialogOpen(true)
+  }
+
+  // Confirm and send connection request
+  const confirmConnect = () => {
+    if (teacherToConnect) {
+      setSentRequests(prev => new Set([...prev, teacherToConnect.id]))
+      toast.custom(() => (
+        <div className="flex items-center gap-3 bg-white rounded-lg shadow-lg border-l-4 border-green-500 px-4 py-3 min-w-[350px]">
+          <div className="flex items-center justify-center h-6 w-6 rounded-full bg-green-500">
+            <Check className="h-4 w-4 text-white" />
+          </div>
+          <p className="text-sm text-gray-700">
+            This teacher will see your request the next time he/she enters the platform
+          </p>
+        </div>
+      ), {
+        duration: 4000,
+        position: 'top-center',
+      })
+    }
+    setConnectDialogOpen(false)
+    setTeacherToConnect(null)
+  }
 
   // Find colleagues at the same school (matching by school name to include teachers across programs)
   const colleagues = useMemo(() => {
@@ -113,25 +176,17 @@ export default function TeacherSchoolPage() {
       {/* School Profile Card */}
       <Card className="overflow-hidden">
         <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-8 text-white">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
-                <Building2 className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold">{school.name}</h2>
-                <div className="mt-1 flex items-center gap-2 text-purple-100">
-                  <span className="text-lg">{countryFlag}</span>
-                  <span>{school.city}, {countryName}</span>
-                </div>
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
+              <Building2 className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">{school.name}</h2>
+              <div className="mt-1 flex items-center gap-2 text-purple-100">
+                <span className="text-lg">{countryFlag}</span>
+                <span>{school.city}, {countryName}</span>
               </div>
             </div>
-            <Button variant="secondary" size="sm" className="bg-white/20 text-white hover:bg-white/30" asChild>
-              <Link href="/school/dashboard/home">
-                <ExternalLink className="mr-2 h-4 w-4" />
-                School Dashboard
-              </Link>
-            </Button>
           </div>
 
           {/* Stats */}
@@ -208,6 +263,7 @@ export default function TeacherSchoolPage() {
             {colleagues.map((teacher) => {
               const fullName = `${teacher.firstName} ${teacher.lastName}`
               const avatar = TEACHER_AVATARS[fullName]
+              const ageRange = getAgeRange(teacher.gradeLevel)
               return (
                 <Card key={teacher.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
@@ -232,16 +288,34 @@ export default function TeacherSchoolPage() {
                           {fullName}
                         </p>
                         <p className="text-sm text-gray-500 truncate">{teacher.subject}</p>
-                        <p className="text-xs text-gray-400">{teacher.yearsExperience} years experience</p>
                       </div>
                     </div>
-                    <div className="mt-3 flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {teacher.gradeLevel}
-                      </Badge>
-                      <Button variant="ghost" size="sm" className="ml-auto text-purple-600 hover:text-purple-700">
-                        <Mail className="h-4 w-4" />
-                      </Button>
+                    <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
+                      <Users className="h-4 w-4 text-purple-500" />
+                      <span>{ageRange}</span>
+                    </div>
+                    <div className="mt-3">
+                      {sentRequests.has(teacher.id) ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-gray-500 border-gray-200 bg-gray-50 cursor-default"
+                          disabled
+                        >
+                          <Clock className="h-4 w-4 mr-2" />
+                          Request Sent
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-purple-600 border-purple-200 hover:bg-purple-50 hover:text-purple-700"
+                          onClick={() => handleConnectClick({ id: teacher.id, fullName, avatar })}
+                        >
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Connect
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -286,6 +360,40 @@ export default function TeacherSchoolPage() {
           </Card>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={connectDialogOpen} onOpenChange={setConnectDialogOpen}>
+        <AlertDialogContent className="sm:max-w-md">
+          <AlertDialogHeader className="text-center sm:text-center">
+            {teacherToConnect?.avatar && (
+              <div className="flex justify-center mb-4">
+                <div className="h-20 w-20 overflow-hidden rounded-full ring-2 ring-purple-100">
+                  <Image
+                    src={teacherToConnect.avatar}
+                    alt={teacherToConnect.fullName}
+                    width={80}
+                    height={80}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              </div>
+            )}
+            <AlertDialogTitle>Connect with {teacherToConnect?.fullName}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Send a connection request to collaborate on projects and share resources.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center gap-3">
+            <AlertDialogCancel className="sm:w-32">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmConnect}
+              className="sm:w-32 bg-purple-600 hover:bg-purple-700"
+            >
+              Connect
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import { toast } from 'sonner'
 import {
   ArrowLeft,
   Search,
@@ -12,6 +13,7 @@ import {
   Users,
   X,
   Building2,
+  Check,
 } from 'lucide-react'
 
 import { Card, CardContent } from '@/components/ui/card'
@@ -26,6 +28,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { useTeacherContext } from '@/hooks/use-teacher-context'
 import { getCountryDisplay } from '@/lib/countries'
 import { cn } from '@/lib/utils'
@@ -87,8 +99,19 @@ function getTimeDiff(country: string): string {
   const userTz = 1 // Assume user is in DK (CET)
   const teacherTz = timezones[country] ?? 0
   const diff = teacherTz - userTz
-  if (diff === 0) return 'Same timezone'
-  return diff > 0 ? `+${diff} hours` : `${diff} hours`
+  if (diff === 0) return '0 hours from you'
+  return diff > 0 ? `+${diff} hours from you` : `${diff} hours from you`
+}
+
+// Convert grade level to age range
+function getAgeRange(gradeLevel?: string): string {
+  const mapping: Record<string, string> = {
+    'Primary': '6 - 11 years old',
+    'Secondary': '12 - 15 years old',
+    'High School': '15 - 18 years old',
+    'high_school': '15 - 18 years old',
+  }
+  return mapping[gradeLevel ?? ''] ?? '12 - 18 years old'
 }
 
 export default function TeacherConnectPage() {
@@ -104,6 +127,17 @@ export default function TeacherConnectPage() {
   const [timeDiff, setTimeDiff] = useState<string>('any')
   const [language, setLanguage] = useState<string>('english')
   const [country, setCountry] = useState<string>('all')
+
+  // Track sent connection requests (teacher IDs)
+  const [sentRequests, setSentRequests] = useState<Set<string>>(new Set())
+
+  // Confirmation dialog state
+  const [connectDialogOpen, setConnectDialogOpen] = useState(false)
+  const [teacherToConnect, setTeacherToConnect] = useState<{
+    id: string
+    fullName: string
+    avatar: string | null
+  } | null>(null)
 
   // Get all teachers from database, excluding current user
   const allTeachers = useMemo(() => {
@@ -160,9 +194,17 @@ export default function TeacherConnectPage() {
     setSearchTerm('')
   }
 
-  // Filter teachers
+  // Filter teachers based on active tab
   const filteredTeachers = useMemo(() => {
     let teachers = [...allTeachers]
+
+    // Filter by tab
+    if (activeTab === 'sent') {
+      teachers = teachers.filter((t) => sentRequests.has(t.id))
+    } else if (activeTab === 'all') {
+      // Show all except those with sent requests
+      teachers = teachers.filter((t) => !sentRequests.has(t.id))
+    }
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
@@ -182,7 +224,35 @@ export default function TeacherConnectPage() {
       if (!a.isColleague && b.isColleague) return 1
       return 0
     })
-  }, [allTeachers, searchTerm, country])
+  }, [allTeachers, searchTerm, country, activeTab, sentRequests])
+
+  // Open confirmation dialog
+  const handleConnectClick = (teacher: { id: string; fullName: string; avatar: string | null }) => {
+    setTeacherToConnect(teacher)
+    setConnectDialogOpen(true)
+  }
+
+  // Confirm and send connection request
+  const confirmConnect = () => {
+    if (teacherToConnect) {
+      setSentRequests(prev => new Set([...prev, teacherToConnect.id]))
+      toast.custom(() => (
+        <div className="flex items-center gap-3 bg-white rounded-lg shadow-lg border-l-4 border-green-500 px-4 py-3 min-w-[350px]">
+          <div className="flex items-center justify-center h-6 w-6 rounded-full bg-green-500">
+            <Check className="h-4 w-4 text-white" />
+          </div>
+          <p className="text-sm text-gray-700">
+            This teacher will see your request the next time he/she enters the platform
+          </p>
+        </div>
+      ), {
+        duration: 4000,
+        position: 'top-center',
+      })
+    }
+    setConnectDialogOpen(false)
+    setTeacherToConnect(null)
+  }
 
   if (!ready) {
     return (
@@ -365,7 +435,7 @@ export default function TeacherConnectPage() {
       {/* Results Count */}
       <div>
         <h2 className="text-sm font-semibold text-gray-900">
-          All teachers ({filteredTeachers.length})
+          {activeTab === 'sent' ? `Pending requests (${filteredTeachers.length})` : `All teachers (${filteredTeachers.length})`}
         </h2>
       </div>
 
@@ -376,6 +446,8 @@ export default function TeacherConnectPage() {
           const initials = getInitials(teacher.firstName, teacher.lastName)
           const avatarColor = getAvatarColor(teacher.fullName)
           const timeDiffStr = getTimeDiff(teacher.country)
+          const ageRange = getAgeRange(teacher.gradeLevel)
+          const isPending = sentRequests.has(teacher.id)
 
           return (
             <Card
@@ -386,8 +458,21 @@ export default function TeacherConnectPage() {
               )}
             >
               <CardContent className="p-5 relative">
-                {/* Your school badge for colleagues */}
-                {teacher.isColleague && (
+                {/* Pending icon for sent requests */}
+                {isPending && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="absolute top-3 left-3"
+                  >
+                    <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-purple-100 text-purple-600">
+                      <Clock className="h-4 w-4" />
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Your school badge for colleagues (only show if not pending) */}
+                {teacher.isColleague && !isPending && (
                   <motion.div
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -405,13 +490,18 @@ export default function TeacherConnectPage() {
                   </motion.div>
                 )}
 
-                {/* Add to network button */}
-                <button className="absolute top-4 right-4 p-1.5 rounded-lg bg-gray-50 hover:bg-purple-50 text-gray-400 hover:text-purple-600 transition-colors">
-                  <UserPlus className="h-4 w-4" />
-                </button>
+                {/* Add to network button (only if not pending) */}
+                {!isPending && (
+                  <button
+                    onClick={() => handleConnectClick({ id: teacher.id, fullName: teacher.fullName, avatar: teacher.avatar })}
+                    className="absolute top-4 right-4 p-1.5 rounded-lg bg-gray-50 hover:bg-purple-50 text-gray-400 hover:text-purple-600 transition-colors"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                  </button>
+                )}
 
                 {/* Avatar */}
-                <div className={cn("flex justify-center", teacher.isColleague ? "mb-3 mt-4" : "mb-4")}>
+                <div className={cn("flex justify-center", (teacher.isColleague || isPending) ? "mb-3 mt-4" : "mb-4")}>
                   {teacher.avatar ? (
                     <div className={cn(
                       "h-20 w-20 overflow-hidden rounded-full ring-2",
@@ -448,10 +538,10 @@ export default function TeacherConnectPage() {
                   <span className="text-sm text-purple-600 font-medium">{countryName}</span>
                 </div>
 
-                {/* Subject/Grade info */}
+                {/* Age range */}
                 <div className="flex items-center justify-center gap-1.5 mt-3 text-sm text-purple-600">
                   <Users className="h-4 w-4" />
-                  <span>{teacher.gradeLevel}</span>
+                  <span>{ageRange}</span>
                 </div>
 
                 {/* Time difference */}
@@ -468,12 +558,56 @@ export default function TeacherConnectPage() {
       {filteredTeachers.length === 0 && (
         <Card className="border-dashed">
           <CardContent className="p-12 text-center">
-            <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-1">No teachers found</h3>
-            <p className="text-sm text-gray-500">Try adjusting your filters or search term.</p>
+            {activeTab === 'sent' ? (
+              <>
+                <Clock className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-1">No pending requests</h3>
+                <p className="text-sm text-gray-500">Click the + button on a teacher card to send a connection request.</p>
+              </>
+            ) : (
+              <>
+                <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-1">No teachers found</h3>
+                <p className="text-sm text-gray-500">Try adjusting your filters or search term.</p>
+              </>
+            )}
           </CardContent>
         </Card>
       )}
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={connectDialogOpen} onOpenChange={setConnectDialogOpen}>
+        <AlertDialogContent className="sm:max-w-md">
+          <AlertDialogHeader className="text-center sm:text-center">
+            {teacherToConnect?.avatar && (
+              <div className="flex justify-center mb-4">
+                <div className="h-20 w-20 overflow-hidden rounded-full ring-2 ring-purple-100">
+                  <Image
+                    src={teacherToConnect.avatar}
+                    alt={teacherToConnect.fullName}
+                    width={80}
+                    height={80}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              </div>
+            )}
+            <AlertDialogTitle>Connect with {teacherToConnect?.fullName}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Send a connection request to collaborate on projects and share resources.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center gap-3">
+            <AlertDialogCancel className="sm:w-32">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmConnect}
+              className="sm:w-32 bg-purple-600 hover:bg-purple-700"
+            >
+              Connect
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

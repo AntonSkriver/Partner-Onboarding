@@ -2,19 +2,21 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import Image from 'next/image'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Mail,
   Phone,
-  School,
   BarChart3,
   Target,
   Tag,
   Edit,
   Building2,
+  Award,
+  ShieldCheck,
 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { SDGIcon } from '@/components/sdg-icons'
@@ -35,7 +37,18 @@ interface SchoolProfile {
   contactPhone?: string
   interests: string[]
   sdgFocus: string[]
+  childRightsFocus: string[]
   description?: string
+  mission?: string
+}
+
+const CRC_ARTICLE_DETAILS: Record<string, { title: string }> = {
+  '12': { title: 'Respect for the views of the child' },
+  '13': { title: 'Freedom of expression' },
+  '24': { title: 'Health and health services' },
+  '28': { title: 'Right to education' },
+  '29': { title: 'Goals of education' },
+  '31': { title: 'Leisure, play, and culture' },
 }
 
 export default function SchoolOverviewPage() {
@@ -61,15 +74,17 @@ export default function SchoolOverviewPage() {
         location: 'Copenhagen, Denmark',
         city: 'Copenhagen',
         country: 'Denmark',
-        studentCount: 800,
+        studentCount: 850,
         teacherCount: 65,
         languages: ['Danish', 'English', 'German', 'Spanish'],
-        contactName: 'Maria Hansen',
-        contactEmail: 'maria.hansen@orestad.dk',
-        contactPhone: '+45 55 77 10 00',
-        interests: ['Human Rights', 'Climate Change', 'Technology Projects', 'Cultural Exchange', 'Global Citizenship'],
-        sdgFocus: ['4', '10', '13', '16', '17'],
+        contactName: 'Henrik Vestergaard',
+        contactEmail: 'henrik.vestergaard@orestadgym.dk',
+        contactPhone: '+45 32 54 89 00',
+        interests: ['Global Citizenship', 'Climate Action', 'Cultural Exchange', 'Human Rights Education', 'Digital Innovation'],
+        sdgFocus: ['4', '10', '13', '16'],
+        childRightsFocus: ['12', '28', '29', '31'],
         description: 'A forward-thinking international school committed to global citizenship education and collaborative learning across borders.',
+        mission: 'Ørestad Gymnasium is dedicated to preparing students for a globalized world through innovative teaching methods, international collaboration, and a strong focus on sustainability and human rights. We believe in empowering young people to become active, informed global citizens.',
       }
 
       setSchool(sampleSchool)
@@ -104,6 +119,16 @@ export default function SchoolOverviewPage() {
       </Card>
     )
   }
+
+  const childRightsEntries = school.childRightsFocus.map((article) => {
+    const details = CRC_ARTICLE_DETAILS[article] ?? { title: `Article ${article}` }
+    const padded = article.padStart(2, '0')
+    return {
+      article,
+      title: details.title,
+      iconSrc: `/crc/icons/article-${padded}.png`,
+    }
+  })
 
   return (
     <div className="space-y-10">
@@ -140,7 +165,7 @@ export default function SchoolOverviewPage() {
           <CardContent className="space-y-3 text-sm">
             <div>
               <p className="font-semibold text-gray-900">{school.contactName}</p>
-              <p className="text-gray-500">Primary contact</p>
+              <p className="text-gray-500">Principal</p>
             </div>
             <div className="flex items-center gap-2 text-gray-600">
               <Mail className="h-3 w-3" />
@@ -151,100 +176,6 @@ export default function SchoolOverviewPage() {
                 <Phone className="h-3 w-3" />
                 <span>{school.contactPhone}</span>
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* School Snapshot */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <School className="h-4 w-4" />
-              School Snapshot
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="text-xs uppercase text-gray-500">Type</p>
-              <p className="font-semibold text-gray-900">{school.type}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase text-gray-500">Students</p>
-              <p className="font-semibold text-gray-900">{school.studentCount}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase text-gray-500">Teachers</p>
-              <p className="font-semibold text-gray-900">{school.teacherCount}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase text-gray-500">Languages</p>
-              <div className="flex flex-wrap gap-1">
-                {school.languages.map((language) => (
-                  <Badge key={language} variant="secondary" className="text-xs">
-                    {language}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Stats */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Quick Stats
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-2xl font-bold text-purple-600">2</div>
-                <div className="text-sm text-gray-600">Active Programs</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-green-600">4</div>
-                <div className="text-sm text-gray-600">Active Projects</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Focus Areas */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* SDG Focus */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              UN SDG Focus
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {school.sdgFocus.length > 0 ? (
-              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
-                {school.sdgFocus.map((sdgString) => {
-                  const sdgId = typeof sdgString === 'string' ? Number.parseInt(sdgString, 10) : sdgString
-                  const sdg = SDG_OPTIONS.find((s) => s.id === sdgId)
-                  return sdg ? (
-                    <div key={sdgId} className="flex flex-col items-center">
-                      <SDGIcon
-                        number={sdgId}
-                        size="md"
-                        showTitle={false}
-                        className="h-16 w-16 rounded-lg object-cover shadow-sm transition-shadow hover:shadow-md"
-                      />
-                      <p className="mt-1 text-center text-xs leading-tight text-gray-600">
-                        {sdg.title}
-                      </p>
-                    </div>
-                  ) : null
-                })}
-              </div>
-            ) : (
-              <p className="text-gray-500">No SDG focus areas specified</p>
             )}
           </CardContent>
         </Card>
@@ -271,7 +202,128 @@ export default function SchoolOverviewPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Quick Stats */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Quick Stats
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-4 gap-4">
+              <div>
+                <div className="text-2xl font-bold text-purple-600">2</div>
+                <div className="text-sm text-gray-600">Programs</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-emerald-600">4</div>
+                <div className="text-sm text-gray-600">Projects</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-blue-600">{school.studentCount}</div>
+                <div className="text-sm text-gray-600">Students</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-amber-600">{school.teacherCount}</div>
+                <div className="text-sm text-gray-600">Teachers</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Mission Statement */}
+      {school.mission && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              Our Mission
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="leading-relaxed text-gray-700">{school.mission}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Focus Areas */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* SDG Focus */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="h-4 w-4" />
+              UN SDG Focus
+            </CardTitle>
+            <CardDescription>
+              Priority Sustainable Development Goals our school advances.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {school.sdgFocus.length > 0 ? (
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                {school.sdgFocus.map((sdgString) => {
+                  const sdgId = typeof sdgString === 'string' ? Number.parseInt(sdgString, 10) : sdgString
+                  const sdg = SDG_OPTIONS.find((s) => s.id === sdgId)
+                  return sdg ? (
+                    <div key={sdgId} className="flex flex-col items-center gap-2">
+                      <SDGIcon number={sdgId} size="lg" showTitle={false} />
+                      <p className="text-center text-xs leading-tight text-gray-900">
+                        {sdg.title}
+                      </p>
+                    </div>
+                  ) : null
+                })}
+              </div>
+            ) : (
+              <p className="text-gray-500">No SDG focus areas specified</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Child Rights Focus */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4" />
+              CRC Child Rights Focus
+            </CardTitle>
+            <CardDescription>
+              Priority articles from the UN Convention on the Rights of the Child.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {childRightsEntries.length > 0 ? (
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                {childRightsEntries.map((entry) => (
+                  <div key={entry.article} className="flex flex-col items-center gap-2">
+                    <div className="relative h-20 w-20">
+                      <Image
+                        src={entry.iconSrc}
+                        alt={entry.title}
+                        fill
+                        sizes="80px"
+                        className="rounded object-contain"
+                      />
+                    </div>
+                    <p className="text-center text-xs leading-tight text-gray-900">
+                      {entry.title}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">
+                Add your Convention on the Rights of the Child focus areas.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
     </div>
   )
 }
