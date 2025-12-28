@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { toast } from 'sonner'
+import { motion } from 'framer-motion'
 import {
   ArrowLeft,
   Building2,
@@ -175,49 +176,99 @@ export default function TeacherSchoolPage() {
 
       {/* School Profile Card */}
       <Card className="overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-8 text-white">
-          <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
-              <Building2 className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold">{school.name}</h2>
-              <div className="mt-1 flex items-center gap-2 text-purple-100">
-                <span className="text-lg">{countryFlag}</span>
-                <span>{school.city}, {countryName}</span>
-              </div>
-            </div>
+        <div className="relative bg-gradient-to-r from-purple-600 via-purple-600 to-indigo-600 px-6 py-8 text-white overflow-hidden">
+          {/* Animated background elements */}
+          <div className="absolute inset-0 overflow-hidden">
+            <motion.div
+              className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-white/5"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.05, 0.1, 0.05],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+            <motion.div
+              className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-white/5"
+              animate={{
+                scale: [1.2, 1, 1.2],
+                opacity: [0.05, 0.1, 0.05],
+              }}
+              transition={{
+                duration: 10,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+            <motion.div
+              className="absolute top-1/2 left-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/5"
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.03, 0.08, 0.03],
+              }}
+              transition={{
+                duration: 6,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
           </div>
 
-          {/* Stats */}
-          <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-            <div className="rounded-lg bg-white/10 px-4 py-3 backdrop-blur">
-              <div className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5 text-purple-200" />
-                <span className="text-2xl font-bold">{school.studentCount}</span>
+          {/* Content */}
+          <div className="relative">
+            <motion.div
+              className="flex items-center gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <motion.div
+                className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/20 backdrop-blur"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <Building2 className="h-8 w-8 text-white" />
+              </motion.div>
+              <div>
+                <h2 className="text-2xl font-bold">{school.name}</h2>
+                <div className="mt-1 flex items-center gap-2 text-purple-100">
+                  <span className="text-lg">{countryFlag}</span>
+                  <span>{school.city}, {countryName}</span>
+                </div>
               </div>
-              <p className="text-sm text-purple-200">Students</p>
-            </div>
-            <div className="rounded-lg bg-white/10 px-4 py-3 backdrop-blur">
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-purple-200" />
-                <span className="text-2xl font-bold">{school.teacherCount ?? colleagues.length + 1}</span>
-              </div>
-              <p className="text-sm text-purple-200">Teachers</p>
-            </div>
-            <div className="rounded-lg bg-white/10 px-4 py-3 backdrop-blur">
-              <div className="flex items-center gap-2">
-                <Globe2 className="h-5 w-5 text-purple-200" />
-                <span className="text-2xl font-bold">{school.languages?.length ?? 1}</span>
-              </div>
-              <p className="text-sm text-purple-200">Languages</p>
-            </div>
-            <div className="rounded-lg bg-white/10 px-4 py-3 backdrop-blur">
-              <div className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-purple-200" />
-                <span className="text-lg font-semibold capitalize">{school.type?.replace('_', ' ')}</span>
-              </div>
-              <p className="text-sm text-purple-200">Type</p>
+            </motion.div>
+
+            {/* Stats */}
+            <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+              {[
+                { icon: GraduationCap, value: school.studentCount, label: 'Students' },
+                { icon: Users, value: school.teacherCount ?? colleagues.length + 1, label: 'Teachers' },
+                { icon: Globe2, value: school.languages?.length ?? 1, label: 'Languages' },
+                { icon: Building2, value: school.type?.replace('_', ' '), label: 'Type', isText: true },
+              ].map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  className="rounded-lg bg-white/10 px-4 py-3 backdrop-blur-sm border border-white/10"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.1 + index * 0.1 }}
+                  whileHover={{
+                    backgroundColor: "rgba(255, 255, 255, 0.15)",
+                    scale: 1.02,
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <stat.icon className="h-5 w-5 text-purple-200" />
+                    <span className={stat.isText ? "text-lg font-semibold capitalize" : "text-2xl font-bold"}>
+                      {stat.value}
+                    </span>
+                  </div>
+                  <p className="text-sm text-purple-200">{stat.label}</p>
+                </motion.div>
+              ))}
             </div>
           </div>
         </div>
