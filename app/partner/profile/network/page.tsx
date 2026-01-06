@@ -136,19 +136,11 @@ export default function PartnerNetworkPage() {
         },
         {
           id: 'inst-3',
-          name: 'Manchester Community College',
+          name: 'Manchester Rights School',
           country: 'England',
           category: 'School',
           pointOfContact: 'Priya Shah',
           email: 'priya.shah@mancc.ac.uk',
-        },
-        {
-          id: 'inst-4',
-          name: 'Greater London Youth Centre',
-          country: 'England',
-          category: 'Youth Centre',
-          pointOfContact: 'Elliot Turner',
-          email: 'elliot.turner@londonyouth.org',
         },
       ]
 
