@@ -116,6 +116,7 @@ export default function AcceptSchoolInvitePage() {
       if (typeof window !== 'undefined') {
         localStorage.setItem('activeInstitutionId', institutionRecord.id)
         localStorage.setItem('activeProgramIds', JSON.stringify([inviteMeta.programId]))
+        localStorage.setItem('isNewlyInvitedSchool', 'true')
       }
 
       createSession({

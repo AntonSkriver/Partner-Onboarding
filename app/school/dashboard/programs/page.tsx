@@ -23,6 +23,10 @@ export default function SchoolProgramsPage() {
     typeof window !== 'undefined'
       ? JSON.parse(window.localStorage.getItem('activeProgramIds') || '[]')
       : []
+  const isNewlyInvitedSchool =
+    typeof window !== 'undefined'
+      ? window.localStorage.getItem('isNewlyInvitedSchool') === 'true'
+      : false
 
   const matchesCurrentSchool = useCallback((institution: { id?: string; name?: string | null; contactEmail?: string | null }) => {
     if (activeInstitutionId && institution.id === activeInstitutionId) return true
@@ -55,19 +59,19 @@ export default function SchoolProgramsPage() {
 
     const assignedProgramIds = activeProgramIds.length ? new Set(activeProgramIds) : programIds
 
-    // If school was invited to specific programs (activeProgramIds), only show those
+    // If school was just invited (via invite flow), only show the invited program(s)
     // Don't show all public programs or partner programs to newly invited schools
-    if (activeProgramIds.length > 0) {
+    if (isNewlyInvitedSchool && activeProgramIds.length > 0) {
       return allCatalog.filter((item) => assignedProgramIds.has(item.programId))
     }
 
-    // For established schools (no activeProgramIds), show their programs + public + partner programs
+    // For established schools, show their programs + public + partner programs
     return allCatalog.filter((item) =>
       assignedProgramIds.has(item.programId) ||
       item.isPublic ||
       (item.hostPartner && invitedPartnerIds.has(item.hostPartner.id))
     )
-  }, [prototypeReady, database, matchesCurrentSchool, activeProgramIds])
+  }, [prototypeReady, database, matchesCurrentSchool, activeProgramIds, isNewlyInvitedSchool])
 
   const isMemberOfProgram = (programId: string) => {
     if (!database) return false

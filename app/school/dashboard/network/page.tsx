@@ -30,10 +30,13 @@ export default function SchoolNetworkPage() {
   const [activeProgramIds, setActiveProgramIds] = useState<string[]>([])
   const { ready: prototypeReady, database } = usePrototypeDb()
 
+  const [isNewlyInvitedSchool, setIsNewlyInvitedSchool] = useState(false)
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setActiveInstitutionId(window.localStorage.getItem('activeInstitutionId'))
       setActiveProgramIds(JSON.parse(window.localStorage.getItem('activeProgramIds') || '[]'))
+      setIsNewlyInvitedSchool(window.localStorage.getItem('isNewlyInvitedSchool') === 'true')
     }
   }, [])
 
@@ -63,8 +66,10 @@ export default function SchoolNetworkPage() {
   }, [database, activeInstitutionId])
 
   // Get partner schools (other institutions in the same programs)
+  // Newly invited schools start with a blank slate - no partner schools shown yet
   const partnerSchools = useMemo((): PartnerSchoolDisplay[] => {
     if (!database || !activeInstitutionId || activeProgramIds.length === 0) return []
+    if (isNewlyInvitedSchool) return []
 
     const programIdSet = new Set(activeProgramIds)
 
@@ -84,7 +89,7 @@ export default function SchoolNetworkPage() {
           programName: program?.name || 'Unknown Program',
         }
       })
-  }, [database, activeInstitutionId, activeProgramIds])
+  }, [database, activeInstitutionId, activeProgramIds, isNewlyInvitedSchool])
 
   if (loading) {
     return (
