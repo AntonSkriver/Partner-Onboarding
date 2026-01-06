@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -15,6 +15,8 @@ import {
 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
+import { usePrototypeDb } from '@/hooks/use-prototype-db'
+import { buildProgramSummariesForPartner, type ProgramSummary } from '@/lib/programs/selectors'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 type Country = 'Denmark' | 'England'
@@ -35,25 +37,13 @@ const countryBadge = (country: Country) => {
 export default function PartnerNetworkPage() {
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
-  const [countryCoordinators, setCountryCoordinators] = useState<
-    Array<{ id: string; name: string; country: Country; email: string }>
-  >([])
-  const [educationalInstitutions, setEducationalInstitutions] = useState<
-    Array<{
-      id: string
-      name: string
-      country: Country
-      category: string
-      pointOfContact: string
-      email: string
-    }>
-  >([])
   const [showInviteCoordinatorDialog, setShowInviteCoordinatorDialog] = useState(false)
   const [showInviteInstitutionDialog, setShowInviteInstitutionDialog] = useState(false)
+  const { ready: prototypeReady, database } = usePrototypeDb()
 
   useEffect(() => {
     loadOrganizationData()
-  }, [])
+  }, [prototypeReady])
 
   const loadOrganizationData = async () => {
     setLoading(true)
@@ -89,64 +79,7 @@ export default function PartnerNetworkPage() {
         updated_at: '2024-03-10T15:30:00Z',
         is_active: true,
       }
-
-      const mockCoordinators = [
-        {
-          id: 'coord-1',
-          name: 'Christian Bindslev',
-          country: 'Denmark',
-          email: 'christian@unicef.dk',
-        },
-        {
-          id: 'coord-2',
-          name: 'Mette Victoria',
-          country: 'Denmark',
-          email: 'mette.victoria@unicef.dk',
-        },
-        {
-          id: 'coord-3',
-          name: 'Amelia Parker',
-          country: 'England',
-          email: 'amelia.parker@unicef.org.uk',
-        },
-        {
-          id: 'coord-4',
-          name: 'James Whitaker',
-          country: 'England',
-          email: 'james.whitaker@unicef.org.uk',
-        },
-      ]
-
-      const mockInstitutions = [
-        {
-          id: 'inst-1',
-          name: 'Mørke Rettighedskole',
-          country: 'Denmark',
-          category: 'School',
-          pointOfContact: 'Anne Larsen',
-          email: 'anne@moerke-rette.dk',
-        },
-        {
-          id: 'inst-2',
-          name: 'Vesterbjerg Rettighedskole',
-          country: 'Denmark',
-          category: 'School',
-          pointOfContact: 'Michael Jensen',
-          email: 'michael@vesterbjerg.dk',
-        },
-        {
-          id: 'inst-3',
-          name: 'Manchester Rights School',
-          country: 'England',
-          category: 'School',
-          pointOfContact: 'Priya Shah',
-          email: 'priya.shah@mancc.ac.uk',
-        },
-      ]
-
       setOrganization(sampleOrg)
-      setCountryCoordinators(mockCoordinators)
-      setEducationalInstitutions(mockInstitutions)
     } catch (err) {
       console.error('Error loading network data:', err)
     } finally {
@@ -154,7 +87,84 @@ export default function PartnerNetworkPage() {
     }
   }
 
-  if (loading) {
+  const normalizedOrganizationName = organization?.name
+    ? organization.name.trim().toLowerCase()
+    : null
+
+  const partnerRecord = useMemo(() => {
+    if (!database) return null
+    if (normalizedOrganizationName) {
+      const match = database.partners.find(
+        (partner) => partner.organizationName.toLowerCase() === normalizedOrganizationName,
+      )
+      if (match) return match
+    }
+    return database.partners.length > 0 ? database.partners[0] : null
+  }, [database, normalizedOrganizationName])
+
+  const programSummaries = useMemo<ProgramSummary[]>(() => {
+    if (!prototypeReady || !database || !partnerRecord) {
+      return []
+    }
+    return buildProgramSummariesForPartner(database, partnerRecord.id, {
+      includeRelatedPrograms: true,
+    })
+  }, [prototypeReady, database, partnerRecord])
+
+  const countryCoordinators = useMemo(() => {
+    const coordinators: Array<{ id: string; name: string; country: Country; email: string }> = []
+    const seenEmails = new Set<string>()
+
+    programSummaries.forEach((summary) => {
+      summary.coordinators.forEach((coord) => {
+        const email = coord.email?.toLowerCase()
+        if (!email || seenEmails.has(email)) return
+        seenEmails.add(email)
+        const fullName = [coord.firstName, coord.lastName].filter(Boolean).join(' ').trim() || 'Coordinator'
+        const countryLabel = coord.country === 'DK' ? 'Denmark' : 'England'
+        coordinators.push({
+          id: coord.id,
+          name: fullName,
+          country: countryLabel as Country,
+          email: coord.email,
+        })
+      })
+    })
+
+    return coordinators
+  }, [programSummaries])
+
+  const educationalInstitutions = useMemo(() => {
+    const institutions: Array<{
+      id: string
+      name: string
+      country: Country
+      category: string
+      pointOfContact: string
+      email: string
+    }> = []
+    const seen = new Set<string>()
+
+    programSummaries.forEach((summary) => {
+      summary.institutions.forEach((inst) => {
+        const key = inst.name.toLowerCase()
+        if (seen.has(key)) return
+        seen.add(key)
+        institutions.push({
+          id: inst.id,
+          name: inst.name,
+          country: inst.country === 'DK' ? 'Denmark' : 'England',
+          category: 'School',
+          pointOfContact: inst.principalName || 'Lead contact',
+          email: inst.contactEmail,
+        })
+      })
+    })
+
+    return institutions
+  }, [programSummaries])
+
+  if (loading || !prototypeReady) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-20 w-full rounded-2xl" />
@@ -210,39 +220,27 @@ export default function PartnerNetworkPage() {
         </CardHeader>
         <CardContent>
           {countryCoordinators.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Name</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Country</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Email</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {countryCoordinators.map((coordinator) => (
-                    <tr key={coordinator.id} className="border-b hover:bg-gray-50">
-                      <td className="px-4 py-3">{coordinator.name}</td>
-                      <td className="px-4 py-3">
-                        {countryBadge(coordinator.country)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{coordinator.email}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Mail className="mr-1 h-3 w-3" />
-                            Contact
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            Edit
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid gap-3 md:grid-cols-2">
+              {countryCoordinators.map((coordinator) => (
+                <div key={coordinator.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">{coordinator.name}</p>
+                      <p className="text-sm text-gray-500">{coordinator.email}</p>
+                    </div>
+                    {countryBadge(coordinator.country)}
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <Button size="sm" variant="outline">
+                      <Mail className="mr-1 h-3 w-3" />
+                      Contact
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      Edit
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="py-8 text-center">
@@ -284,48 +282,26 @@ export default function PartnerNetworkPage() {
         </CardHeader>
         <CardContent>
           {educationalInstitutions.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Name</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Country</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Category</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Point of Contact</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {educationalInstitutions.map((institution) => (
-                    <tr key={institution.id} className="border-b hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium">{institution.name}</td>
-                      <td className="px-4 py-3">
-                        {countryBadge(institution.country)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge variant="outline">{institution.category}</Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm">
-                          <div className="font-medium">{institution.pointOfContact}</div>
-                          <div className="text-gray-600">{institution.email}</div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Mail className="mr-1 h-3 w-3" />
-                            Contact
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            View
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid gap-3 md:grid-cols-2">
+              {educationalInstitutions.map((institution) => (
+                <div key={institution.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">{institution.name}</p>
+                      <p className="text-sm text-gray-500">{institution.pointOfContact}</p>
+                      <p className="text-xs text-gray-500">{institution.email}</p>
+                    </div>
+                    {countryBadge(institution.country)}
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <Badge variant="outline">{institution.category}</Badge>
+                    <Button size="sm" variant="outline">
+                      <Mail className="mr-1 h-3 w-3" />
+                      Contact
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="py-8 text-center">

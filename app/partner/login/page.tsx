@@ -220,16 +220,22 @@ export default function PartnerLoginPage() {
                     </div>
                   </div>
                 </PopoverContent>
-              </Popover>
-              <Button
-                variant="outline"
-                className="h-12 border-gray-200 text-gray-700 hover:text-purple-700"
-                onClick={() => handleDemoLogin('school')}
-                disabled={Boolean(isDemoLoading)}
-              >
-                {isDemoLoading === 'school' ? 'Loading...' : 'Continue as School'}
-              </Button>
-            </div>
+            </Popover>
+            <Button
+              variant="outline"
+              className="h-12 border-gray-200 text-gray-700 hover:text-purple-700"
+              onClick={() => handleDemoLogin('school')}
+              disabled={Boolean(isDemoLoading)}
+            >
+              {isDemoLoading === 'school' ? 'Loading...' : 'Continue as School'}
+            </Button>
+            <Link
+              href="/partner/invite/accept?name=Amelia%20Parker&email=amelia.parker@unicef.org.uk&partnerId=partner-unicef&programId=program-communities-2025"
+              className="flex h-12 items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-4 text-sm font-semibold text-blue-800 transition hover:bg-blue-100"
+            >
+              Preview coordinator invite
+            </Link>
+          </div>
 
             <div className="mt-8 space-y-5">
               {error && (
