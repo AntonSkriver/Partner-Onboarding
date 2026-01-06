@@ -128,6 +128,21 @@ export default function PartnerOverviewPage() {
     })
   }, [prototypeReady, database, partnerRecord])
 
+  const schoolCount = useMemo(() => {
+    const uniqueNames = new Set<string>()
+
+    programSummaries.forEach((summary) => {
+      summary.institutions.forEach((institution) => {
+        const name = institution.name?.trim()
+        if (name) {
+          uniqueNames.add(name.toLowerCase())
+        }
+      })
+    })
+
+    return uniqueNames.size
+  }, [programSummaries])
+
   useEffect(() => {
     loadOrganizationProfile()
   }, [])
@@ -389,7 +404,7 @@ export default function PartnerOverviewPage() {
                 <div className="text-sm text-gray-600">Programs</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-blue-600">12</div>
+                <div className="text-2xl font-bold text-blue-600">{schoolCount}</div>
                 <div className="text-sm text-gray-600">Schools</div>
               </div>
               <div>

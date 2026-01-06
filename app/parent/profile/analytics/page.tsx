@@ -110,7 +110,7 @@ export default function ParentAnalyticsPage() {
         { name: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', students: 850, teachers: 4, city: 'Copenhagen' },
         { name: 'London Academy', country: 'United Kingdom', flag: '🇬🇧', students: 1200, teachers: 5, city: 'London' },
         { name: 'Manchester International', country: 'United Kingdom', flag: '🇬🇧', students: 980, teachers: 4, city: 'Manchester' },
-        { name: 'Aarhus Community School', country: 'Denmark', flag: '🇩🇰', students: 650, teachers: 3, city: 'Aarhus' },
+        { name: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 650, teachers: 3, city: 'Aalborg' },
       ]
     }
 
@@ -142,7 +142,7 @@ export default function ParentAnalyticsPage() {
         { name: 'Climate Action 2025', studentsReached: 520, educatorsEngaged: 4, status: 'active', partnerSchool: 'London Academy', country: 'United Kingdom', flag: '🇬🇧' },
         { name: 'Digital Rights', studentsReached: 380, educatorsEngaged: 3, status: 'active', partnerSchool: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰' },
         { name: 'Community Voices', studentsReached: 450, educatorsEngaged: 4, status: 'active', partnerSchool: 'Manchester International', country: 'United Kingdom', flag: '🇬🇧' },
-        { name: 'Youth Leadership', studentsReached: 290, educatorsEngaged: 2, status: 'completed', partnerSchool: 'Aarhus Community School', country: 'Denmark', flag: '🇩🇰' },
+        { name: 'Youth Leadership', studentsReached: 290, educatorsEngaged: 2, status: 'completed', partnerSchool: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰' },
       ]
     }
 

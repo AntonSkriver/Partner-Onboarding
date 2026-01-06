@@ -1,9 +1,15 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   Target,
   Users,
@@ -11,18 +17,15 @@ import {
   School,
   Building2,
   Map as MapIcon,
-  ChevronDown,
-  X,
-  MapPin,
+  ChevronRight,
   BookOpen,
-  Globe,
+  MapPin,
 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import {
   buildProgramSummariesForPartner,
-  aggregateProgramMetrics,
   type ProgramSummary,
 } from '@/lib/programs/selectors'
 import { getCountryDisplay } from '@/lib/countries'
@@ -30,9 +33,25 @@ import { getCountryDisplay } from '@/lib/countries'
 type Organization = Database['public']['Tables']['organizations']['Row']
 type FocusCountryCode = 'DK' | 'UK'
 
+const EXCLUDED_INSTITUTION_IDS = new Set<string>()
+
+const TEACHER_AVATARS: Record<string, string> = {
+  'Ulla Jensen': '/images/avatars/ulla-new.jpg',
+  'Karin Albrectsen': '/images/avatars/karin-new.jpg',
+  'Maria Garcia': '/images/avatars/maria-new.jpg',
+  'Raj Patel': '/images/avatars/raj-new.jpg',
+  'Jonas Madsen': '/images/avatars/jonas-final.jpg',
+  'Anne Holm': '/images/avatars/anne-holm.png',
+  'Sofie Larsen': '/images/avatars/sofie-larsen.png',
+  'Sara Ricci': '/images/avatars/sara-ricci.png',
+  'Lucas Souza': '/images/avatars/lucas-souza.png',
+  'Peter Andersen': '/images/avatars/peter-andersen.png',
+}
+
 // Detailed breakdown data for interactive cards
 interface SchoolDetail {
   name: string
+  originalName: string
   country: string
   flag: string
   students: number
@@ -53,7 +72,7 @@ interface ProjectDetail {
 export default function PartnerAnalyticsPage() {
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
-  const [expandedCard, setExpandedCard] = useState<string | null>(null)
+  const [selectedMetric, setSelectedMetric] = useState<string | null>(null)
   const { ready: prototypeReady, database } = usePrototypeDb()
 
   const normalizedOrganizationName = organization?.name
@@ -80,30 +99,21 @@ export default function PartnerAnalyticsPage() {
     })
   }, [prototypeReady, database, partnerRecord])
 
-  const programMetrics = useMemo(
-    () => aggregateProgramMetrics(programSummaries),
-    [programSummaries],
-  )
-
   // Build detailed school data
   const schoolDetails = useMemo<SchoolDetail[]>(() => {
     if (!database || programSummaries.length === 0) return []
-
-    const excludedIds = new Set([
-      'institution-copenhagen-global-campus',
-      'institution-aarhus-community-school',
-    ])
 
     const schoolMap = new Map<string, SchoolDetail>()
 
     programSummaries.forEach(summary => {
       summary.institutions.forEach(inst => {
-        if (excludedIds.has(inst.id)) return
+        if (EXCLUDED_INSTITUTION_IDS.has(inst.id)) return
         if (!schoolMap.has(inst.id)) {
           const { flag, name: countryName } = getCountryDisplay(inst.country || '')
           const teacherCount = summary.teachers.filter(t => t.institutionId === inst.id).length
           schoolMap.set(inst.id, {
             name: inst.name,
+            originalName: inst.name,
             country: countryName,
             flag,
             students: inst.studentCount || 0,
@@ -114,18 +124,42 @@ export default function PartnerAnalyticsPage() {
       })
     })
 
-    return Array.from(schoolMap.values()).sort((a, b) => b.students - a.students)
+    const merged = new Map<string, SchoolDetail>()
+    schoolMap.forEach((school) => {
+      const key = school.name.trim().toLowerCase()
+      const existing = merged.get(key)
+      if (!existing) {
+        merged.set(key, { ...school })
+        return
+      }
+      const combinedName = existing.name.length >= school.name.length
+        ? existing.name
+        : school.name
+      merged.set(key, {
+        ...existing,
+        name: combinedName,
+        originalName: existing.originalName,
+        students: existing.students + school.students,
+        teachers: existing.teachers + school.teachers,
+      })
+    })
+
+    return Array.from(merged.values()).sort((a, b) => b.students - a.students)
   }, [database, programSummaries])
 
   // Build detailed project data
   const projectDetails = useMemo<ProjectDetail[]>(() => {
-    if (programSummaries.length === 0) return []
+    if (programSummaries.length === 0 || !database) return []
 
     const projects: ProjectDetail[] = []
 
-    programSummaries.forEach(summary => {
-      summary.projects.forEach(project => {
-        // Find the teacher who created this project
+    // Create template lookup map
+    const templateById = new Map(
+      database.programTemplates.map(t => [t.id, t])
+    )
+
+    programSummaries.forEach((summary) => {
+      summary.projects.forEach((project, projectIdx) => {
         const creator = summary.teachers.find(t => t.id === project.createdById)
         const institution = creator
           ? summary.institutions.find(i => i.id === creator.institutionId)
@@ -134,18 +168,24 @@ export default function PartnerAnalyticsPage() {
           ? getCountryDisplay(institution.country)
           : { flag: '', name: '' }
 
-        // Calculate students and educators for this project
+        // Filter institutions excluded from analytics
         const projectInstitutions = summary.institutions.filter(i =>
-          summary.teachers.some(t => t.institutionId === i.id)
+          !EXCLUDED_INSTITUTION_IDS.has(i.id) && summary.teachers.some(t => t.institutionId === i.id)
         )
+        const validTeachers = summary.teachers.filter(t => !EXCLUDED_INSTITUTION_IDS.has(t.institutionId))
+
         const studentsReached = Math.round(
           projectInstitutions.reduce((sum, i) => sum + (i.studentCount || 0), 0) /
           Math.max(summary.projects.length, 1)
         )
-        const educatorsEngaged = Math.round(summary.teachers.length / Math.max(summary.projects.length, 1))
+        const educatorsEngaged = Math.round(validTeachers.length / Math.max(summary.projects.length, 1))
+
+        // Get project name from template or generate fallback
+        const template = project.templateId ? templateById.get(project.templateId) : null
+        const projectName = template?.title || `${summary.program.name} Project ${projectIdx + 1}`
 
         projects.push({
-          name: project.title,
+          name: projectName,
           studentsReached,
           educatorsEngaged,
           status: project.status === 'completed' ? 'completed' : 'active',
@@ -157,7 +197,7 @@ export default function PartnerAnalyticsPage() {
     })
 
     return projects.sort((a, b) => b.studentsReached - a.studentsReached)
-  }, [programSummaries])
+  }, [programSummaries, database])
 
   // Build educator details
   const educatorDetails = useMemo(() => {
@@ -165,6 +205,7 @@ export default function PartnerAnalyticsPage() {
 
     const educators: Array<{
       name: string
+      avatar?: string | null
       subject: string
       school: string
       country: string
@@ -176,6 +217,8 @@ export default function PartnerAnalyticsPage() {
 
     programSummaries.forEach(summary => {
       summary.teachers.forEach(teacher => {
+        // Skip teachers from excluded institutions
+        if (EXCLUDED_INSTITUTION_IDS.has(teacher.institutionId)) return
         if (seenTeachers.has(teacher.id)) return
         seenTeachers.add(teacher.id)
 
@@ -186,8 +229,11 @@ export default function PartnerAnalyticsPage() {
 
         const projectCount = summary.projects.filter(p => p.createdById === teacher.id).length
 
+        const fullName = `${teacher.firstName} ${teacher.lastName}`.trim()
+
         educators.push({
-          name: `${teacher.firstName} ${teacher.lastName}`,
+          name: fullName,
+          avatar: TEACHER_AVATARS[fullName] ?? null,
           subject: teacher.subject || 'General',
           school: institution?.name || 'Unknown',
           country: countryName,
@@ -205,25 +251,26 @@ export default function PartnerAnalyticsPage() {
     if (programSummaries.length === 0) return []
 
     return programSummaries.map(summary => {
-      const students = summary.institutions.reduce((sum, i) => sum + (i.studentCount || 0), 0)
+      const validInstitutions = summary.institutions.filter(i => !EXCLUDED_INSTITUTION_IDS.has(i.id))
+      const students = validInstitutions.reduce((sum, i) => sum + (i.studentCount || 0), 0)
       return {
         program: summary.program.name,
         students,
-        schools: summary.institutions.length,
-        countries: new Set(summary.institutions.map(i => i.country).filter(Boolean)).size,
+        schools: validInstitutions.length,
+        countries: new Set(validInstitutions.map(i => i.country).filter(Boolean)).size,
       }
     }).sort((a, b) => b.students - a.students)
   }, [programSummaries])
+
+  const studentsTotal = useMemo(
+    () => studentBreakdown.reduce((sum, entry) => sum + entry.students, 0),
+    [studentBreakdown],
+  )
 
   const countryImpact = useMemo(() => {
     if (programSummaries.length === 0) {
       return []
     }
-
-    const excludedInstitutionIds = new Set([
-      'institution-copenhagen-global-campus',
-      'institution-aarhus-community-school',
-    ])
 
     type MutableEntry = {
       country: string
@@ -264,7 +311,7 @@ export default function PartnerAnalyticsPage() {
 
     for (const summary of programSummaries) {
       summary.institutions.forEach((institution) => {
-        if (excludedInstitutionIds.has(institution.id)) {
+        if (EXCLUDED_INSTITUTION_IDS.has(institution.id)) {
           return
         }
         if (!institution.country) {
@@ -282,7 +329,7 @@ export default function PartnerAnalyticsPage() {
         const institution =
           summary.institutions.find((inst) => inst.id === teacher.institutionId) ??
           institutionById.get(teacher.institutionId)
-        if (institution?.country && !excludedInstitutionIds.has(institution.id)) {
+        if (institution?.country && !EXCLUDED_INSTITUTION_IDS.has(institution.id)) {
           const entry = ensureEntry(institution.country)
           entry.teachers.add(teacher.id)
         }
@@ -299,7 +346,7 @@ export default function PartnerAnalyticsPage() {
         const institution =
           summary.institutions.find((inst) => inst.id === teacher.institutionId) ??
           institutionById.get(teacher.institutionId)
-        if (institution?.country && !excludedInstitutionIds.has(institution.id)) {
+        if (institution?.country && !EXCLUDED_INSTITUTION_IDS.has(institution.id)) {
           const entry = ensureEntry(institution.country)
           entry.projects.add(project.id)
           if (project.status === 'completed') {
@@ -337,6 +384,23 @@ export default function PartnerAnalyticsPage() {
     focusCountries.includes(entry.country as FocusCountryCode),
   )
 
+  const focusSchoolCount = useMemo(() => {
+    const focusSet = new Set<FocusCountryCode>(focusCountries)
+    const names = new Set<string>()
+
+    programSummaries.forEach((summary) => {
+      summary.institutions.forEach((inst) => {
+        if (!focusSet.has(inst.country as FocusCountryCode)) return
+        const name = inst.name?.trim()
+        if (name) {
+          names.add(name.toLowerCase())
+        }
+      })
+    })
+
+    return names.size
+  }, [programSummaries, focusCountries])
+
   const filteredTotals = useMemo(() => {
     const focusSet = new Set<FocusCountryCode>(focusCountries)
     const programs = new Set<string>()
@@ -351,21 +415,23 @@ export default function PartnerAnalyticsPage() {
     })
 
     return {
-      institutions: filteredImpact.reduce((sum, entry) => sum + entry.institutions, 0),
+      institutions: focusSchoolCount,
       programs: programs.size,
     }
-  }, [filteredImpact, programSummaries, focusCountries])
+  }, [programSummaries, focusCountries, focusSchoolCount])
 
   const headlineMetrics = [
     {
       id: 'students',
       label: 'Students reached',
-      value: programMetrics.students.toLocaleString(),
+      value: studentsTotal.toLocaleString(),
       caption: 'Learners participating in partner programs',
       icon: GraduationCap,
-      bubbleClassName: 'bg-purple-100 text-purple-700',
-      expandedColor: 'from-purple-500 to-purple-600',
-      details: studentBreakdown,
+      color: 'purple',
+      bgColor: 'bg-purple-100',
+      textColor: 'text-purple-700',
+      gradientFrom: 'from-purple-500',
+      gradientTo: 'to-purple-600',
     },
     {
       id: 'schools',
@@ -373,29 +439,35 @@ export default function PartnerAnalyticsPage() {
       value: filteredTotals.institutions.toString(),
       caption: 'Active learning sites onboarded',
       icon: School,
-      bubbleClassName: 'bg-blue-100 text-blue-700',
-      expandedColor: 'from-blue-500 to-blue-600',
-      details: schoolDetails,
+      color: 'blue',
+      bgColor: 'bg-blue-100',
+      textColor: 'text-blue-700',
+      gradientFrom: 'from-blue-500',
+      gradientTo: 'to-blue-600',
     },
     {
       id: 'projects',
       label: 'Active projects',
-      value: programMetrics.activeProjects.toString(),
+      value: projectDetails.filter(p => p.status === 'active').length.toString(),
       caption: 'Currently collaborating across regions',
       icon: Target,
-      bubbleClassName: 'bg-emerald-100 text-emerald-700',
-      expandedColor: 'from-emerald-500 to-emerald-600',
-      details: projectDetails,
+      color: 'emerald',
+      bgColor: 'bg-emerald-100',
+      textColor: 'text-emerald-700',
+      gradientFrom: 'from-emerald-500',
+      gradientTo: 'to-emerald-600',
     },
     {
       id: 'educators',
       label: 'Educators engaged',
-      value: programMetrics.teachers.toString(),
+      value: educatorDetails.length.toString(),
       caption: 'Teachers collaborating with peers',
       icon: Users,
-      bubbleClassName: 'bg-amber-100 text-amber-700',
-      expandedColor: 'from-amber-500 to-amber-600',
-      details: educatorDetails,
+      color: 'amber',
+      bgColor: 'bg-amber-100',
+      textColor: 'text-amber-700',
+      gradientFrom: 'from-amber-500',
+      gradientTo: 'to-amber-600',
     },
   ] as const
 
@@ -486,146 +558,301 @@ export default function PartnerAnalyticsPage() {
     }
   }
 
-  const toggleCard = (id: string) => {
-    setExpandedCard(expandedCard === id ? null : id)
-  }
+  const selectedMetricData = headlineMetrics.find(m => m.id === selectedMetric)
 
-  const renderExpandedContent = (metric: typeof headlineMetrics[number]) => {
-    switch (metric.id) {
+  const renderModalContent = () => {
+    if (!selectedMetric) return null
+
+    switch (selectedMetric) {
       case 'students':
+        // Calculate unique countries across all programs (with exclusions applied)
+        const uniqueCountries = new Set<string>()
+        programSummaries.forEach(summary => {
+          summary.institutions
+            .filter(i => !EXCLUDED_INSTITUTION_IDS.has(i.id) && i.country)
+            .forEach(i => uniqueCountries.add(i.country))
+        })
+        const totalUniqueCountries = uniqueCountries.size
+
         return (
-          <div className="space-y-3">
-            <div className="text-sm font-medium text-white/80 mb-4">Students by Program</div>
-            {(metric.details as typeof studentBreakdown).map((item, idx) => (
-              <motion.div
-                key={item.program}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="flex items-center justify-between bg-white/10 rounded-lg p-3"
-              >
-                <div className="flex items-center gap-3">
-                  <BookOpen className="h-4 w-4 text-white/70" />
-                  <div>
-                    <p className="text-sm font-medium text-white">{item.program}</p>
-                    <p className="text-xs text-white/60">{item.schools} schools · {item.countries} countries</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-white">{item.students.toLocaleString()}</p>
-                  <p className="text-xs text-white/60">students</p>
-                </div>
-              </motion.div>
-            ))}
+          <div className="space-y-6">
+            {/* Summary */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="rounded-xl bg-purple-50 p-4 text-center">
+                <p className="text-3xl font-bold text-purple-700">{studentsTotal.toLocaleString()}</p>
+                <p className="text-sm text-purple-600 mt-1">Total Students</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">{studentBreakdown.length}</p>
+                <p className="text-sm text-gray-600 mt-1">Programs</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">{totalUniqueCountries}</p>
+                <p className="text-sm text-gray-600 mt-1">Countries</p>
+              </div>
+            </div>
+
+            {/* Breakdown by Program */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Breakdown by Program</h4>
+              <div className="space-y-3">
+                {studentBreakdown.map((item, idx) => {
+                  const percent = studentsTotal
+                    ? Math.round((item.students / studentsTotal) * 100)
+                    : 0
+                  return (
+                    <motion.div
+                      key={item.program}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="rounded-xl border border-gray-100 p-4 hover:shadow-sm transition-shadow"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
+                            <BookOpen className="h-5 w-5 text-purple-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{item.program}</p>
+                            <p className="text-sm text-gray-500">{item.schools} {item.schools === 1 ? 'school' : 'schools'} · {item.countries} {item.countries === 1 ? 'country' : 'countries'}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-purple-600">{item.students.toLocaleString()}</p>
+                          <p className="text-xs text-gray-500">{percent}% of total</p>
+                        </div>
+                      </div>
+                      <div className="h-2 rounded-full bg-gray-100">
+                        <motion.div
+                          className="h-2 rounded-full bg-purple-500"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${percent}%` }}
+                          transition={{ duration: 0.5, delay: idx * 0.1 }}
+                        />
+                      </div>
+                    </motion.div>
+                  )
+                })}
+              </div>
+            </div>
           </div>
         )
 
       case 'schools':
         return (
-          <div className="space-y-3">
-            <div className="text-sm font-medium text-white/80 mb-4">School Details</div>
-            {(metric.details as typeof schoolDetails).slice(0, 6).map((school, idx) => (
-              <motion.div
-                key={school.name}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="flex items-center justify-between bg-white/10 rounded-lg p-3"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-lg">{school.flag}</span>
-                  <div>
-                    <p className="text-sm font-medium text-white">{school.name}</p>
-                    <p className="text-xs text-white/60">{school.city}, {school.country}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-white">{school.students.toLocaleString()} students</p>
-                  <p className="text-xs text-white/60">{school.teachers} teachers</p>
-                </div>
-              </motion.div>
-            ))}
+          <div className="space-y-6">
+            {/* Summary */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="rounded-xl bg-blue-50 p-4 text-center">
+                <p className="text-3xl font-bold text-blue-700">{filteredTotals.institutions}</p>
+                <p className="text-sm text-blue-600 mt-1">Total Schools</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">
+                  {schoolDetails.reduce((sum, s) => sum + s.students, 0).toLocaleString()}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">Total Students</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">
+                  {schoolDetails.reduce((sum, s) => sum + s.teachers, 0)}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">Total Teachers</p>
+              </div>
+            </div>
+
+            {/* School List */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">All Schools & Institutions</h4>
+              <div className="grid gap-3 md:grid-cols-2">
+                {schoolDetails.map((school, idx) => (
+                  <motion.div
+                    key={school.name}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.03 }}
+                    className="rounded-xl border border-gray-100 p-4 hover:shadow-sm transition-shadow"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">{school.flag}</span>
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className="font-medium text-gray-900 whitespace-normal break-words"
+                          title={school.originalName}
+                        >
+                          {school.name}
+                        </p>
+                        <div className="flex items-center gap-1 text-sm text-gray-500 mt-0.5">
+                          <MapPin className="h-3 w-3" />
+                          <span>{school.city}, {school.country}</span>
+                        </div>
+                        <div className="flex items-center gap-4 mt-2 text-sm">
+                          <span className="text-blue-600 font-medium">{school.students.toLocaleString()} students</span>
+                          <span className="text-gray-500">{school.teachers} teachers</span>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
         )
 
       case 'projects':
+        const activeProjectCount = projectDetails.filter(p => p.status === 'active').length
+        const completedProjectCount = projectDetails.filter(p => p.status === 'completed').length
         return (
-          <div className="space-y-3">
-            <div className="text-sm font-medium text-white/80 mb-4">Project Impact</div>
-            {(metric.details as typeof projectDetails).map((project, idx) => (
-              <motion.div
-                key={project.name}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="bg-white/10 rounded-lg p-3"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">{project.flag}</span>
-                    <p className="text-sm font-medium text-white">{project.name}</p>
-                  </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    project.status === 'active'
-                      ? 'bg-green-400/20 text-green-200'
-                      : 'bg-gray-400/20 text-gray-300'
-                  }`}>
-                    {project.status}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-4 mt-3">
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4 text-white/70" />
-                    <div>
-                      <p className="text-lg font-bold text-white">{project.studentsReached}</p>
-                      <p className="text-xs text-white/60">students reached</p>
+          <div className="space-y-6">
+            {/* Summary */}
+            <div className="grid grid-cols-4 gap-4">
+              <div className="rounded-xl bg-emerald-50 p-4 text-center">
+                <p className="text-3xl font-bold text-emerald-700">{activeProjectCount}</p>
+                <p className="text-sm text-emerald-600 mt-1">Active</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">{completedProjectCount}</p>
+                <p className="text-sm text-gray-600 mt-1">Completed</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">
+                  {projectDetails.reduce((sum, p) => sum + p.studentsReached, 0).toLocaleString()}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">Students Reached</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">
+                  {projectDetails.reduce((sum, p) => sum + p.educatorsEngaged, 0)}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">Educators</p>
+              </div>
+            </div>
+
+            {/* Project List */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Project Impact Details</h4>
+              <div className="space-y-3">
+                {projectDetails.map((project, idx) => (
+                  <motion.div
+                    key={project.name}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="rounded-xl border border-gray-100 p-4 hover:shadow-sm transition-shadow"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{project.flag}</span>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-gray-900">{project.name}</p>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              project.status === 'active'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {project.status}
+                            </span>
+                          </div>
+                          {project.partnerSchool && (
+                            <p className="text-sm text-gray-500 mt-0.5">Partner: {project.partnerSchool}</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-white/70" />
-                    <div>
-                      <p className="text-lg font-bold text-white">{project.educatorsEngaged}</p>
-                      <p className="text-xs text-white/60">educators engaged</p>
+                    <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50">
+                          <GraduationCap className="h-5 w-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="text-xl font-bold text-gray-900">{project.studentsReached}</p>
+                          <p className="text-xs text-gray-500">Students Reached</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50">
+                          <Users className="h-5 w-5 text-amber-600" />
+                        </div>
+                        <div>
+                          <p className="text-xl font-bold text-gray-900">{project.educatorsEngaged}</p>
+                          <p className="text-xs text-gray-500">Educators Engaged</p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                {project.partnerSchool && (
-                  <p className="text-xs text-white/50 mt-2">Partner: {project.partnerSchool}</p>
-                )}
-              </motion.div>
-            ))}
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
         )
 
       case 'educators':
         return (
-          <div className="space-y-3">
-            <div className="text-sm font-medium text-white/80 mb-4">Educator Details</div>
-            {(metric.details as typeof educatorDetails).slice(0, 6).map((educator, idx) => (
-              <motion.div
-                key={educator.name}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="flex items-center justify-between bg-white/10 rounded-lg p-3"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center text-sm font-medium text-white">
-                    {educator.name.split(' ').map(n => n[0]).join('')}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">{educator.name}</p>
-                    <p className="text-xs text-white/60">{educator.subject} · {educator.school}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-white">{educator.flag} {educator.country}</p>
-                  {educator.projectCount > 0 && (
-                    <p className="text-xs text-white/60">{educator.projectCount} project{educator.projectCount > 1 ? 's' : ''}</p>
-                  )}
-                </div>
-              </motion.div>
-            ))}
+          <div className="space-y-6">
+            {/* Summary */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="rounded-xl bg-amber-50 p-4 text-center">
+                <p className="text-3xl font-bold text-amber-700">{educatorDetails.length}</p>
+                <p className="text-sm text-amber-600 mt-1">Total Educators</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">
+                  {new Set(educatorDetails.map(e => e.school)).size}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">Schools</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">
+                  {new Set(educatorDetails.map(e => e.country)).size}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">Countries</p>
+              </div>
+            </div>
+
+            {/* Educator List */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">All Educators</h4>
+              <div className="grid gap-3 md:grid-cols-2">
+                {educatorDetails.map((educator, idx) => (
+                  <motion.div
+                    key={educator.name}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.03 }}
+                    className="rounded-xl border border-gray-100 p-4 hover:shadow-sm transition-shadow"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-amber-100 to-amber-50 text-base font-semibold text-amber-700">
+                        {educator.avatar ? (
+                          <img
+                            src={educator.avatar}
+                            alt={educator.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          educator.name.split(' ').map(n => n[0]).join('')
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900">{educator.name}</p>
+                        <p className="text-sm text-gray-500 truncate">{educator.subject}</p>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+                          <span>{educator.flag} {educator.school}</span>
+                          {educator.projectCount > 0 && (
+                            <>
+                              <span>·</span>
+                              <span className="text-amber-600">{educator.projectCount} project{educator.projectCount > 1 ? 's' : ''}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
         )
 
@@ -670,93 +897,57 @@ export default function PartnerAnalyticsPage() {
         </p>
       </header>
 
-      {/* Interactive Headline Metrics */}
+      {/* Headline Metrics - Clickable Cards */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {headlineMetrics.map(({ id, label, value, caption, icon: Icon, bubbleClassName, expandedColor, details }) => (
+        {headlineMetrics.map(({ id, label, value, caption, icon: Icon, bgColor, textColor }) => (
           <motion.div
             key={id}
-            layout
-            className="relative"
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <motion.div
-              layout
-              onClick={() => toggleCard(id)}
-              className={`cursor-pointer rounded-2xl border transition-all ${
-                expandedCard === id
-                  ? 'border-transparent shadow-xl'
-                  : 'border-gray-100 bg-white shadow-sm hover:shadow-md hover:border-gray-200'
-              }`}
+            <Card
+              className="cursor-pointer border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all group"
+              onClick={() => setSelectedMetric(id)}
             >
-              <AnimatePresence mode="wait">
-                {expandedCard === id ? (
-                  <motion.div
-                    key="expanded"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className={`bg-gradient-to-br ${expandedColor} rounded-2xl p-5 text-white min-h-[280px]`}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-2xl font-bold">{value}</p>
-                          <p className="text-sm text-white/80">{label}</p>
-                        </div>
-                      </div>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setExpandedCard(null)
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </motion.button>
-                    </div>
-                    <div className="max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
-                      {renderExpandedContent({ id, label, value, caption, icon: Icon, bubbleClassName, expandedColor, details } as typeof headlineMetrics[number])}
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="collapsed"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="p-5"
-                  >
-                    <div className="flex flex-col gap-3">
-                      <div className="flex items-center justify-between">
-                        <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-full ${bubbleClassName}`}
-                        >
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <motion.div
-                          animate={{ rotate: expandedCard === id ? 180 : 0 }}
-                          className="text-gray-400"
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                        </motion.div>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</p>
-                        <p className="mt-1 text-2xl font-semibold text-gray-900">{value}</p>
-                        <p className="mt-1 text-xs text-gray-500">{caption}</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${bgColor}`}>
+                    <Icon className={`h-6 w-6 ${textColor}`} />
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-gray-400 transition-colors" />
+                </div>
+                <div className="mt-4">
+                  <p className="text-3xl font-bold text-gray-900">{value}</p>
+                  <p className="text-sm font-medium text-gray-700 mt-1">{label}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{caption}</p>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         ))}
       </section>
+
+      {/* Modal for detailed view */}
+      <Dialog open={!!selectedMetric} onOpenChange={(open) => !open && setSelectedMetric(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              {selectedMetricData && (
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${selectedMetricData.bgColor}`}>
+                  <selectedMetricData.icon className={`h-6 w-6 ${selectedMetricData.textColor}`} />
+                </div>
+              )}
+              <div>
+                <DialogTitle className="text-xl">{selectedMetricData?.label}</DialogTitle>
+                <p className="text-sm text-gray-500 mt-0.5">{selectedMetricData?.caption}</p>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="mt-4">
+            {renderModalContent()}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <section className="grid gap-6 lg:grid-cols-[3fr,2fr]">
         <Card>
@@ -885,24 +1076,6 @@ export default function PartnerAnalyticsPage() {
           </CardContent>
         </Card>
       </section>
-
-      {/* Custom scrollbar styles */}
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.3);
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.5);
-        }
-      `}</style>
     </div>
   )
 }
