@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -23,6 +23,10 @@ import {
   AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
+import { usePrototypeDb } from '@/hooks/use-prototype-db'
+import { getProgramsForPartner } from '@/lib/programs/selectors'
+
+const DEFAULT_PARTNER_ID = 'partner-unicef'
 
 const schoolInviteSchema = z.object({
   schools: z.array(z.object({
@@ -30,6 +34,7 @@ const schoolInviteSchema = z.object({
     country: z.string().min(2, 'Country is required'),
     contactEmail: z.string().email('Valid email is required'),
     contactName: z.string().optional(),
+    programId: z.string().min(1, 'Program is required'),
   })).min(1, 'At least one school is required'),
   customMessage: z.string().optional(),
 })
@@ -54,11 +59,23 @@ export default function InviteSchoolsPage() {
   const [invitationsSent, setInvitationsSent] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedPresetSchools, setSelectedPresetSchools] = useState<string[]>([])
+  const { ready: prototypeReady, database } = usePrototypeDb()
+
+  const programOptions = useMemo(() => {
+    if (!prototypeReady || !database) return []
+    const programs = getProgramsForPartner(database, DEFAULT_PARTNER_ID, { includeRelatedPrograms: true })
+    return programs.map((program) => ({
+      id: program.id,
+      label: program.displayTitle || program.name,
+    }))
+  }, [prototypeReady, database])
+
+  const defaultProgramId = programOptions[0]?.id ?? 'program-communities-2025'
 
   const form = useForm<SchoolInviteData>({
     resolver: zodResolver(schoolInviteSchema),
     defaultValues: {
-      schools: [{ schoolName: '', country: '', contactEmail: '', contactName: '' }],
+      schools: [{ schoolName: '', country: '', contactEmail: '', contactName: '', programId: defaultProgramId }],
       customMessage: 'We would love to invite your school to join our partnership program with Class2Class. This platform enables meaningful educational collaborations between classrooms worldwide, aligned with our mission to promote children&apos;s rights and global citizenship.'
     },
   })
@@ -69,7 +86,7 @@ export default function InviteSchoolsPage() {
   })
 
   const addSchoolField = () => {
-    append({ schoolName: '', country: '', contactEmail: '', contactName: '' })
+    append({ schoolName: '', country: '', contactEmail: '', contactName: '', programId: defaultProgramId })
   }
 
   const addPresetSchool = (school: typeof rightsSchools[0]) => {
@@ -80,7 +97,8 @@ export default function InviteSchoolsPage() {
       schoolName: school.name,
       country: school.country,
       contactEmail: school.email,
-      contactName: ''
+      contactName: '',
+      programId: defaultProgramId,
     })
     setSelectedPresetSchools([...selectedPresetSchools, schoolId])
   }
@@ -91,14 +109,40 @@ export default function InviteSchoolsPage() {
       // Enhanced invitation sending with tracking
       console.log('Sending invitations with enhanced email flow:', data)
       
+      const countryCodeMap: Record<string, string> = {
+        Denmark: 'DK',
+        Sweden: 'SE',
+        Norway: 'NO',
+        Germany: 'DE',
+        Netherlands: 'NL',
+        'United Kingdom': 'UK',
+        France: 'FR',
+        Spain: 'ES',
+        Italy: 'IT',
+        Poland: 'PL',
+        Finland: 'FI',
+        Belgium: 'BE',
+      }
+
       // Generate unique invitation tokens for each school
       const invitationsWithTokens = data.schools.map(school => ({
         ...school,
+        countryCode: countryCodeMap[school.country] ?? school.country.slice(0, 2).toUpperCase(),
+        programName: programOptions.find((program) => program.id === school.programId)?.label ?? 'Assigned program',
+        partnerId: DEFAULT_PARTNER_ID,
         invitationId: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         invitedAt: new Date().toISOString(),
         status: 'sent',
         partnerName: 'UNICEF Denmark',
-        inviteUrl: `${window.location.origin}/school/invite/${school.contactEmail.replace('@', '_at_').replace('.', '_dot_')}`,
+        inviteUrl: `${window.location.origin}/school/invite/accept?${new URLSearchParams({
+          schoolName: school.schoolName,
+          contactName: school.contactName || 'School Lead',
+          email: school.contactEmail,
+          partnerId: DEFAULT_PARTNER_ID,
+          programId: school.programId,
+          country: countryCodeMap[school.country] ?? school.country.slice(0, 2).toUpperCase(),
+          city: school.country,
+        }).toString()}`,
       }))
       
       // In a real app, this would:
@@ -153,6 +197,10 @@ export default function InviteSchoolsPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <span>Your selected program will already be waiting for them with resources.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span>You'll be notified when schools accept and can start collaborative projects immediately</span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -170,6 +218,7 @@ export default function InviteSchoolsPage() {
                     <div>
                       <p className="font-medium text-gray-900">{invitation.schoolName}</p>
                       <p className="text-sm text-gray-600">{invitation.contactEmail}</p>
+                      <p className="text-xs text-gray-500">Program: {invitation.programName}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Sent</span>
@@ -381,6 +430,35 @@ export default function InviteSchoolsPage() {
                                 <FormControl>
                                   <Input placeholder="Principal or coordinator name" {...field} />
                                 </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`schools.${index}.programId`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Assign Program *</FormLabel>
+                                {programOptions.length === 0 ? (
+                                  <div className="text-sm text-gray-500">Loading programs...</div>
+                                ) : (
+                                  <Select onValueChange={field.onChange} value={field.value || defaultProgramId}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select program" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {programOptions.map((program) => (
+                                        <SelectItem key={program.id} value={program.id}>
+                                          {program.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                )}
                                 <FormMessage />
                               </FormItem>
                             )}

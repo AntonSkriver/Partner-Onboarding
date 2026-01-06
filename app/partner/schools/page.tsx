@@ -20,7 +20,8 @@ import {
   AlertCircle,
   Users,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  Layers
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -30,7 +31,11 @@ interface Invitation {
   contactEmail: string
   contactName?: string
   country: string
+  countryCode?: string
   partnerName: string
+  partnerId?: string
+  programId?: string
+  programName?: string
   customMessage?: string
   invitedAt: string
   status: 'sent' | 'accepted' | 'declined'
@@ -342,7 +347,7 @@ function InvitationsList({
                   </Badge>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
                     <span>{invitation.contactEmail}</span>
@@ -350,6 +355,10 @@ function InvitationsList({
                   <div className="flex items-center gap-2">
                     <Globe className="h-4 w-4" />
                     <span>{invitation.country}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Layers className="h-4 w-4" />
+                    <span>{invitation.programName || 'Program pending'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />

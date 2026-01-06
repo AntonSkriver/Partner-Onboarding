@@ -15,6 +15,7 @@ import {
   Globe,
 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
+import { usePrototypeDb } from '@/hooks/use-prototype-db'
 
 interface SchoolProfile {
   id: string
@@ -25,39 +26,74 @@ interface SchoolProfile {
   country: string
   studentCount: number
   teacherCount: number
+  programCount: number
+  projectCount: number
 }
 
 export default function SchoolDashboardHomePage() {
   const [school, setSchool] = useState<SchoolProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [session, setSession] = useState<any>(null)
+  const { ready: prototypeReady, database } = usePrototypeDb()
 
   useEffect(() => {
     loadSchoolProfile()
-    setSession(getCurrentSession())
-  }, [])
+  }, [prototypeReady])
 
   const loadSchoolProfile = async () => {
     setLoading(true)
     try {
       const currentSession = getCurrentSession()
-      if (!currentSession || currentSession.role !== 'teacher') {
+      if (!currentSession || currentSession.role !== 'teacher' || !prototypeReady || !database) {
+        setSchool(null)
         return
       }
 
-      // For demo purposes - sample school data
-      const sampleSchool: SchoolProfile = {
-        id: 'school-orestad-gymnasium',
-        name: 'Ørestad Gymnasium',
-        type: 'High School',
-        location: 'Copenhagen, Denmark',
-        city: 'Copenhagen',
-        country: 'Denmark',
-        studentCount: 800,
-        teacherCount: 65,
+      const normalizedEmail = currentSession.email.toLowerCase()
+      const normalizedName = currentSession.organization?.trim().toLowerCase()
+
+      const activeInstitutionId =
+        typeof window !== 'undefined'
+          ? window.localStorage.getItem('activeInstitutionId')
+          : null
+      const activeProgramIds =
+        typeof window !== 'undefined'
+          ? JSON.parse(window.localStorage.getItem('activeProgramIds') || '[]')
+          : []
+
+      const matchingInstitutions = database.institutions.filter((institution) => {
+        const idMatch = activeInstitutionId && institution.id === activeInstitutionId
+        const emailMatch = institution.contactEmail?.toLowerCase() === normalizedEmail
+        const nameMatch = normalizedName && institution.name?.trim().toLowerCase() === normalizedName
+        return idMatch || emailMatch || nameMatch
+      })
+
+      const primaryInstitution = matchingInstitutions[0]
+
+      if (!primaryInstitution) {
+        setSchool(null)
+        return
       }
 
-      setSchool(sampleSchool)
+      const programIds = activeProgramIds.length
+        ? activeProgramIds
+        : Array.from(new Set(matchingInstitutions.map((institution) => institution.programId)))
+
+      const teacherCount = database.institutionTeachers.filter(
+        (teacher) => teacher.institutionId === primaryInstitution.id,
+      ).length
+
+      setSchool({
+        id: primaryInstitution.id,
+        name: primaryInstitution.name,
+        type: primaryInstitution.type ?? 'School',
+        location: [primaryInstitution.city, primaryInstitution.country].filter(Boolean).join(', '),
+        city: primaryInstitution.city ?? '',
+        country: primaryInstitution.country ?? '',
+        studentCount: primaryInstitution.studentCount ?? 0,
+        teacherCount,
+        programCount: programIds.length,
+        projectCount: 0,
+      })
     } catch (err) {
       console.error('Error loading school profile:', err)
     } finally {
@@ -101,7 +137,7 @@ export default function SchoolDashboardHomePage() {
             <div className="flex items-center gap-2">
               <Globe className="h-5 w-5 text-purple-600" />
               <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">2</p>
+                <p className="text-2xl font-semibold text-gray-900">{school.programCount}</p>
                 <p className="text-xs text-gray-600">Programs</p>
               </div>
             </div>
@@ -115,7 +151,7 @@ export default function SchoolDashboardHomePage() {
             <div className="flex items-center gap-2">
               <FolderKanban className="h-5 w-5 text-purple-600" />
               <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">4</p>
+                <p className="text-2xl font-semibold text-gray-900">{school.projectCount}</p>
                 <p className="text-xs text-gray-600">Projects</p>
               </div>
             </div>

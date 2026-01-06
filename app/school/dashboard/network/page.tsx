@@ -1,22 +1,104 @@
 'use client'
 
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, School, UserPlus } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Users, School, UserPlus, Globe } from 'lucide-react'
+import { usePrototypeDb } from '@/hooks/use-prototype-db'
 
-const teachers = [
-  { id: '1', name: 'Maria Hansen', email: 'maria@school.dk', subject: 'Social Studies', status: 'active', programName: 'Build the Change' },
-  { id: '2', name: 'Peter Nielsen', email: 'peter@school.dk', subject: 'Science', status: 'active', programName: 'Communities in Focus' },
-  { id: '3', name: 'Anna Larsen', email: 'anna@school.dk', subject: 'Languages', status: 'invited', programName: 'Build the Change' },
-]
+interface TeacherDisplay {
+  id: string
+  name: string
+  email: string
+  subject: string
+  status: 'active' | 'invited' | 'inactive'
+  programName: string
+}
 
-const partnerSchools = [
-  { id: '1', name: 'Berlin International School', country: 'Germany', programName: 'Build the Change' },
-  { id: '2', name: 'São Paulo Academy', country: 'Brazil', programName: 'Communities in Focus' },
-]
+interface PartnerSchoolDisplay {
+  id: string
+  name: string
+  country: string
+  programName: string
+}
 
 export default function SchoolNetworkPage() {
+  const [loading, setLoading] = useState(true)
+  const [activeInstitutionId, setActiveInstitutionId] = useState<string | null>(null)
+  const [activeProgramIds, setActiveProgramIds] = useState<string[]>([])
+  const { ready: prototypeReady, database } = usePrototypeDb()
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setActiveInstitutionId(window.localStorage.getItem('activeInstitutionId'))
+      setActiveProgramIds(JSON.parse(window.localStorage.getItem('activeProgramIds') || '[]'))
+    }
+  }, [])
+
+  useEffect(() => {
+    if (prototypeReady) {
+      setLoading(false)
+    }
+  }, [prototypeReady])
+
+  // Get teachers for this institution
+  const teachers = useMemo((): TeacherDisplay[] => {
+    if (!database || !activeInstitutionId) return []
+
+    return database.institutionTeachers
+      .filter((teacher) => teacher.institutionId === activeInstitutionId)
+      .map((teacher) => {
+        const program = database.programs.find((p) => p.id === teacher.programId)
+        return {
+          id: teacher.id,
+          name: `${teacher.firstName} ${teacher.lastName}`,
+          email: teacher.email,
+          subject: teacher.subject || 'General',
+          status: teacher.status,
+          programName: program?.name || 'Unknown Program',
+        }
+      })
+  }, [database, activeInstitutionId])
+
+  // Get partner schools (other institutions in the same programs)
+  const partnerSchools = useMemo((): PartnerSchoolDisplay[] => {
+    if (!database || !activeInstitutionId || activeProgramIds.length === 0) return []
+
+    const programIdSet = new Set(activeProgramIds)
+
+    return database.institutions
+      .filter((institution) => {
+        // Exclude our own institution
+        if (institution.id === activeInstitutionId) return false
+        // Only include institutions in the same programs
+        return programIdSet.has(institution.programId)
+      })
+      .map((institution) => {
+        const program = database.programs.find((p) => p.id === institution.programId)
+        return {
+          id: institution.id,
+          name: institution.name,
+          country: institution.country || 'Unknown',
+          programName: program?.name || 'Unknown Program',
+        }
+      })
+  }, [database, activeInstitutionId, activeProgramIds])
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Skeleton className="mb-2 h-8 w-32" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="h-64 w-full rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-xl" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -45,25 +127,35 @@ export default function SchoolNetworkPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {teachers.map((teacher) => (
-            <div
-              key={teacher.id}
-              className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-gray-200 p-4"
-            >
-              <div>
-                <p className="font-semibold text-gray-900">
-                  {teacher.name}{' '}
-                  <span className="text-xs text-gray-500">· {teacher.programName}</span>
-                </p>
-                <p className="text-sm text-gray-600">
-                  {teacher.subject} • {teacher.email}
-                </p>
-              </div>
-              <Badge variant={teacher.status === 'active' ? 'default' : 'secondary'}>
-                {teacher.status}
-              </Badge>
+          {teachers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Users className="mb-3 h-10 w-10 text-gray-300" />
+              <p className="text-sm font-medium text-gray-600">No teachers yet</p>
+              <p className="text-xs text-gray-500">
+                Invite teachers from your school to collaborate on programs.
+              </p>
             </div>
-          ))}
+          ) : (
+            teachers.map((teacher) => (
+              <div
+                key={teacher.id}
+                className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-gray-200 p-4"
+              >
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    {teacher.name}{' '}
+                    <span className="text-xs text-gray-500">· {teacher.programName}</span>
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {teacher.subject} • {teacher.email}
+                  </p>
+                </div>
+                <Badge variant={teacher.status === 'active' ? 'default' : 'secondary'}>
+                  {teacher.status}
+                </Badge>
+              </div>
+            ))
+          )}
         </CardContent>
       </Card>
 
@@ -85,23 +177,33 @@ export default function SchoolNetworkPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {partnerSchools.map((school) => (
-            <div
-              key={school.id}
-              className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-gray-200 p-4"
-            >
-              <div>
-                <p className="font-semibold text-gray-900">
-                  {school.name}{' '}
-                  <span className="text-xs text-gray-500">· {school.programName}</span>
-                </p>
-                <p className="text-sm text-gray-600">{school.country}</p>
-              </div>
-              <Button variant="outline" size="sm">
-                View profile
-              </Button>
+          {partnerSchools.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Globe className="mb-3 h-10 w-10 text-gray-300" />
+              <p className="text-sm font-medium text-gray-600">No partner schools yet</p>
+              <p className="text-xs text-gray-500">
+                Partner schools will appear here when you join collaborative programs.
+              </p>
             </div>
-          ))}
+          ) : (
+            partnerSchools.map((school) => (
+              <div
+                key={school.id}
+                className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-gray-200 p-4"
+              >
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    {school.name}{' '}
+                    <span className="text-xs text-gray-500">· {school.programName}</span>
+                  </p>
+                  <p className="text-sm text-gray-600">{school.country}</p>
+                </div>
+                <Button variant="outline" size="sm">
+                  View profile
+                </Button>
+              </div>
+            ))
+          )}
         </CardContent>
       </Card>
     </div>

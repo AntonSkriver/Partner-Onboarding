@@ -16,7 +16,8 @@ import {
   Target,
   Users,
   AlertCircle,
-  Heart
+  Heart,
+  Layers
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -27,6 +28,8 @@ interface Invitation {
   contactName?: string
   country: string
   partnerName: string
+  programId?: string
+  programName?: string
   customMessage?: string
   invitedAt: string
   status: 'sent' | 'accepted' | 'declined'
@@ -217,6 +220,13 @@ export default function SchoolInvitePage() {
                 <Mail className="h-5 w-5 text-gray-500" />
                 <p className="text-gray-700">{invitation.contactEmail}</p>
               </div>
+
+              {invitation.programName && (
+                <div className="flex items-center gap-3">
+                  <Layers className="h-5 w-5 text-purple-600" />
+                  <p className="text-gray-700">Program: {invitation.programName}</p>
+                </div>
+              )}
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h4 className="font-semibold text-blue-900 mb-2">Personal Message:</h4>

@@ -294,10 +294,12 @@ export default function PartnerNetworkPage() {
                     {countryBadge(institution.country)}
                   </div>
                   <div className="mt-3 flex gap-2">
-                    <Badge variant="outline">{institution.category}</Badge>
                     <Button size="sm" variant="outline">
                       <Mail className="mr-1 h-3 w-3" />
                       Contact
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      Edit
                     </Button>
                   </div>
                 </div>
@@ -396,6 +398,23 @@ export default function PartnerNetworkPage() {
                   <option>Cultural Center</option>
                   <option>Other</option>
                 </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Assign Program</label>
+                <select className="w-full rounded-md border border-gray-300 px-3 py-2">
+                  {programSummaries.length > 0 ? (
+                    programSummaries.map((summary) => (
+                      <option key={summary.program.id} value={summary.program.id}>
+                        {summary.program.displayTitle || summary.program.name}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">No programs available yet</option>
+                  )}
+                </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  Pick the program this school should land with so resources are ready in their profile.
+                </p>
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Country</label>

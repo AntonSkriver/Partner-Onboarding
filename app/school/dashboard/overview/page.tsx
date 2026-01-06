@@ -21,6 +21,7 @@ import {
 import { getCurrentSession } from '@/lib/auth/session'
 import { SDGIcon } from '@/components/sdg-icons'
 import { SDG_OPTIONS } from '@/contexts/partner-onboarding-context'
+import { usePrototypeDb } from '@/hooks/use-prototype-db'
 
 interface SchoolProfile {
   id: string
@@ -54,40 +55,63 @@ const CRC_ARTICLE_DETAILS: Record<string, { title: string }> = {
 export default function SchoolOverviewPage() {
   const [school, setSchool] = useState<SchoolProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const { ready: prototypeReady, database } = usePrototypeDb()
 
   useEffect(() => {
     loadSchoolProfile()
-  }, [])
+  }, [prototypeReady])
 
   const loadSchoolProfile = async () => {
     setLoading(true)
     try {
       const session = getCurrentSession()
-      if (!session || session.role !== 'teacher') {
+      if (!session || session.role !== 'teacher' || !prototypeReady || !database) {
+        setSchool(null)
         return
       }
 
-      const sampleSchool: SchoolProfile = {
-        id: 'school-orestad-gymnasium',
-        name: 'Ørestad Gymnasium',
-        type: 'High School',
-        location: 'Copenhagen, Denmark',
-        city: 'Copenhagen',
-        country: 'Denmark',
-        studentCount: 850,
-        teacherCount: 65,
-        languages: ['Danish', 'English', 'German', 'Spanish'],
-        contactName: 'Henrik Vestergaard',
-        contactEmail: 'henrik.vestergaard@orestadgym.dk',
-        contactPhone: '+45 32 54 89 00',
-        interests: ['Global Citizenship', 'Climate Action', 'Cultural Exchange', 'Human Rights Education', 'Digital Innovation'],
-        sdgFocus: ['4', '10', '13', '16'],
-        childRightsFocus: ['12', '28', '29', '31'],
-        description: 'A forward-thinking international school committed to global citizenship education and collaborative learning across borders.',
-        mission: 'Ørestad Gymnasium is dedicated to preparing students for a globalized world through innovative teaching methods, international collaboration, and a strong focus on sustainability and human rights. We believe in empowering young people to become active, informed global citizens.',
+      const normalizedEmail = session.email.toLowerCase()
+      const normalizedName = session.organization?.trim().toLowerCase()
+      const activeInstitutionId =
+        typeof window !== 'undefined'
+          ? window.localStorage.getItem('activeInstitutionId')
+          : null
+
+      const matchingInstitutions = database.institutions.filter((institution) => {
+        const idMatch = activeInstitutionId && institution.id === activeInstitutionId
+        const emailMatch = institution.contactEmail?.toLowerCase() === normalizedEmail
+        const nameMatch = normalizedName && institution.name?.trim().toLowerCase() === normalizedName
+        return idMatch || emailMatch || nameMatch
+      })
+
+      const primaryInstitution = matchingInstitutions[0]
+
+      if (!primaryInstitution) {
+        setSchool(null)
+        return
       }
 
-      setSchool(sampleSchool)
+      const mappedSchool: SchoolProfile = {
+        id: primaryInstitution.id,
+        name: primaryInstitution.name,
+        type: primaryInstitution.type ?? 'School',
+        location: [primaryInstitution.city, primaryInstitution.country].filter(Boolean).join(', ') || 'Location pending',
+        city: primaryInstitution.city ?? '',
+        country: primaryInstitution.country ?? '',
+        studentCount: primaryInstitution.studentCount ?? 0,
+        teacherCount: 0,
+        languages: primaryInstitution.languages?.length ? primaryInstitution.languages : [],
+        contactName: primaryInstitution.principalName || session.name || 'School lead',
+        contactEmail: primaryInstitution.contactEmail || session.email,
+        contactPhone: primaryInstitution.contactPhone,
+        interests: [],
+        sdgFocus: [],
+        childRightsFocus: [],
+        description: '',
+        mission: '',
+      }
+
+      setSchool(mappedSchool)
     } catch (err) {
       console.error('Error loading school profile:', err)
     } finally {

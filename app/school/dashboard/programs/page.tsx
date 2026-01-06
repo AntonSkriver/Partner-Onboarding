@@ -1,25 +1,37 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus, BookOpen } from 'lucide-react'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import { buildProgramCatalog } from '@/lib/programs/selectors'
 import { ProgramCatalogCard } from '@/components/program/program-catalog-card'
-
-// For demo - hardcoded school info
-const SCHOOL_NAME = 'Ørestad Gymnasium'
-const SCHOOL_CITY = 'Copenhagen'
-const SCHOOL_COUNTRY = 'Denmark'
+import { getCurrentSession } from '@/lib/auth/session'
 
 export default function SchoolProgramsPage() {
   const { ready: prototypeReady, database } = usePrototypeDb()
+  const session = getCurrentSession()
+  const normalizedSchoolName = session?.organization?.trim().toLowerCase() ?? ''
+  const normalizedEmail = session?.email?.toLowerCase()
+  const activeInstitutionId =
+    typeof window !== 'undefined'
+      ? window.localStorage.getItem('activeInstitutionId')
+      : null
+  const activeProgramIds: string[] =
+    typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('activeProgramIds') || '[]')
+      : []
 
-  const normalizedSchoolName = SCHOOL_NAME.trim().toLowerCase()
-  const normalizedCity = SCHOOL_CITY.trim().toLowerCase()
-  const normalizedCountry = SCHOOL_COUNTRY.trim().toLowerCase()
+  const matchesCurrentSchool = useCallback((institution: { id?: string; name?: string | null; contactEmail?: string | null }) => {
+    if (activeInstitutionId && institution.id === activeInstitutionId) return true
+    const name = institution.name?.trim().toLowerCase()
+    const email = institution.contactEmail?.toLowerCase()
+    const nameMatch = normalizedSchoolName && name === normalizedSchoolName
+    const emailMatch = normalizedEmail && email === normalizedEmail
+    return nameMatch || emailMatch
+  }, [normalizedSchoolName, normalizedEmail, activeInstitutionId])
 
   const programCatalog = useMemo(() => {
     if (!prototypeReady || !database) return []
@@ -28,33 +40,44 @@ export default function SchoolProgramsPage() {
 
     // Filter to only show programs the school is part of, or public programs
     const matchingInstitutions = database.institutions.filter((institution) => {
-      const name = institution.name?.trim().toLowerCase()
-      const city = institution.city?.trim().toLowerCase()
-      const country = institution.country?.trim().toLowerCase()
-
-      const nameMatch = normalizedSchoolName && name === normalizedSchoolName
-      const cityMatch =
-        normalizedCity &&
-        city === normalizedCity &&
-        (!normalizedCountry || country === normalizedCountry)
-
-      return nameMatch || cityMatch
+      return matchesCurrentSchool(institution)
     })
 
     const programIds = new Set(matchingInstitutions.map((institution) => institution.programId))
+    const invitedPartnerIds = new Set<string>()
 
+    programIds.forEach((programId) => {
+      const hostProgram = database.programs.find((program) => program.id === programId)
+      if (hostProgram?.partnerId) {
+        invitedPartnerIds.add(hostProgram.partnerId)
+      }
+    })
+
+    const assignedProgramIds = activeProgramIds.length ? new Set(activeProgramIds) : programIds
+
+    // If school was invited to specific programs (activeProgramIds), only show those
+    // Don't show all public programs or partner programs to newly invited schools
+    if (activeProgramIds.length > 0) {
+      return allCatalog.filter((item) => assignedProgramIds.has(item.programId))
+    }
+
+    // For established schools (no activeProgramIds), show their programs + public + partner programs
     return allCatalog.filter((item) =>
-      programIds.has(item.programId) || item.isPublic
+      assignedProgramIds.has(item.programId) ||
+      item.isPublic ||
+      (item.hostPartner && invitedPartnerIds.has(item.hostPartner.id))
     )
-  }, [prototypeReady, database, normalizedSchoolName, normalizedCity, normalizedCountry])
+  }, [prototypeReady, database, matchesCurrentSchool, activeProgramIds])
 
   const isMemberOfProgram = (programId: string) => {
     if (!database) return false
-    const matchingInstitutions = database.institutions.filter((institution) => {
-      const name = institution.name?.trim().toLowerCase()
-      return name === normalizedSchoolName && institution.programId === programId
-    })
-    return matchingInstitutions.length > 0
+    if (activeProgramIds.length && activeProgramIds.includes(programId)) return true
+    return database.institutions.some(
+      (institution) =>
+        matchesCurrentSchool(institution) &&
+        institution.programId === programId &&
+        institution.status === 'active',
+    )
   }
 
   return (
