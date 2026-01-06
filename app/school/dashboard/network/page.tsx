@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Users, School, UserPlus, Globe } from 'lucide-react'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
+import { getCurrentSession } from '@/lib/auth/session'
 
 interface TeacherDisplay {
   id: string
@@ -28,9 +29,12 @@ export default function SchoolNetworkPage() {
   const [loading, setLoading] = useState(true)
   const [activeInstitutionId, setActiveInstitutionId] = useState<string | null>(null)
   const [activeProgramIds, setActiveProgramIds] = useState<string[]>([])
+  const [isNewlyInvitedSchool, setIsNewlyInvitedSchool] = useState(false)
   const { ready: prototypeReady, database } = usePrototypeDb()
 
-  const [isNewlyInvitedSchool, setIsNewlyInvitedSchool] = useState(false)
+  const session = getCurrentSession()
+  const normalizedSchoolName = session?.organization?.trim().toLowerCase() ?? ''
+  const normalizedEmail = session?.email?.toLowerCase() ?? ''
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -46,12 +50,35 @@ export default function SchoolNetworkPage() {
     }
   }, [prototypeReady])
 
+  // Find matching institutions (by ID, email, or name)
+  const matchingInstitutions = useMemo(() => {
+    if (!database) return []
+
+    return database.institutions.filter((institution) => {
+      if (activeInstitutionId && institution.id === activeInstitutionId) return true
+      const emailMatch = institution.contactEmail?.toLowerCase() === normalizedEmail
+      const nameMatch = normalizedSchoolName && institution.name?.trim().toLowerCase() === normalizedSchoolName
+      return emailMatch || nameMatch
+    })
+  }, [database, activeInstitutionId, normalizedEmail, normalizedSchoolName])
+
+  // Get institution IDs for teacher lookup
+  const institutionIds = useMemo(() => {
+    return new Set(matchingInstitutions.map((i) => i.id))
+  }, [matchingInstitutions])
+
+  // Get program IDs from institutions or localStorage
+  const programIds = useMemo(() => {
+    if (activeProgramIds.length > 0) return new Set(activeProgramIds)
+    return new Set(matchingInstitutions.map((i) => i.programId))
+  }, [activeProgramIds, matchingInstitutions])
+
   // Get teachers for this institution
   const teachers = useMemo((): TeacherDisplay[] => {
-    if (!database || !activeInstitutionId) return []
+    if (!database || institutionIds.size === 0) return []
 
     return database.institutionTeachers
-      .filter((teacher) => teacher.institutionId === activeInstitutionId)
+      .filter((teacher) => institutionIds.has(teacher.institutionId))
       .map((teacher) => {
         const program = database.programs.find((p) => p.id === teacher.programId)
         return {
@@ -63,22 +90,20 @@ export default function SchoolNetworkPage() {
           programName: program?.name || 'Unknown Program',
         }
       })
-  }, [database, activeInstitutionId])
+  }, [database, institutionIds])
 
   // Get partner schools (other institutions in the same programs)
   // Newly invited schools start with a blank slate - no partner schools shown yet
   const partnerSchools = useMemo((): PartnerSchoolDisplay[] => {
-    if (!database || !activeInstitutionId || activeProgramIds.length === 0) return []
+    if (!database || institutionIds.size === 0 || programIds.size === 0) return []
     if (isNewlyInvitedSchool) return []
-
-    const programIdSet = new Set(activeProgramIds)
 
     return database.institutions
       .filter((institution) => {
-        // Exclude our own institution
-        if (institution.id === activeInstitutionId) return false
+        // Exclude our own institution(s)
+        if (institutionIds.has(institution.id)) return false
         // Only include institutions in the same programs
-        return programIdSet.has(institution.programId)
+        return programIds.has(institution.programId)
       })
       .map((institution) => {
         const program = database.programs.find((p) => p.id === institution.programId)
@@ -89,7 +114,7 @@ export default function SchoolNetworkPage() {
           programName: program?.name || 'Unknown Program',
         }
       })
-  }, [database, activeInstitutionId, activeProgramIds, isNewlyInvitedSchool])
+  }, [database, institutionIds, programIds, isNewlyInvitedSchool])
 
   if (loading) {
     return (
