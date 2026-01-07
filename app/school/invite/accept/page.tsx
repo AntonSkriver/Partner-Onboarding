@@ -29,9 +29,9 @@ export default function AcceptSchoolInvitePage() {
   const { database, createRecord } = usePrototypeDb()
   const [step, setStep] = useState<'details' | 'password'>('details')
   const [formState, setFormState] = useState<SchoolInviteForm>(() => ({
-    schoolName: searchParams.get('schoolName') ?? 'Northfield Community School',
-    contactName: searchParams.get('contactName') ?? 'School Lead',
-    email: searchParams.get('email') ?? 'hello@northfield.school',
+    schoolName: searchParams.get('schoolName') ?? 'Langelinie Rettighedsskole',
+    contactName: searchParams.get('contactName') ?? 'Emma Hansen',
+    email: searchParams.get('email') ?? 'emma@langelinie.dk',
     password: '',
   }))
   const [submitting, setSubmitting] = useState(false)

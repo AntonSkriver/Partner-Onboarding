@@ -2,13 +2,15 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Globe2, Users2, Clock, Languages } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getCountryDisplay } from '@/lib/countries'
+import { usePrototypeDb } from '@/hooks/use-prototype-db'
+import { getCurrentSession } from '@/lib/auth/session'
 
 // Demo projects
 const projects = [
@@ -143,6 +145,88 @@ function ProjectCard({ project }: { project: typeof projects[0] }) {
 }
 
 export default function SchoolProjectsPage() {
+  const { ready: prototypeReady, database } = usePrototypeDb()
+  const session = getCurrentSession()
+  const [hasTeachers, setHasTeachers] = useState<boolean | null>(null)
+
+  const matchingInstitutionIds = useMemo(() => {
+    if (!prototypeReady || !database) return []
+    const activeInstitutionId =
+      typeof window !== 'undefined' ? window.localStorage.getItem('activeInstitutionId') : null
+    const normalizedEmail = session?.email?.toLowerCase()
+    const normalizedName = session?.organization?.trim().toLowerCase()
+
+    const matchesCurrentSchool = (institution: { id: string; name?: string | null; contactEmail?: string | null }) => {
+      if (activeInstitutionId && institution.id === activeInstitutionId) return true
+      const name = institution.name?.trim().toLowerCase()
+      const email = institution.contactEmail?.toLowerCase()
+      const nameMatch = normalizedName && name === normalizedName
+      const emailMatch = normalizedEmail && email === normalizedEmail
+      return Boolean(nameMatch || emailMatch)
+    }
+
+    return database.institutions.filter((inst) => matchesCurrentSchool(inst)).map((inst) => inst.id)
+  }, [prototypeReady, database, session])
+
+  useEffect(() => {
+    if (!prototypeReady || !database) return
+    if (matchingInstitutionIds.length === 0) {
+      setHasTeachers(false)
+      return
+    }
+    const teacherCount = database.institutionTeachers.filter((teacher) =>
+      matchingInstitutionIds.includes(teacher.institutionId),
+    ).length
+    setHasTeachers(teacherCount > 0)
+  }, [prototypeReady, database, matchingInstitutionIds])
+
+  if (!prototypeReady || hasTeachers === null) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-semibold text-gray-900">Projects</h1>
+          <p className="text-sm text-gray-600">
+            Projects created by teachers at your school across all programs.
+          </p>
+        </div>
+        <Card>
+          <CardContent className="p-6 text-sm text-gray-600">Loading projects…</CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!hasTeachers) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-semibold text-gray-900">Projects</h1>
+          <p className="text-sm text-gray-600">
+            Projects will appear once teachers from your school start creating them.
+          </p>
+        </div>
+        <Card className="border-dashed border-purple-200">
+          <CardContent className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+            <div className="rounded-full bg-purple-50 px-4 py-1 text-xs font-semibold text-purple-700">
+              No teachers connected yet
+            </div>
+            <p className="text-sm text-gray-600 max-w-md">
+              Invite teachers to your school workspace so projects show up here automatically.
+            </p>
+            <div className="flex gap-2">
+              <Button variant="outline" asChild>
+                <Link href="/school/dashboard/network">Invite teachers</Link>
+              </Button>
+              <Button className="bg-purple-600 hover:bg-purple-700" asChild>
+                <Link href="/school/dashboard/programs">View programs</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>

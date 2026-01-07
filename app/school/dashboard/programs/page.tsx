@@ -19,11 +19,11 @@ export default function SchoolProgramsPage() {
     typeof window !== 'undefined'
       ? window.localStorage.getItem('activeInstitutionId')
       : null
-  const activeProgramIds: string[] =
-    typeof window !== 'undefined'
-      ? JSON.parse(window.localStorage.getItem('activeProgramIds') || '[]')
-      : []
-  const isNewlyInvitedSchool =
+  const activeProgramIds: string[] = useMemo(() => {
+    if (typeof window === 'undefined') return []
+    return JSON.parse(window.localStorage.getItem('activeProgramIds') || '[]')
+  }, [])
+  const rawNewlyInvited =
     typeof window !== 'undefined'
       ? window.localStorage.getItem('isNewlyInvitedSchool') === 'true'
       : false
@@ -40,7 +40,7 @@ export default function SchoolProgramsPage() {
   const programCatalog = useMemo(() => {
     if (!prototypeReady || !database) return []
 
-    const allCatalog = buildProgramCatalog(database)
+    const allCatalog = buildProgramCatalog(database, { includePrivate: true })
 
     // Filter to only show programs the school is part of, or public programs
     const matchingInstitutions = database.institutions.filter((institution) => {
@@ -57,12 +57,19 @@ export default function SchoolProgramsPage() {
       }
     })
 
-    const assignedProgramIds = activeProgramIds.length ? new Set(activeProgramIds) : programIds
+    const assignedProgramIds = new Set([
+      ...programIds,
+      ...activeProgramIds,
+    ])
+
+    const isNewlyInvitedSchool =
+      rawNewlyInvited && activeProgramIds.length > 0 && programIds.size <= activeProgramIds.length
 
     // If school was just invited (via invite flow), only show the invited program(s)
     // Don't show all public programs or partner programs to newly invited schools
     if (isNewlyInvitedSchool && activeProgramIds.length > 0) {
-      return allCatalog.filter((item) => assignedProgramIds.has(item.programId))
+      const invitedOnly = new Set(activeProgramIds)
+      return allCatalog.filter((item) => invitedOnly.has(item.programId))
     }
 
     // For established schools, show their programs + public + partner programs
@@ -71,7 +78,7 @@ export default function SchoolProgramsPage() {
       item.isPublic ||
       (item.hostPartner && invitedPartnerIds.has(item.hostPartner.id))
     )
-  }, [prototypeReady, database, matchesCurrentSchool, activeProgramIds, isNewlyInvitedSchool])
+  }, [prototypeReady, database, matchesCurrentSchool, activeProgramIds, rawNewlyInvited])
 
   const isMemberOfProgram = (programId: string) => {
     if (!database) return false
@@ -116,7 +123,7 @@ export default function SchoolProgramsPage() {
           <CardContent className="flex flex-col items-center justify-center gap-4 py-12 text-center">
             <BookOpen className="h-12 w-12 text-purple-300" />
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">You haven't joined a program yet</h3>
+              <h3 className="text-lg font-semibold text-gray-900">You haven&apos;t joined a program yet</h3>
               <p className="mt-1 text-sm text-gray-600">
                 Browse the catalog and connect your classrooms with partners worldwide.
               </p>
@@ -138,7 +145,7 @@ export default function SchoolProgramsPage() {
                 actions={
                   <>
                     <Button variant="outline" className="w-full" asChild>
-                      <Link href={`/discover/programs/${item.programId}`}>View Details</Link>
+                      <Link href={`/school/dashboard/programs/${item.programId}`}>View Details</Link>
                     </Button>
                     {!isMember && item.isPublic && (
                       <Button className="w-full bg-purple-600 hover:bg-purple-700" asChild>

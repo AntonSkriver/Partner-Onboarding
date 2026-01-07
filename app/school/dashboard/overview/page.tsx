@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -52,16 +52,55 @@ const CRC_ARTICLE_DETAILS: Record<string, { title: string }> = {
   '31': { title: 'Leisure, play, and culture' },
 }
 
+type InstitutionExtras = {
+  sdgFocus?: string[]
+  childRightsFocus?: string[]
+  description?: string
+  mission?: string
+}
+
 export default function SchoolOverviewPage() {
   const [school, setSchool] = useState<SchoolProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [institutionIds, setInstitutionIds] = useState<string[]>([])
   const { ready: prototypeReady, database } = usePrototypeDb()
 
-  useEffect(() => {
-    loadSchoolProfile()
-  }, [prototypeReady])
+  const activeProgramIds = useMemo<string[]>(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      const raw = window.localStorage.getItem('activeProgramIds')
+      return raw ? (JSON.parse(raw) as string[]) : []
+    } catch {
+      return []
+    }
+  }, [])
 
-  const loadSchoolProfile = async () => {
+  const quickStats = useMemo(() => {
+    if (!prototypeReady || !database) {
+      return { programs: 0, projects: 0 }
+    }
+
+    const programIds = new Set<string>(activeProgramIds)
+    database.institutions.forEach((inst) => {
+      if (institutionIds.includes(inst.id)) {
+        programIds.add(inst.programId)
+      }
+    })
+
+    const teacherIds = new Set(
+      database.institutionTeachers
+        .filter((teacher) => institutionIds.includes(teacher.institutionId))
+        .map((teacher) => teacher.id),
+    )
+
+    const projectCount = database.programProjects.filter((project) =>
+      teacherIds.has(project.createdById),
+    ).length
+
+    return { programs: programIds.size, projects: projectCount }
+  }, [prototypeReady, database, institutionIds, activeProgramIds])
+
+  const loadSchoolProfile = useCallback(async () => {
     setLoading(true)
     try {
       const session = getCurrentSession()
@@ -91,6 +130,10 @@ export default function SchoolOverviewPage() {
         return
       }
 
+      setInstitutionIds(matchingInstitutions.map((inst) => inst.id))
+
+      const extras = primaryInstitution as unknown as InstitutionExtras
+
       const mappedSchool: SchoolProfile = {
         id: primaryInstitution.id,
         name: primaryInstitution.name,
@@ -99,16 +142,16 @@ export default function SchoolOverviewPage() {
         city: primaryInstitution.city ?? '',
         country: primaryInstitution.country ?? '',
         studentCount: primaryInstitution.studentCount ?? 0,
-        teacherCount: 0,
+        teacherCount: primaryInstitution.teacherCount ?? 0,
         languages: primaryInstitution.languages?.length ? primaryInstitution.languages : [],
         contactName: primaryInstitution.principalName || session.name || 'School lead',
         contactEmail: primaryInstitution.contactEmail || session.email,
         contactPhone: primaryInstitution.contactPhone,
         interests: [],
-        sdgFocus: [],
-        childRightsFocus: [],
-        description: '',
-        mission: '',
+        sdgFocus: extras.sdgFocus ?? [],
+        childRightsFocus: extras.childRightsFocus ?? [],
+        description: extras.description ?? '',
+        mission: extras.mission ?? '',
       }
 
       setSchool(mappedSchool)
@@ -117,7 +160,11 @@ export default function SchoolOverviewPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [prototypeReady, database])
+
+  useEffect(() => {
+    loadSchoolProfile()
+  }, [loadSchoolProfile])
 
   if (loading) {
     return (
@@ -238,11 +285,11 @@ export default function SchoolOverviewPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-4 gap-4">
               <div>
-                <div className="text-2xl font-bold text-purple-600">2</div>
+                <div className="text-2xl font-bold text-purple-600">{quickStats.programs}</div>
                 <div className="text-sm text-gray-600">Programs</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-emerald-600">4</div>
+                <div className="text-2xl font-bold text-emerald-600">{quickStats.projects}</div>
                 <div className="text-sm text-gray-600">Projects</div>
               </div>
               <div>

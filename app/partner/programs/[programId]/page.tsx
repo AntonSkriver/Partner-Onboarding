@@ -123,7 +123,8 @@ export default function PartnerProgramDetailPage() {
       router.push('/partner/login')
       return
     }
-    if (session.role !== 'partner' && session.role !== 'parent') {
+    const allowedRoles = new Set(['partner', 'parent', 'teacher', 'school'])
+    if (!allowedRoles.has(session.role)) {
       router.push('/partner/login')
     }
   }, [router, session])
@@ -178,16 +179,18 @@ export default function PartnerProgramDetailPage() {
       <div className="w-full max-w-5xl">
         <div className="mb-6 flex items-center justify-between">
           <Button variant="ghost" size="sm" asChild className="px-0 text-purple-600 hover:text-purple-700">
-            <Link href="/partner/profile/programs">
+            <Link href={session?.role === 'teacher' || session?.role === 'school' ? '/school/dashboard/programs' : '/partner/profile/programs'}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to programs
             </Link>
           </Button>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/partner/programs/${summary.program.id}/edit`}>Edit program</Link>
-            </Button>
-          </div>
+          {session?.role === 'partner' || session?.role === 'parent' ? (
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/partner/programs/${summary.program.id}/edit`}>Edit program</Link>
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         <Card className="mb-8 border border-gray-200 shadow-sm">

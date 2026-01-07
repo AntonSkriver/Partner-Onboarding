@@ -236,7 +236,7 @@ export default function PartnerLoginPage() {
               Preview coordinator invite
             </Link>
             <Link
-              href="/school/invite/accept?schoolName=Northfield%20Community%20School&contactName=Amelia%20Parker&email=hello@northfield.school&partnerId=partner-unicef&programId=program-communities-2025&country=DK&city=Copenhagen"
+              href="/school/invite/accept?schoolName=Langelinie%20Rettighedsskole&contactName=Emma%20Hansen&email=emma@langelinie.dk&partnerId=partner-unicef&programId=program-communities-2025&country=DK&city=Copenhagen"
               className="flex h-12 items-center justify-center rounded-md border border-purple-200 bg-purple-50 px-4 text-sm font-semibold text-purple-800 transition hover:bg-purple-100"
             >
               Preview school invite

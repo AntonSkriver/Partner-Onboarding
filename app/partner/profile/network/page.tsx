@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, type FormEvent } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,8 @@ import {
   Send,
   Building2,
   Link2,
+  CheckCircle2,
+  Clock,
 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
@@ -35,11 +37,32 @@ const countryBadge = (country: Country) => {
   )
 }
 
+interface PendingInvitation {
+  id: string
+  name: string
+  country: Country
+  category: string
+  pointOfContact: string
+  email: string
+  programName: string
+  invitedAt: string
+}
+
 export default function PartnerNetworkPage() {
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
   const [showInviteCoordinatorDialog, setShowInviteCoordinatorDialog] = useState(false)
   const [showInviteInstitutionDialog, setShowInviteInstitutionDialog] = useState(false)
+  const [showInvitationSentDialog, setShowInvitationSentDialog] = useState(false)
+  const [pendingInvitations, setPendingInvitations] = useState<PendingInvitation[]>([])
+  const [institutionForm, setInstitutionForm] = useState({
+    name: '',
+    category: 'School',
+    programId: '',
+    country: 'Denmark',
+    contactName: '',
+    email: '',
+  })
   const coordinatorFormRef = useRef<HTMLDivElement>(null)
   const institutionFormRef = useRef<HTMLDivElement>(null)
   const { ready: prototypeReady, database } = usePrototypeDb()
@@ -60,6 +83,12 @@ export default function PartnerNetworkPage() {
       institutionFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }, [showInviteInstitutionDialog])
+
+  useEffect(() => {
+    if (!showInvitationSentDialog) return
+    const timer = window.setTimeout(() => setShowInvitationSentDialog(false), 3600)
+    return () => window.clearTimeout(timer)
+  }, [showInvitationSentDialog])
 
   const loadOrganizationData = async () => {
     setLoading(true)
@@ -129,7 +158,7 @@ export default function PartnerNetworkPage() {
 
   // Team coordinators are part of UNICEF Denmark (DK)
   const teamCoordinators = useMemo(() => {
-    const coordinators: Array<{ id: string; name: string; country: Country; email: string }>= []
+    const coordinators: Array<{ id: string; name: string; country: Country; email: string }> = []
     const seenEmails = new Set<string>()
 
     programSummaries.forEach((summary) => {
@@ -181,6 +210,15 @@ export default function PartnerNetworkPage() {
     return connections
   }, [programSummaries])
 
+  useEffect(() => {
+    if (!institutionForm.programId && programSummaries.length > 0) {
+      setInstitutionForm((prev) => ({
+        ...prev,
+        programId: programSummaries[0].program.id,
+      }))
+    }
+  }, [programSummaries, institutionForm.programId])
+
   const educationalInstitutions = useMemo(() => {
     const institutionMap = new Map<string, {
       id: string
@@ -219,6 +257,45 @@ export default function PartnerNetworkPage() {
     return Array.from(institutionMap.values())
   }, [programSummaries])
 
+  const handleInstitutionFormChange = (field: keyof typeof institutionForm, value: string) => {
+    setInstitutionForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const handleSendInstitutionInvitation = (event: FormEvent) => {
+    event.preventDefault()
+    const program = programSummaries.find(
+      (summary) => summary.program.id === institutionForm.programId,
+    )
+    const programName = program ? program.program.displayTitle || program.program.name : 'Assigned Program'
+    const newInvitation: PendingInvitation = {
+      id: crypto.randomUUID ? crypto.randomUUID() : `pending-${Date.now()}`,
+      name: institutionForm.name || 'New Institution',
+      country: institutionForm.country === 'England' ? 'England' : 'Denmark',
+      category: institutionForm.category || 'School',
+      pointOfContact: institutionForm.contactName || 'Point of contact',
+      email: institutionForm.email,
+      programName,
+      invitedAt: new Date().toISOString(),
+    }
+
+    setPendingInvitations((prev) => [newInvitation, ...prev])
+    setShowInvitationSentDialog(true)
+    setShowInviteInstitutionDialog(false)
+    setInstitutionForm({
+      name: '',
+      category: 'School',
+      programId: programSummaries[0]?.program.id ?? '',
+      country: 'Denmark',
+      contactName: '',
+      email: '',
+    })
+  }
+
+  const hasInstitutions = pendingInvitations.length > 0 || educationalInstitutions.length > 0
+
   if (loading || !prototypeReady) {
     return (
       <div className="space-y-6">
@@ -252,6 +329,25 @@ export default function PartnerNetworkPage() {
           </p>
         </div>
       </div>
+
+      {showInvitationSentDialog && pendingInvitations.length > 0 && (
+        <div className="flex items-start justify-between rounded-xl border border-green-200 bg-green-50 p-4 shadow-sm">
+          <div className="flex gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+            </div>
+            <div className="space-y-0.5">
+              <p className="font-semibold text-gray-900">Invitation sent</p>
+              <p className="text-sm text-gray-700">
+                We emailed {pendingInvitations[0].pointOfContact} at {pendingInvitations[0].name}. Status: awaiting response.
+              </p>
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => setShowInvitationSentDialog(false)}>
+            Dismiss
+          </Button>
+        </div>
+      )}
 
       {/* Team Coordinators Section */}
       <Card>
@@ -302,7 +398,7 @@ export default function PartnerNetworkPage() {
               <Users className="mx-auto mb-4 h-12 w-12 text-gray-400" />
               <h3 className="mb-2 font-medium text-gray-900">No Country Coordinators</h3>
               <p className="mb-4 text-gray-500">
-                Invite country coordinators to help manage your organization's regional presence.
+                Invite country coordinators to help manage your organization&apos;s regional presence.
               </p>
               <Button onClick={() => setShowInviteCoordinatorDialog(true)}>
                 <UserPlus className="mr-2 h-4 w-4" />
@@ -380,8 +476,45 @@ export default function PartnerNetworkPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {educationalInstitutions.length > 0 ? (
+          {hasInstitutions ? (
             <div className="grid gap-3 md:grid-cols-2">
+              {pendingInvitations.map((invitation) => (
+                <div
+                  key={`pending-${invitation.id}`}
+                  className="rounded-lg border border-dashed border-purple-300 bg-white p-4 shadow-sm"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-900">{invitation.name}</p>
+                        <p className="text-sm text-gray-500">{invitation.pointOfContact}</p>
+                        <p className="text-xs text-gray-500">{invitation.email}</p>
+                      </div>
+                      {countryBadge(invitation.country)}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" className="flex items-center gap-1 border-amber-200 bg-amber-50 text-amber-700 text-xs">
+                        <Clock className="h-3 w-3" />
+                        Awaiting response
+                      </Badge>
+                      <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+                        {invitation.programName}
+                      </Badge>
+                      <Badge variant="outline" className="border-gray-200 text-gray-700 text-xs">
+                        {invitation.category}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Invited{' '}
+                      {new Date(invitation.invitedAt).toLocaleDateString('en-GB', {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
               {educationalInstitutions.map((institution) => (
                 <div key={institution.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
                   <div className="space-y-2">
@@ -488,18 +621,25 @@ export default function PartnerNetworkPage() {
                 ✕
               </Button>
             </div>
-            <div className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSendInstitutionInvitation}>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Institution Name</label>
                 <input
                   type="text"
                   className="w-full rounded-md border border-gray-300 px-3 py-2"
                   placeholder="School or institution name"
+                  value={institutionForm.name}
+                  onChange={(e) => handleInstitutionFormChange('name', e.target.value)}
+                  required
                 />
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Category</label>
-                <select className="w-full rounded-md border border-gray-300 px-3 py-2">
+                <select
+                  className="w-full rounded-md border border-gray-300 px-3 py-2"
+                  value={institutionForm.category}
+                  onChange={(e) => handleInstitutionFormChange('category', e.target.value)}
+                >
                   <option>School</option>
                   <option>Library</option>
                   <option>Municipality Center</option>
@@ -509,13 +649,20 @@ export default function PartnerNetworkPage() {
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Assign Program</label>
-                <select className="w-full rounded-md border border-gray-300 px-3 py-2">
+                <select
+                  className="w-full rounded-md border border-gray-300 px-3 py-2"
+                  value={institutionForm.programId}
+                  onChange={(e) => handleInstitutionFormChange('programId', e.target.value)}
+                >
                   {programSummaries.length > 0 ? (
-                    programSummaries.map((summary) => (
-                      <option key={summary.program.id} value={summary.program.id}>
-                        {summary.program.displayTitle || summary.program.name}
-                      </option>
-                    ))
+                    <>
+                      <option value="">Select a program</option>
+                      {programSummaries.map((summary) => (
+                        <option key={summary.program.id} value={summary.program.id}>
+                          {summary.program.displayTitle || summary.program.name}
+                        </option>
+                      ))}
+                    </>
                   ) : (
                     <option value="">No programs available yet</option>
                   )}
@@ -526,11 +673,14 @@ export default function PartnerNetworkPage() {
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Country</label>
-                <input
-                  type="text"
+                <select
                   className="w-full rounded-md border border-gray-300 px-3 py-2"
-                  placeholder="Country"
-                />
+                  value={institutionForm.country}
+                  onChange={(e) => handleInstitutionFormChange('country', e.target.value)}
+                >
+                  <option value="Denmark">Denmark (DK)</option>
+                  <option value="England">England (UK)</option>
+                </select>
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Point of Contact</label>
@@ -538,6 +688,9 @@ export default function PartnerNetworkPage() {
                   type="text"
                   className="w-full rounded-md border border-gray-300 px-3 py-2"
                   placeholder="Contact person name"
+                  value={institutionForm.contactName}
+                  onChange={(e) => handleInstitutionFormChange('contactName', e.target.value)}
+                  required
                 />
               </div>
               <div>
@@ -546,13 +699,16 @@ export default function PartnerNetworkPage() {
                   type="email"
                   className="w-full rounded-md border border-gray-300 px-3 py-2"
                   placeholder="contact@institution.edu"
+                  value={institutionForm.email}
+                  onChange={(e) => handleInstitutionFormChange('email', e.target.value)}
+                  required
                 />
               </div>
-              <Button className="w-full bg-purple-600 hover:bg-purple-700">
+              <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700">
                 <Send className="mr-2 h-4 w-4" />
                 Send Invitation
               </Button>
-            </div>
+            </form>
           </CardContent>
         </Card>
       )}
