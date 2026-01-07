@@ -12,6 +12,7 @@ import {
   Mail,
   Send,
   Building2,
+  Link2,
 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
@@ -126,27 +127,58 @@ export default function PartnerNetworkPage() {
     })
   }, [prototypeReady, database, partnerRecord])
 
-  const countryCoordinators = useMemo(() => {
-    const coordinators: Array<{ id: string; name: string; country: Country; email: string }> = []
+  // Team coordinators are part of UNICEF Denmark (DK)
+  const teamCoordinators = useMemo(() => {
+    const coordinators: Array<{ id: string; name: string; country: Country; email: string }>= []
     const seenEmails = new Set<string>()
 
     programSummaries.forEach((summary) => {
       summary.coordinators.forEach((coord) => {
+        if (coord.country !== 'DK') return // Only DK coordinators are team members
         const email = coord.email?.toLowerCase()
         if (!email || seenEmails.has(email)) return
         seenEmails.add(email)
         const fullName = [coord.firstName, coord.lastName].filter(Boolean).join(' ').trim() || 'Coordinator'
-        const countryLabel = coord.country === 'DK' ? 'Denmark' : 'England'
         coordinators.push({
           id: coord.id,
           name: fullName,
-          country: countryLabel as Country,
+          country: 'Denmark' as Country,
           email: coord.email,
         })
       })
     })
 
     return coordinators
+  }, [programSummaries])
+
+  // Program connections are coordinators from other organizations (e.g., UNICEF England)
+  const programConnections = useMemo(() => {
+    const connections: Array<{ id: string; name: string; country: Country; email: string; programName: string; organization: string }> = []
+    const seenEmails = new Set<string>()
+
+    programSummaries.forEach((summary) => {
+      const programName = summary.program.displayTitle || summary.program.name
+      summary.coordinators.forEach((coord) => {
+        if (coord.country === 'DK') return // Skip DK coordinators - they're team members
+        const email = coord.email?.toLowerCase()
+        if (!email || seenEmails.has(email)) return
+        seenEmails.add(email)
+        const fullName = [coord.firstName, coord.lastName].filter(Boolean).join(' ').trim() || 'Coordinator'
+        const countryLabel = coord.country === 'UK' ? 'England' : coord.country
+        // Infer organization from country
+        const organization = coord.country === 'UK' ? 'UNICEF England' : `UNICEF ${countryLabel}`
+        connections.push({
+          id: coord.id,
+          name: fullName,
+          country: countryLabel as Country,
+          email: coord.email,
+          programName,
+          organization,
+        })
+      })
+    })
+
+    return connections
   }, [programSummaries])
 
   const educationalInstitutions = useMemo(() => {
@@ -221,7 +253,7 @@ export default function PartnerNetworkPage() {
         </div>
       </div>
 
-      {/* Country Coordinators Section */}
+      {/* Team Coordinators Section */}
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between">
@@ -230,7 +262,7 @@ export default function PartnerNetworkPage() {
                 <Users className="h-4 w-4" />
                 Country Coordinators
               </CardTitle>
-              <CardDescription>Manage your organization's country coordinators</CardDescription>
+              <CardDescription>Team members who manage UNICEF Denmark programs</CardDescription>
             </div>
             <Button
               className="bg-purple-600 hover:bg-purple-700"
@@ -242,9 +274,9 @@ export default function PartnerNetworkPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {countryCoordinators.length > 0 ? (
+          {teamCoordinators.length > 0 ? (
             <div className="grid gap-3 md:grid-cols-2">
-              {countryCoordinators.map((coordinator) => (
+              {teamCoordinators.map((coordinator) => (
                 <div key={coordinator.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div>
@@ -280,6 +312,50 @@ export default function PartnerNetworkPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Program Connections Section */}
+      {programConnections.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Link2 className="h-4 w-4" />
+                Program Connections
+              </CardTitle>
+              <CardDescription>
+                Coordinators from partner organizations you collaborate with on shared programs
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 md:grid-cols-2">
+              {programConnections.map((connection) => (
+                <div key={connection.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium text-gray-900">{connection.name}</p>
+                      <p className="text-sm text-gray-600">{connection.organization}</p>
+                      <p className="text-xs text-gray-500">{connection.email}</p>
+                    </div>
+                    {countryBadge(connection.country)}
+                  </div>
+                  <div className="mt-2">
+                    <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+                      {connection.programName}
+                    </Badge>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <Button size="sm" variant="outline">
+                      <Mail className="mr-1 h-3 w-3" />
+                      Contact
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Educational Institutions Section */}
       <Card>

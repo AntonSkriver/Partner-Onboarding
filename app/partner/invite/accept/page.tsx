@@ -40,22 +40,15 @@ export default function AcceptPartnerInvitePage() {
   const [error, setError] = useState<string | null>(null)
 
   const inviteMeta = useMemo(() => {
-    const programId = searchParams.get('programId') ?? 'program-child-world-2025'
     const partnerId = searchParams.get('partnerId') ?? 'partner-unicef'
     const partnerName = 'UNICEF Denmark'
-    const programName =
-      database?.programs.find((p) => p.id === programId)?.displayTitle ??
-      database?.programs.find((p) => p.id === programId)?.name ??
-      'Child in the World'
 
     return {
       partnerId,
-      programId,
       partnerName,
-      programName,
       roleLabel: 'Country Coordinator',
     }
-  }, [searchParams, database])
+  }, [searchParams])
 
   const handleDetailsSubmit = () => {
     const parsed = inviteSchema.pick({ name: true, email: true }).safeParse(formState)
@@ -85,44 +78,18 @@ export default function AcceptPartnerInvitePage() {
         database?.partnerUsers.find((user) => user.email.toLowerCase() === formState.email.toLowerCase()) ??
         null
 
-      const userRecord = existingUser
-        ? existingUser
-        : createRecord('partnerUsers', {
-            partnerId: inviteMeta.partnerId,
-            email: formState.email,
-            firstName,
-            lastName,
-            role: 'coordinator',
-            hasAcceptedTerms: true,
-            twoFactorEnabled: false,
-            createdAt: new Date().toISOString(),
-            lastLoginAt: new Date().toISOString(),
-            isActive: true,
-          })
-
-      // Create a coordinator entry scoped to the invited program
-      const alreadyCoordinator = database?.coordinators.find(
-        (coordinator) =>
-          coordinator.email.toLowerCase() === formState.email.toLowerCase() &&
-          coordinator.programId === inviteMeta.programId,
-      )
-
-      if (!alreadyCoordinator) {
-        createRecord('coordinators', {
-          programId: inviteMeta.programId,
-          userId: userRecord.id,
-          country: 'DK',
-          region: 'Capital Region',
+      if (!existingUser) {
+        createRecord('partnerUsers', {
+          partnerId: inviteMeta.partnerId,
           email: formState.email,
           firstName,
           lastName,
-          phoneNumber: '',
-          status: 'active',
-          invitedBy: 'partner-user-unicef-coordination',
-          invitedAt: new Date().toISOString(),
-          acceptedAt: new Date().toISOString(),
+          role: 'coordinator',
+          hasAcceptedTerms: true,
+          twoFactorEnabled: false,
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          lastLoginAt: new Date().toISOString(),
+          isActive: true,
         })
       }
 
@@ -162,21 +129,12 @@ export default function AcceptPartnerInvitePage() {
               Join {inviteMeta.partnerName} as {inviteMeta.roleLabel}
             </CardTitle>
             <CardDescription>
-              Accept your invitation, confirm your details, and set a password to start collaborating.
+              You'll have full access to manage programs, invite schools, and collaborate with your team.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {step === 'details' && (
               <div className="space-y-4">
-                <div className="rounded-lg bg-purple-50 p-4 text-sm text-purple-900">
-                  <div className="font-semibold">You were invited to:</div>
-                  <ul className="mt-1 space-y-1 text-purple-800">
-                    <li>• Partner: {inviteMeta.partnerName}</li>
-                    <li>• Program: {inviteMeta.programName}</li>
-                    <li>• Role: {inviteMeta.roleLabel}</li>
-                  </ul>
-                </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="name">Full name</Label>
                   <div className="relative">
