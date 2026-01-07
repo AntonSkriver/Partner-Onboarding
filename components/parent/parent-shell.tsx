@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { getCurrentSession, clearSession, type UserSession } from '@/lib/auth/session'
 
@@ -67,11 +66,8 @@ export function ParentShell({ children }: ParentShellProps) {
                 height={32}
                 className="h-8 w-8"
               />
-              <span className="text-lg font-semibold text-gray-900">Class2Class Parent</span>
+              <span className="text-lg font-semibold text-gray-900">Class2Class</span>
             </Link>
-            <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-              Parent Profile
-            </Badge>
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden text-right md:block">

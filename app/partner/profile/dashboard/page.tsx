@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -11,16 +11,10 @@ import {
   BookOpen,
   BarChart3,
   Users,
-  Globe,
   Mail,
 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
-import { usePrototypeDb } from '@/hooks/use-prototype-db'
-import {
-  buildProgramSummariesForPartner,
-  aggregateProgramMetrics,
-} from '@/lib/programs/selectors'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 
@@ -28,34 +22,6 @@ export default function PartnerDashboardPage() {
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
   const [session, setSession] = useState<any>(null)
-  const { ready: prototypeReady, database } = usePrototypeDb()
-
-  const partnerRecord = useMemo(() => {
-    if (!database) return null
-    const normalizedName = organization?.name?.trim().toLowerCase()
-    if (normalizedName) {
-      const match = database.partners.find(
-        (partner) => partner.organizationName.toLowerCase() === normalizedName,
-      )
-      if (match) return match
-    }
-    return database.partners.length > 0 ? database.partners[0] : null
-  }, [database, organization?.name])
-
-  const programSummaries = useMemo(() => {
-    if (!prototypeReady || !database || !partnerRecord) {
-      return []
-    }
-    return buildProgramSummariesForPartner(database, partnerRecord.id, {
-      includeRelatedPrograms: true,
-    })
-  }, [prototypeReady, database, partnerRecord])
-
-  const programMetrics = useMemo(
-    () => aggregateProgramMetrics(programSummaries),
-    [programSummaries],
-  )
-
   useEffect(() => {
     loadOrganizationProfile()
     setSession(getCurrentSession())
@@ -133,29 +99,6 @@ export default function PartnerDashboardPage() {
           <h1 className="text-3xl font-semibold text-gray-900">
             Hi, {session?.organization ?? 'Partner'}
           </h1>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-purple-600" />
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">{programMetrics.countryCount}</p>
-                <p className="text-xs text-gray-600">Countries</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Layers className="h-5 w-5 text-purple-600" />
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">{programSummaries.length}</p>
-                <p className="text-xs text-gray-600">Programs</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-purple-600" />
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">{programMetrics.teachers}</p>
-                <p className="text-xs text-gray-600">Teachers</p>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div>

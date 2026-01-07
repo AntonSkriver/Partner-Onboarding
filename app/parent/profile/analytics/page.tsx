@@ -1,9 +1,15 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   Target,
   Users,
@@ -11,15 +17,14 @@ import {
   School,
   Building2,
   Map as MapIcon,
-  ChevronDown,
-  X,
   BookOpen,
+  ChevronRight,
 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import {
-  buildProgramSummariesForPartner,
+  buildProgramSummary,
   aggregateProgramMetrics,
   type ProgramSummary,
 } from '@/lib/programs/selectors'
@@ -50,40 +55,25 @@ interface ProjectDetail {
 export default function ParentAnalyticsPage() {
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
-  const [expandedCard, setExpandedCard] = useState<string | null>(null)
+  const [selectedMetric, setSelectedMetric] = useState<string | null>(null)
   const { ready: prototypeReady, database } = usePrototypeDb()
 
-  const normalizedOrganizationName = organization?.name
-    ? organization.name.trim().toLowerCase()
-    : null
-
-  const partnerRecord = useMemo(() => {
-    if (!database) return null
-    if (normalizedOrganizationName) {
-      const match = database.partners.find(
-        (partner) => partner.organizationName.toLowerCase() === normalizedOrganizationName,
-      )
-      if (match) return match
-    }
-    return database.partners.length > 0 ? database.partners[0] : null
-  }, [database, normalizedOrganizationName])
+  const allowedPartnerIds = useMemo(
+    () => new Set(['partner-unicef', 'partner-unicef-england']),
+    [],
+  )
 
   const programSummaries = useMemo<ProgramSummary[]>(() => {
-    if (!prototypeReady || !database || !partnerRecord) {
+    if (!prototypeReady || !database) {
       return []
     }
-    return buildProgramSummariesForPartner(database, partnerRecord.id, {
-      includeRelatedPrograms: true,
-    })
-  }, [prototypeReady, database, partnerRecord])
-
-  const filteredProgramSummaries = useMemo(() => {
-    const allowedHosts = new Set(['partner-unicef', 'partner-unicef-england'])
-    return programSummaries.filter((summary) => allowedHosts.has(summary.program.partnerId))
-  }, [programSummaries])
+    return database.programs
+      .filter((program) => allowedPartnerIds.has(program.partnerId))
+      .map((program) => buildProgramSummary(database, program))
+  }, [prototypeReady, database, allowedPartnerIds])
 
   const programMetrics = useMemo(() => {
-    if (filteredProgramSummaries.length === 0) {
+    if (programSummaries.length === 0) {
       return {
         totalPrograms: 2,
         activePrograms: 2,
@@ -100,12 +90,12 @@ export default function ParentAnalyticsPage() {
         countryCount: 2,
       }
     }
-    return aggregateProgramMetrics(filteredProgramSummaries)
-  }, [filteredProgramSummaries])
+    return aggregateProgramMetrics(programSummaries)
+  }, [programSummaries])
 
   // Build detailed school data
   const schoolDetails = useMemo<SchoolDetail[]>(() => {
-    if (filteredProgramSummaries.length === 0) {
+    if (programSummaries.length === 0) {
       return [
         { name: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', students: 850, teachers: 4, city: 'Copenhagen' },
         { name: 'London Academy', country: 'United Kingdom', flag: '🇬🇧', students: 1200, teachers: 5, city: 'London' },
@@ -115,7 +105,7 @@ export default function ParentAnalyticsPage() {
     }
 
     const schoolMap = new Map<string, SchoolDetail>()
-    filteredProgramSummaries.forEach(summary => {
+    programSummaries.forEach(summary => {
       summary.institutions.forEach(inst => {
         if (!schoolMap.has(inst.id)) {
           const { flag, name: countryName } = getCountryDisplay(inst.country || '')
@@ -133,11 +123,11 @@ export default function ParentAnalyticsPage() {
     })
 
     return Array.from(schoolMap.values()).sort((a, b) => b.students - a.students)
-  }, [filteredProgramSummaries])
+  }, [programSummaries])
 
   // Build detailed project data
   const projectDetails = useMemo<ProjectDetail[]>(() => {
-    if (filteredProgramSummaries.length === 0) {
+    if (programSummaries.length === 0) {
       return [
         { name: 'Climate Action 2025', studentsReached: 520, educatorsEngaged: 4, status: 'active', partnerSchool: 'London Academy', country: 'United Kingdom', flag: '🇬🇧' },
         { name: 'Digital Rights', studentsReached: 380, educatorsEngaged: 3, status: 'active', partnerSchool: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰' },
@@ -147,7 +137,7 @@ export default function ParentAnalyticsPage() {
     }
 
     const projects: ProjectDetail[] = []
-    filteredProgramSummaries.forEach(summary => {
+    programSummaries.forEach(summary => {
       summary.projects.forEach(project => {
         const creator = summary.teachers.find(t => t.id === project.createdById)
         const institution = creator
@@ -179,11 +169,11 @@ export default function ParentAnalyticsPage() {
     })
 
     return projects.sort((a, b) => b.studentsReached - a.studentsReached)
-  }, [filteredProgramSummaries])
+  }, [programSummaries])
 
   // Build educator details
   const educatorDetails = useMemo(() => {
-    if (filteredProgramSummaries.length === 0) {
+    if (programSummaries.length === 0) {
       return [
         { name: 'Sarah Johnson', subject: 'Science', school: 'London Academy', country: 'United Kingdom', flag: '🇬🇧', projectCount: 2 },
         { name: 'Anne Holm', subject: 'Social Studies', school: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', projectCount: 2 },
@@ -202,7 +192,7 @@ export default function ParentAnalyticsPage() {
     }> = []
 
     const seenTeachers = new Set<string>()
-    filteredProgramSummaries.forEach(summary => {
+    programSummaries.forEach(summary => {
       summary.teachers.forEach(teacher => {
         if (seenTeachers.has(teacher.id)) return
         seenTeachers.add(teacher.id)
@@ -226,18 +216,18 @@ export default function ParentAnalyticsPage() {
     })
 
     return educators.sort((a, b) => b.projectCount - a.projectCount)
-  }, [filteredProgramSummaries])
+  }, [programSummaries])
 
   // Student breakdown by program
   const studentBreakdown = useMemo(() => {
-    if (filteredProgramSummaries.length === 0) {
+    if (programSummaries.length === 0) {
       return [
         { program: 'UNICEF Denmark: Communities in Focus', students: 2400, schools: 2, countries: 1 },
         { program: 'UNICEF UK: Climate Action', students: 2800, schools: 2, countries: 1 },
       ]
     }
 
-    return filteredProgramSummaries.map(summary => {
+    return programSummaries.map(summary => {
       const students = summary.institutions.reduce((sum, i) => sum + (i.studentCount || 0), 0)
       return {
         program: summary.program.name,
@@ -246,10 +236,10 @@ export default function ParentAnalyticsPage() {
         countries: new Set(summary.institutions.map(i => i.country).filter(Boolean)).size,
       }
     }).sort((a, b) => b.students - a.students)
-  }, [filteredProgramSummaries])
+  }, [programSummaries])
 
   const countryImpact = useMemo(() => {
-    if (filteredProgramSummaries.length === 0) {
+    if (programSummaries.length === 0) {
       return [
         {
           country: 'DK',
@@ -314,7 +304,7 @@ export default function ParentAnalyticsPage() {
     )
     const allowedCountries = new Set(['DK', 'UK'])
 
-    for (const summary of filteredProgramSummaries) {
+    for (const summary of programSummaries) {
       summary.institutions.forEach((institution) => {
         if (!institution.country || !allowedCountries.has(institution.country)) {
           return
@@ -379,7 +369,7 @@ export default function ParentAnalyticsPage() {
         }
         return b.projects - a.projects
       })
-  }, [filteredProgramSummaries, database])
+  }, [programSummaries, database])
 
   const headlineMetrics = [
     {
@@ -388,9 +378,8 @@ export default function ParentAnalyticsPage() {
       value: programMetrics.students.toLocaleString(),
       caption: 'Learners participating in partner programs',
       icon: GraduationCap,
-      bubbleClassName: 'bg-purple-100 text-purple-700',
-      expandedColor: 'from-purple-500 to-purple-600',
-      details: studentBreakdown,
+      bgColor: 'bg-purple-50',
+      textColor: 'text-purple-700',
     },
     {
       id: 'schools',
@@ -398,9 +387,8 @@ export default function ParentAnalyticsPage() {
       value: programMetrics.institutions.toString(),
       caption: 'Active learning sites onboarded',
       icon: School,
-      bubbleClassName: 'bg-blue-100 text-blue-700',
-      expandedColor: 'from-blue-500 to-blue-600',
-      details: schoolDetails,
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-700',
     },
     {
       id: 'projects',
@@ -408,9 +396,8 @@ export default function ParentAnalyticsPage() {
       value: programMetrics.activeProjects.toString(),
       caption: 'Currently collaborating across regions',
       icon: Target,
-      bubbleClassName: 'bg-emerald-100 text-emerald-700',
-      expandedColor: 'from-emerald-500 to-emerald-600',
-      details: projectDetails,
+      bgColor: 'bg-emerald-50',
+      textColor: 'text-emerald-700',
     },
     {
       id: 'educators',
@@ -418,9 +405,8 @@ export default function ParentAnalyticsPage() {
       value: programMetrics.teachers.toString(),
       caption: 'Teachers collaborating with peers',
       icon: Users,
-      bubbleClassName: 'bg-amber-100 text-amber-700',
-      expandedColor: 'from-amber-500 to-amber-600',
-      details: educatorDetails,
+      bgColor: 'bg-amber-50',
+      textColor: 'text-amber-700',
     },
   ] as const
 
@@ -435,7 +421,7 @@ export default function ParentAnalyticsPage() {
     },
     {
       label: 'Programs live',
-      value: filteredProgramSummaries.length > 0 ? filteredProgramSummaries.length.toString() : '2',
+      value: programSummaries.length > 0 ? programSummaries.length.toString() : '2',
     },
   ]
 
@@ -506,149 +492,254 @@ export default function ParentAnalyticsPage() {
     }
   }
 
-  const toggleCard = (id: string) => {
-    setExpandedCard(expandedCard === id ? null : id)
-  }
+  const selectedMetricData = headlineMetrics.find((metric) => metric.id === selectedMetric)
 
-  const renderExpandedContent = (metric: typeof headlineMetrics[number]) => {
-    switch (metric.id) {
-      case 'students':
+  const renderModalContent = () => {
+    if (!selectedMetric) return null
+
+    switch (selectedMetric) {
+      case 'students': {
+        const uniqueCountries = new Set<string>()
+        programSummaries.forEach((summary) => {
+          summary.institutions
+            .filter((inst) => inst.country)
+            .forEach((inst) => uniqueCountries.add(inst.country))
+        })
         return (
-          <div className="space-y-3">
-            <div className="text-sm font-medium text-white/80 mb-4">Students by Program</div>
-            {(metric.details as typeof studentBreakdown).map((item, idx) => (
-              <motion.div
-                key={item.program}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="flex items-center justify-between bg-white/10 rounded-lg p-3"
-              >
-                <div className="flex items-center gap-3">
-                  <BookOpen className="h-4 w-4 text-white/70" />
-                  <div>
-                    <p className="text-sm font-medium text-white">{item.program}</p>
-                    <p className="text-xs text-white/60">{item.schools} schools · {item.countries} countries</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-white">{item.students.toLocaleString()}</p>
-                  <p className="text-xs text-white/60">students</p>
-                </div>
-              </motion.div>
-            ))}
+          <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="rounded-xl bg-purple-50 p-4 text-center">
+                <p className="text-3xl font-bold text-purple-700">{programMetrics.students.toLocaleString()}</p>
+                <p className="mt-1 text-sm text-purple-600">Total Students</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">{studentBreakdown.length}</p>
+                <p className="mt-1 text-sm text-gray-600">Programs</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">{uniqueCountries.size}</p>
+                <p className="mt-1 text-sm text-gray-600">Countries</p>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-3 text-sm font-semibold text-gray-900">Breakdown by Program</h4>
+              <div className="space-y-3">
+                {studentBreakdown.map((item, idx) => {
+                  const percent = programMetrics.students
+                    ? Math.round((item.students / programMetrics.students) * 100)
+                    : 0
+                  return (
+                    <motion.div
+                      key={item.program}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="rounded-xl border border-gray-100 p-4 transition-shadow hover:shadow-sm"
+                    >
+                      <div className="mb-3 flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
+                            <BookOpen className="h-5 w-5 text-purple-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{item.program}</p>
+                            <p className="text-sm text-gray-500">
+                              {item.schools} schools · {item.countries} countries
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-purple-600">{item.students.toLocaleString()}</p>
+                          <p className="text-xs text-gray-500">{percent}% of total</p>
+                        </div>
+                      </div>
+                      <div className="h-2 rounded-full bg-gray-100">
+                        <motion.div
+                          className="h-2 rounded-full bg-purple-500"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${percent}%` }}
+                          transition={{ duration: 0.5, delay: idx * 0.1 }}
+                        />
+                      </div>
+                    </motion.div>
+                  )
+                })}
+              </div>
+            </div>
           </div>
         )
-
+      }
       case 'schools':
         return (
-          <div className="space-y-3">
-            <div className="text-sm font-medium text-white/80 mb-4">School Details</div>
-            {(metric.details as typeof schoolDetails).slice(0, 6).map((school, idx) => (
-              <motion.div
-                key={school.name}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="flex items-center justify-between bg-white/10 rounded-lg p-3"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-lg">{school.flag}</span>
-                  <div>
-                    <p className="text-sm font-medium text-white">{school.name}</p>
-                    <p className="text-xs text-white/60">{school.city}, {school.country}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-white">{school.students.toLocaleString()} students</p>
-                  <p className="text-xs text-white/60">{school.teachers} teachers</p>
-                </div>
-              </motion.div>
-            ))}
+          <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="rounded-xl bg-blue-50 p-4 text-center">
+                <p className="text-3xl font-bold text-blue-700">{programMetrics.institutions}</p>
+                <p className="mt-1 text-sm text-blue-600">Total Schools</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">
+                  {schoolDetails.reduce((sum, s) => sum + s.students, 0).toLocaleString()}
+                </p>
+                <p className="mt-1 text-sm text-gray-600">Total Students</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">
+                  {schoolDetails.reduce((sum, s) => sum + s.teachers, 0)}
+                </p>
+                <p className="mt-1 text-sm text-gray-600">Total Teachers</p>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-3 text-sm font-semibold text-gray-900">All Schools & Institutions</h4>
+              <div className="grid gap-3 md:grid-cols-2">
+                {schoolDetails.map((school, idx) => (
+                  <motion.div
+                    key={school.name}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.03 }}
+                    className="rounded-xl border border-gray-100 p-4 transition-shadow hover:shadow-sm"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">{school.flag}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-gray-900 whitespace-normal break-words">
+                          {school.name}
+                        </p>
+                        <div className="mt-0.5 flex items-center gap-1 text-sm text-gray-500">
+                          <MapIcon className="h-3 w-3" />
+                          <span>{school.city}, {school.country}</span>
+                        </div>
+                        <div className="mt-2 flex items-center gap-4 text-sm">
+                          <span className="font-medium text-blue-600">{school.students.toLocaleString()} students</span>
+                          <span className="text-gray-500">{school.teachers} teachers</span>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
         )
-
-      case 'projects':
+      case 'projects': {
+        const activeProjectCount = projectDetails.filter((p) => p.status === 'active').length
+        const completedProjectCount = projectDetails.filter((p) => p.status === 'completed').length
         return (
-          <div className="space-y-3">
-            <div className="text-sm font-medium text-white/80 mb-4">Project Impact</div>
-            {(metric.details as typeof projectDetails).map((project, idx) => (
-              <motion.div
-                key={project.name}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="bg-white/10 rounded-lg p-3"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">{project.flag}</span>
-                    <p className="text-sm font-medium text-white">{project.name}</p>
-                  </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    project.status === 'active'
-                      ? 'bg-green-400/20 text-green-200'
-                      : 'bg-gray-400/20 text-gray-300'
-                  }`}>
-                    {project.status}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-4 mt-3">
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4 text-white/70" />
-                    <div>
-                      <p className="text-lg font-bold text-white">{project.studentsReached}</p>
-                      <p className="text-xs text-white/60">students reached</p>
+          <div className="space-y-6">
+            <div className="grid grid-cols-4 gap-4">
+              <div className="rounded-xl bg-emerald-50 p-4 text-center">
+                <p className="text-3xl font-bold text-emerald-700">{activeProjectCount}</p>
+                <p className="mt-1 text-sm text-emerald-600">Active</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">{completedProjectCount}</p>
+                <p className="mt-1 text-sm text-gray-600">Completed</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">{programMetrics.students.toLocaleString()}</p>
+                <p className="mt-1 text-sm text-gray-600">Total Students</p>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <p className="text-3xl font-bold text-gray-700">{educatorDetails.length}</p>
+                <p className="mt-1 text-sm text-gray-600">Total Educators</p>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-3 text-sm font-semibold text-gray-900">Project Impact Details</h4>
+              <div className="space-y-3">
+                {projectDetails.map((project, idx) => (
+                  <motion.div
+                    key={project.name}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="rounded-xl border border-gray-100 p-4 transition-shadow hover:shadow-sm"
+                  >
+                    <div className="mb-3 flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{project.flag}</span>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-gray-900">{project.name}</p>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              project.status === 'active'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {project.status}
+                            </span>
+                          </div>
+                          {project.partnerSchool && (
+                            <p className="mt-0.5 text-sm text-gray-500">Partner: {project.partnerSchool}</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-white/70" />
-                    <div>
-                      <p className="text-lg font-bold text-white">{project.educatorsEngaged}</p>
-                      <p className="text-xs text-white/60">educators engaged</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="h-4 w-4 text-purple-500" />
+                        <div>
+                          <p className="text-lg font-bold text-gray-900">{project.studentsReached}</p>
+                          <p className="text-xs text-gray-500">students reached</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-purple-500" />
+                        <div>
+                          <p className="text-lg font-bold text-gray-900">{project.educatorsEngaged}</p>
+                          <p className="text-xs text-gray-500">educators engaged</p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                {project.partnerSchool && (
-                  <p className="text-xs text-white/50 mt-2">Partner: {project.partnerSchool}</p>
-                )}
-              </motion.div>
-            ))}
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
         )
-
+      }
       case 'educators':
         return (
-          <div className="space-y-3">
-            <div className="text-sm font-medium text-white/80 mb-4">Educator Details</div>
-            {(metric.details as typeof educatorDetails).slice(0, 6).map((educator, idx) => (
-              <motion.div
-                key={educator.name}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="flex items-center justify-between bg-white/10 rounded-lg p-3"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center text-sm font-medium text-white">
-                    {educator.name.split(' ').map(n => n[0]).join('')}
+          <div className="space-y-6">
+            <h4 className="text-sm font-semibold text-gray-900">Educator Details</h4>
+            <div className="grid gap-3 md:grid-cols-2">
+              {educatorDetails.map((educator, idx) => (
+                <motion.div
+                  key={educator.name}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="rounded-xl border border-gray-100 p-4 transition-shadow hover:shadow-sm"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-sm font-medium text-purple-700">
+                        {educator.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{educator.name}</p>
+                        <p className="text-xs text-gray-500">{educator.subject} · {educator.school}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-gray-900">{educator.flag} {educator.country}</p>
+                      {educator.projectCount > 0 && (
+                        <p className="text-xs text-gray-500">
+                          {educator.projectCount} project{educator.projectCount > 1 ? 's' : ''}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">{educator.name}</p>
-                    <p className="text-xs text-white/60">{educator.subject} · {educator.school}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-white">{educator.flag} {educator.country}</p>
-                  {educator.projectCount > 0 && (
-                    <p className="text-xs text-white/60">{educator.projectCount} project{educator.projectCount > 1 ? 's' : ''}</p>
-                  )}
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </div>
           </div>
         )
-
       default:
         return null
     }
@@ -690,93 +781,57 @@ export default function ParentAnalyticsPage() {
         </p>
       </header>
 
-      {/* Interactive Headline Metrics */}
+      {/* Headline Metrics - Clickable Cards */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {headlineMetrics.map(({ id, label, value, caption, icon: Icon, bubbleClassName, expandedColor, details }) => (
+        {headlineMetrics.map(({ id, label, value, caption, icon: Icon, bgColor, textColor }) => (
           <motion.div
             key={id}
-            layout
-            className="relative"
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <motion.div
-              layout
-              onClick={() => toggleCard(id)}
-              className={`cursor-pointer rounded-2xl border transition-all ${
-                expandedCard === id
-                  ? 'border-transparent shadow-xl'
-                  : 'border-gray-100 bg-white shadow-sm hover:shadow-md hover:border-gray-200'
-              }`}
+            <Card
+              className="cursor-pointer border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all group"
+              onClick={() => setSelectedMetric(id)}
             >
-              <AnimatePresence mode="wait">
-                {expandedCard === id ? (
-                  <motion.div
-                    key="expanded"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className={`bg-gradient-to-br ${expandedColor} rounded-2xl p-5 text-white min-h-[280px]`}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-2xl font-bold">{value}</p>
-                          <p className="text-sm text-white/80">{label}</p>
-                        </div>
-                      </div>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setExpandedCard(null)
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </motion.button>
-                    </div>
-                    <div className="max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
-                      {renderExpandedContent({ id, label, value, caption, icon: Icon, bubbleClassName, expandedColor, details } as typeof headlineMetrics[number])}
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="collapsed"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="p-5"
-                  >
-                    <div className="flex flex-col gap-3">
-                      <div className="flex items-center justify-between">
-                        <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-full ${bubbleClassName}`}
-                        >
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <motion.div
-                          animate={{ rotate: expandedCard === id ? 180 : 0 }}
-                          className="text-gray-400"
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                        </motion.div>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</p>
-                        <p className="mt-1 text-2xl font-semibold text-gray-900">{value}</p>
-                        <p className="mt-1 text-xs text-gray-500">{caption}</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${bgColor}`}>
+                    <Icon className={`h-6 w-6 ${textColor}`} />
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-gray-400 transition-colors" />
+                </div>
+                <div className="mt-4">
+                  <p className="text-3xl font-bold text-gray-900">{value}</p>
+                  <p className="text-sm font-medium text-gray-700 mt-1">{label}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{caption}</p>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         ))}
       </section>
+
+      {/* Modal for detailed view */}
+      <Dialog open={!!selectedMetric} onOpenChange={(open) => !open && setSelectedMetric(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              {selectedMetricData && (
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${selectedMetricData.bgColor}`}>
+                  <selectedMetricData.icon className={`h-6 w-6 ${selectedMetricData.textColor}`} />
+                </div>
+              )}
+              <div>
+                <DialogTitle className="text-xl">{selectedMetricData?.label}</DialogTitle>
+                <p className="text-sm text-gray-500 mt-0.5">{selectedMetricData?.caption}</p>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="mt-4">
+            {renderModalContent()}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <section className="grid gap-6 lg:grid-cols-[3fr,2fr]">
         <Card>
@@ -906,23 +961,6 @@ export default function ParentAnalyticsPage() {
         </Card>
       </section>
 
-      {/* Custom scrollbar styles */}
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.3);
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.5);
-        }
-      `}</style>
     </div>
   )
 }

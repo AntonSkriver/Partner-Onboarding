@@ -88,6 +88,13 @@ export default function ParentNetworkPage() {
           email: 'james.turner@unicef.org.uk',
           role: 'Program Coordinator',
         },
+        {
+          id: 'coord-uk-3',
+          name: 'Eleanor Shaw',
+          country: 'United Kingdom',
+          email: 'communities.uk@unicef.org',
+          role: 'Country Coordinator',
+        },
       ]
 
       setOrganization(sampleOrg)

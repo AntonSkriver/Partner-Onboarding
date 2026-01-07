@@ -36,7 +36,7 @@ export default function PartnerLoginPage() {
   const partnerQuickOptions = [
     {
       id: 'parent' as const,
-      label: 'UNICEF World (Parent)',
+      label: 'UNICEF World',
       description: 'See all country programs and performance.',
       role: 'parent',
       organization: 'UNICEF World Organization',

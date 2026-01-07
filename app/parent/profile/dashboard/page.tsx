@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -11,17 +11,10 @@ import {
   BookOpen,
   BarChart3,
   Users,
-  Globe,
   Mail,
 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
-import { usePrototypeDb } from '@/hooks/use-prototype-db'
-import {
-  buildProgramSummariesForPartner,
-  aggregateProgramMetrics,
-} from '@/lib/programs/selectors'
-import { GraduationCap } from 'lucide-react'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 
@@ -29,65 +22,6 @@ export default function ParentDashboardPage() {
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
   const [session, setSession] = useState<any>(null)
-  const { ready: prototypeReady, database } = usePrototypeDb()
-
-  const partnerRecord = useMemo(() => {
-    if (!database || !organization) return null
-    const normalizedName = organization.name?.trim().toLowerCase()
-    if (normalizedName) {
-      const match = database.partners.find(
-        (partner) => partner.organizationName.toLowerCase() === normalizedName,
-      )
-      if (match) return match
-    }
-    return database.partners.length > 0 ? database.partners[0] : null
-  }, [database, organization?.name])
-
-  const programSummaries = useMemo(() => {
-    if (!prototypeReady || !database || !partnerRecord) {
-      return []
-    }
-    return buildProgramSummariesForPartner(database, partnerRecord.id, {
-      includeRelatedPrograms: true,
-    })
-  }, [prototypeReady, database, partnerRecord])
-
-  const filteredProgramSummaries = useMemo(() => {
-    const allowedHosts = new Set(['partner-unicef', 'partner-unicef-england'])
-    const excluded = new Set(['program-build-the-change-2025', 'program-uk-digital-2025'])
-    return programSummaries.filter(
-      (summary) => allowedHosts.has(summary.program.partnerId) && !excluded.has(summary.program.id),
-    )
-  }, [programSummaries])
-
-  const programMetrics = useMemo(() => aggregateProgramMetrics(filteredProgramSummaries), [filteredProgramSummaries])
-
-  const displayStats = useMemo(() => {
-    if (filteredProgramSummaries.length === 0) {
-      return {
-        programs: 2,
-        countries: 2,
-        teachers: 8,
-        students: 5200,
-      }
-    }
-    const allowedCountries = new Set(['DK', 'UK'])
-    const countrySet = new Set<string>()
-    filteredProgramSummaries.forEach((summary) => {
-      summary.metrics.countries.forEach((c) => {
-        if (allowedCountries.has(c)) {
-          countrySet.add(c)
-        }
-      })
-    })
-    return {
-      programs: filteredProgramSummaries.length,
-      countries: countrySet.size || programMetrics.countryCount || 2,
-      teachers: programMetrics.teachers,
-      students: programMetrics.students,
-    }
-  }, [filteredProgramSummaries, programMetrics])
-
   useEffect(() => {
     loadOrganizationProfile()
     setSession(getCurrentSession())
@@ -163,51 +97,6 @@ export default function ParentDashboardPage() {
           <h1 className="text-3xl font-semibold text-gray-900">
             Hi, {session?.organization ?? 'Parent'}
           </h1>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            {[
-              {
-                label: 'Countries',
-                value: displayStats.countries,
-                icon: Globe,
-                color: 'text-purple-700',
-                bg: 'bg-purple-50',
-              },
-              {
-                label: 'Programs',
-                value: displayStats.programs,
-                icon: Layers,
-                color: 'text-blue-700',
-                bg: 'bg-blue-50',
-              },
-              {
-                label: 'Teachers',
-                value: displayStats.teachers,
-                icon: Users,
-                color: 'text-emerald-700',
-                bg: 'bg-emerald-50',
-              },
-              {
-                label: 'Students',
-                value: displayStats.students.toLocaleString(),
-                icon: GraduationCap,
-                color: 'text-amber-700',
-                bg: 'bg-amber-50',
-              },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm"
-              >
-                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${stat.bg}`}>
-                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                </div>
-                <div>
-                  <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
-                  <p className="text-xs uppercase tracking-wide text-gray-500">{stat.label}</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         <div>
