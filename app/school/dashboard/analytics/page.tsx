@@ -130,6 +130,7 @@ export default function SchoolAnalyticsPage() {
   const countryConnections = useMemo(() => {
     if (!institution) return []
     const countryCodes = new Set<string>()
+    const homeCountry = institution.country ?? null
 
     programSummaries.forEach((summary) => {
       const teacherIds = summary.teachers
@@ -141,16 +142,11 @@ export default function SchoolAnalyticsPage() {
         if (!teacherIds.includes(project.createdById)) return
         summary.institutions.forEach((inst) => {
           if (inst.id === institution.id) return
-          if (inst.country) {
-            countryCodes.add(inst.country)
-          }
+          if (!inst.country) return
+          if (homeCountry && inst.country === homeCountry) return
+          countryCodes.add(inst.country)
         })
       })
-
-      // Fallback: add program scope countries
-      if (countryCodes.size === 0) {
-        summary.program.countriesInScope.forEach((code) => countryCodes.add(code))
-      }
     })
 
     return Array.from(countryCodes)
@@ -203,9 +199,9 @@ export default function SchoolAnalyticsPage() {
     },
     {
       id: 'reach',
-      label: 'Geographic reach',
-      value: countryConnections.length.toString(),
-      caption: 'Partner countries',
+      label: 'School connections',
+      value: reachCount.toString(),
+      caption: 'Countries connected through projects',
       icon: Globe,
       bgColor: 'bg-indigo-50',
       textColor: 'text-indigo-700',
@@ -345,9 +341,11 @@ export default function SchoolAnalyticsPage() {
       case 'reach':
         return (
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-900">Geographic reach</h4>
+            <h4 className="text-sm font-semibold text-gray-900">School connections</h4>
             {reachCount === 0 ? (
-              <p className="text-sm text-gray-600">No partner countries yet.</p>
+              <p className="text-sm text-gray-600">
+                No country connections yet. Collaborate with schools abroad to add one.
+              </p>
             ) : (
               <div className="grid gap-2 sm:grid-cols-2">
                 {countryConnections.map((country) => (
@@ -519,14 +517,14 @@ export default function SchoolAnalyticsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-purple-600" />
-            Project connections
+            School connections
           </CardTitle>
-          <CardDescription>Countries reached through your school&apos;s projects</CardDescription>
+          <CardDescription>Countries connected through cross-school projects</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
           {countryConnections.length === 0 ? (
             <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-4 text-center text-sm text-gray-600 sm:col-span-2 md:col-span-3">
-              Join programs to start connecting with partner countries.
+              Start a project with schools abroad to add country connections.
             </div>
           ) : (
             countryConnections.map((country) => (
@@ -535,7 +533,7 @@ export default function SchoolAnalyticsPage() {
                   <span className="text-lg">{country.flag}</span>
                   <div>
                     <p className="font-semibold text-gray-900">{country.name}</p>
-                    <p className="text-xs text-gray-500">In your program scope</p>
+                    <p className="text-xs text-gray-500">Connected via projects</p>
                   </div>
                 </div>
                 <ArrowRight className="h-4 w-4 text-gray-400" />
