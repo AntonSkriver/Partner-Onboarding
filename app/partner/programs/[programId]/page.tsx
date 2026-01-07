@@ -26,7 +26,7 @@ import { cn } from '@/lib/utils'
 import { getCountryDisplay } from '@/lib/countries'
 
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
-import { SDG_DATA, SDGIconsGrid } from '@/components/sdg-icons'
+import { SDG_DATA, SDGIcon } from '@/components/sdg-icons'
 import { getCurrentSession } from '@/lib/auth/session'
 import { findProgramSummaryById, type ProgramSummary } from '@/lib/programs/selectors'
 import {
@@ -63,6 +63,16 @@ const COUNTRY_LABELS: Record<string, string> = {
   JP: 'Japan',
   ZA: 'South Africa',
   IN: 'India',
+}
+
+const getCountryBadgeStyles = (countryCode: string) => {
+  if (countryCode === 'DK') {
+    return 'bg-emerald-100 text-emerald-800 border-emerald-200'
+  }
+  if (countryCode === 'UK') {
+    return 'bg-blue-100 text-blue-800 border-blue-200'
+  }
+  return 'bg-gray-100 text-gray-700 border-gray-200'
 }
 
 const metricItems = (summary: ProgramSummary) => [
@@ -259,43 +269,49 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
               <OverviewField label="Age focus" value={summary.program.targetAgeRanges.join(', ')} />
               <div className="md:col-span-2">
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-3">SDG focus</p>
-                <div className="flex flex-wrap gap-4">
-                  <SDGIconsGrid
-                    sdgNumbers={summary.program.sdgFocus}
-                    size="sm"
-                    showTitles={true}
-                  />
-                </div>
+                {summary.program.sdgFocus?.length ? (
+                  <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                    {summary.program.sdgFocus.map((sdgNum) => (
+                      <SDGIcon
+                        key={sdgNum}
+                        number={sdgNum}
+                        size="xl"
+                        showTitle={true}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">No SDG focus specified</p>
+                )}
               </div>
               <div className="md:col-span-2">
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-3">CRC focus</p>
                 {summary.program.crcFocus?.length ? (
-                  <div className="flex flex-wrap gap-4">
+                  <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                     {summary.program.crcFocus.map((article) => {
-                      // Format: "12" -> "12", "3" -> "03"
                       const paddedNum = article.toString().padStart(2, '0')
                       const imageUrl = `/crc/icons/article-${paddedNum}.png`
 
                       return (
-                        <div key={article} className="flex flex-col items-center gap-1">
-                          <div className="w-12 h-12 overflow-hidden hover:scale-110 transition-transform duration-200">
-                            <img
+                        <div key={article} className="flex flex-col items-center gap-2 text-center">
+                          <div className="relative w-24 h-24">
+                            <Image
                               src={imageUrl}
                               alt={`CRC Article ${article}`}
-                              className="w-full h-full object-contain"
-                              onError={(e) => {
-                                // Fallback if image fails
-                                e.currentTarget.style.display = 'none'
-                                e.currentTarget.parentElement!.innerHTML = `<div class="w-full h-full rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border-2 border-white shadow-sm ring-2 ring-blue-50">${article}</div>`
-                              }}
+                              fill
+                              sizes="96px"
+                              className="rounded object-contain"
                             />
                           </div>
+                          <p className="text-sm text-gray-600 max-w-[100px] leading-tight">
+                            Article {article}
+                          </p>
                         </div>
                       )
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-700">—</p>
+                  <p className="text-sm text-gray-500">No CRC focus specified</p>
                 )}
               </div>
             </div>
@@ -317,9 +333,12 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
                     <p className="font-medium text-gray-900">{institution.name}</p>
                     <Badge variant="outline" className="capitalize">{institution.status}</Badge>
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">
-                    {institution.country}{institution.region ? ` • ${institution.region}` : ''}
-                  </p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <Badge variant="outline" className={`text-[11px] ${getCountryBadgeStyles(institution.country)}`}>
+                      {COUNTRY_LABELS[institution.country] ?? institution.country}
+                    </Badge>
+                    {institution.region && <span className="text-xs text-gray-500">{institution.region}</span>}
+                  </div>
                   <p className="mt-3 text-xs text-gray-500">
                     {institution.studentCount.toLocaleString()} students
                     {institution.teacherCount ? ` • ${institution.teacherCount} teachers` : ''}
@@ -346,9 +365,12 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-gray-900">{institution.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {institution.country}{institution.region ? ` • ${institution.region}` : ''}
-                      </p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <Badge variant="outline" className={`text-[11px] ${getCountryBadgeStyles(institution.country)}`}>
+                          {COUNTRY_LABELS[institution.country] ?? institution.country}
+                        </Badge>
+                        {institution.region && <span className="text-xs text-gray-500">{institution.region}</span>}
+                      </div>
                     </div>
                     <Badge variant="outline" className="capitalize">{institution.status}</Badge>
                   </div>
@@ -381,7 +403,7 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
                     <Badge variant="outline" className="capitalize">{coordinator.status}</Badge>
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                    <Badge variant="secondary" className="text-[11px]">
+                    <Badge variant="outline" className={`text-[11px] ${getCountryBadgeStyles(coordinator.country)}`}>
                       {COUNTRY_LABELS[coordinator.country] ?? coordinator.country} ({coordinator.country})
                     </Badge>
                     {coordinator.region && <span>Region: {coordinator.region}</span>}

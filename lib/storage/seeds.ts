@@ -6,7 +6,7 @@ import {
   StoredPartnerUser,
 } from '@/lib/storage/prototype-db'
 
-const PROTOTYPE_SEED_VERSION = 19
+const PROTOTYPE_SEED_VERSION = 21
 
 const buildSeedPartners = (): StoredPartner[] => [
   {
@@ -454,7 +454,7 @@ const buildSeedCoordinators = (): PrototypeDatabase['coordinators'] => [
     userId: 'partner-user-unicef-coordination',
     country: 'DK',
     region: 'Capital Region',
-    email: 'communities.dk@unicef.org',
+    email: 'Mettev.dk@unicef.org',
     firstName: 'Mette',
     lastName: 'Victoria',
     phoneNumber: '+45 33 77 66 55',
@@ -487,10 +487,10 @@ const buildSeedCoordinators = (): PrototypeDatabase['coordinators'] => [
     userId: 'partner-user-unicef-coordination',
     country: 'DK',
     region: 'Capital Region',
-    email: 'childworld.dk@unicef.org',
-    firstName: 'Sofie',
-    lastName: 'Holm',
-    phoneNumber: '+45 33 88 77 55',
+    email: 'Mettev.dk@unicef.org',
+    firstName: 'Mette',
+    lastName: 'Victoria',
+    phoneNumber: '+45 33 77 66 55',
     status: 'active',
     invitedBy: 'partner-user-unicef-coordination',
     invitedAt: '2025-03-12T09:45:00.000Z',

@@ -168,17 +168,15 @@ export default function PartnerAnalyticsPage() {
           ? getCountryDisplay(institution.country)
           : { flag: '', name: '' }
 
-        // Filter institutions excluded from analytics
-        const projectInstitutions = summary.institutions.filter(i =>
-          !EXCLUDED_INSTITUTION_IDS.has(i.id) && summary.teachers.some(t => t.institutionId === i.id)
-        )
-        const validTeachers = summary.teachers.filter(t => !EXCLUDED_INSTITUTION_IDS.has(t.institutionId))
+        // Get educators specifically associated with the project's creator's school
+        const creatorInstitutionId = creator?.institutionId
+        const projectTeachers = creatorInstitutionId
+          ? summary.teachers.filter(t => t.institutionId === creatorInstitutionId && !EXCLUDED_INSTITUTION_IDS.has(t.institutionId))
+          : []
 
-        const studentsReached = Math.round(
-          projectInstitutions.reduce((sum, i) => sum + (i.studentCount || 0), 0) /
-          Math.max(summary.projects.length, 1)
-        )
-        const educatorsEngaged = Math.round(validTeachers.length / Math.max(summary.projects.length, 1))
+        // Students reached = students at the creator's school
+        const studentsReached = institution?.studentCount || 0
+        const educatorsEngaged = projectTeachers.length || 1
 
         // Get project name from template or generate fallback
         const template = project.templateId ? templateById.get(project.templateId) : null
@@ -717,15 +715,15 @@ export default function PartnerAnalyticsPage() {
               </div>
               <div className="rounded-xl bg-gray-50 p-4 text-center">
                 <p className="text-3xl font-bold text-gray-700">
-                  {projectDetails.reduce((sum, p) => sum + p.studentsReached, 0).toLocaleString()}
+                  {studentsTotal.toLocaleString()}
                 </p>
-                <p className="text-sm text-gray-600 mt-1">Students Reached</p>
+                <p className="text-sm text-gray-600 mt-1">Total Students</p>
               </div>
               <div className="rounded-xl bg-gray-50 p-4 text-center">
                 <p className="text-3xl font-bold text-gray-700">
-                  {projectDetails.reduce((sum, p) => sum + p.educatorsEngaged, 0)}
+                  {educatorDetails.length}
                 </p>
-                <p className="text-sm text-gray-600 mt-1">Educators</p>
+                <p className="text-sm text-gray-600 mt-1">Total Educators</p>
               </div>
             </div>
 
@@ -756,7 +754,7 @@ export default function PartnerAnalyticsPage() {
                             </span>
                           </div>
                           {project.partnerSchool && (
-                            <p className="text-sm text-gray-500 mt-0.5">Partner: {project.partnerSchool}</p>
+                            <p className="text-sm text-gray-500 mt-0.5">School: {project.partnerSchool}</p>
                           )}
                         </div>
                       </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -39,11 +39,26 @@ export default function PartnerNetworkPage() {
   const [loading, setLoading] = useState(true)
   const [showInviteCoordinatorDialog, setShowInviteCoordinatorDialog] = useState(false)
   const [showInviteInstitutionDialog, setShowInviteInstitutionDialog] = useState(false)
+  const coordinatorFormRef = useRef<HTMLDivElement>(null)
+  const institutionFormRef = useRef<HTMLDivElement>(null)
   const { ready: prototypeReady, database } = usePrototypeDb()
 
   useEffect(() => {
     loadOrganizationData()
   }, [prototypeReady])
+
+  // Scroll to form when dialog opens
+  useEffect(() => {
+    if (showInviteCoordinatorDialog && coordinatorFormRef.current) {
+      coordinatorFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [showInviteCoordinatorDialog])
+
+  useEffect(() => {
+    if (showInviteInstitutionDialog && institutionFormRef.current) {
+      institutionFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [showInviteInstitutionDialog])
 
   const loadOrganizationData = async () => {
     setLoading(true)
@@ -135,33 +150,41 @@ export default function PartnerNetworkPage() {
   }, [programSummaries])
 
   const educationalInstitutions = useMemo(() => {
-    const institutions: Array<{
+    const institutionMap = new Map<string, {
       id: string
       name: string
       country: Country
       category: string
       pointOfContact: string
       email: string
-    }> = []
-    const seen = new Set<string>()
+      programNames: string[]
+    }>()
 
     programSummaries.forEach((summary) => {
+      const programName = summary.program.displayTitle || summary.program.name
       summary.institutions.forEach((inst) => {
         const key = inst.name.toLowerCase()
-        if (seen.has(key)) return
-        seen.add(key)
-        institutions.push({
-          id: inst.id,
-          name: inst.name,
-          country: inst.country === 'DK' ? 'Denmark' : 'England',
-          category: 'School',
-          pointOfContact: inst.principalName || 'Lead contact',
-          email: inst.contactEmail,
-        })
+        const existing = institutionMap.get(key)
+        if (existing) {
+          // Add program name if not already included
+          if (!existing.programNames.includes(programName)) {
+            existing.programNames.push(programName)
+          }
+        } else {
+          institutionMap.set(key, {
+            id: inst.id,
+            name: inst.name,
+            country: inst.country === 'DK' ? 'Denmark' : 'England',
+            category: 'School',
+            pointOfContact: inst.principalName || 'Lead contact',
+            email: inst.contactEmail,
+            programNames: [programName],
+          })
+        }
       })
     })
 
-    return institutions
+    return Array.from(institutionMap.values())
   }, [programSummaries])
 
   if (loading || !prototypeReady) {
@@ -285,13 +308,22 @@ export default function PartnerNetworkPage() {
             <div className="grid gap-3 md:grid-cols-2">
               {educationalInstitutions.map((institution) => (
                 <div key={institution.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">{institution.name}</p>
-                      <p className="text-sm text-gray-500">{institution.pointOfContact}</p>
-                      <p className="text-xs text-gray-500">{institution.email}</p>
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-900">{institution.name}</p>
+                        <p className="text-sm text-gray-500">{institution.pointOfContact}</p>
+                        <p className="text-xs text-gray-500">{institution.email}</p>
+                      </div>
+                      {countryBadge(institution.country)}
                     </div>
-                    {countryBadge(institution.country)}
+                    <div className="flex flex-wrap gap-1">
+                      {institution.programNames.map((programName) => (
+                        <Badge key={programName} variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+                          {programName}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                   <div className="mt-3 flex gap-2">
                     <Button size="sm" variant="outline">
@@ -323,7 +355,7 @@ export default function PartnerNetworkPage() {
 
       {/* Invitation Dialogs */}
       {showInviteCoordinatorDialog && (
-        <Card className="border-purple-200 bg-purple-50">
+        <Card ref={coordinatorFormRef} className="border-purple-200 bg-purple-50">
           <CardContent className="p-6">
             <div className="mb-4 flex items-start justify-between">
               <div>
@@ -369,7 +401,7 @@ export default function PartnerNetworkPage() {
       )}
 
       {showInviteInstitutionDialog && (
-        <Card className="border-purple-200 bg-purple-50">
+        <Card ref={institutionFormRef} className="border-purple-200 bg-purple-50">
           <CardContent className="p-6">
             <div className="mb-4 flex items-start justify-between">
               <div>
