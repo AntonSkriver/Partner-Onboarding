@@ -15,7 +15,7 @@ interface TeacherDisplay {
   email: string
   subject: string
   status: 'active' | 'invited' | 'inactive'
-  programName: string
+  programs: string[]
 }
 
 interface PartnerSchoolDisplay {
@@ -77,19 +77,32 @@ export default function SchoolNetworkPage() {
   const teachers = useMemo((): TeacherDisplay[] => {
     if (!database || institutionIds.size === 0) return []
 
-    return database.institutionTeachers
+    const byEmail = new Map<string, TeacherDisplay>()
+
+    database.institutionTeachers
       .filter((teacher) => institutionIds.has(teacher.institutionId))
-      .map((teacher) => {
+      .forEach((teacher) => {
         const program = database.programs.find((p) => p.id === teacher.programId)
-        return {
+        const programName = program?.name || 'Unknown Program'
+        const key = teacher.email.toLowerCase()
+        const existing = byEmail.get(key)
+        if (existing) {
+          if (!existing.programs.includes(programName)) {
+            existing.programs.push(programName)
+          }
+          return
+        }
+        byEmail.set(key, {
           id: teacher.id,
           name: `${teacher.firstName} ${teacher.lastName}`,
           email: teacher.email,
           subject: teacher.subject || 'General',
           status: teacher.status,
-          programName: program?.name || 'Unknown Program',
-        }
+          programs: [programName],
+        })
       })
+
+    return Array.from(byEmail.values())
   }, [database, institutionIds])
 
   // Get partner schools (other institutions in the same programs)
@@ -171,14 +184,18 @@ export default function SchoolNetworkPage() {
                 key={teacher.id}
                 className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-gray-200 p-4"
               >
-                <div>
-                  <p className="font-semibold text-gray-900">
-                    {teacher.name}{' '}
-                    <span className="text-xs text-gray-500">· {teacher.programName}</span>
-                  </p>
+                <div className="space-y-1">
+                  <p className="font-semibold text-gray-900">{teacher.name}</p>
                   <p className="text-sm text-gray-600">
                     {teacher.subject} • {teacher.email}
                   </p>
+                  <div className="flex flex-wrap gap-1">
+                    {teacher.programs.map((program) => (
+                      <Badge key={program} variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+                        {program}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
                 <Badge variant={teacher.status === 'active' ? 'default' : 'secondary'}>
                   {teacher.status}

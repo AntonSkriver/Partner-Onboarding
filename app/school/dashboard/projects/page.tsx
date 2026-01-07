@@ -12,41 +12,47 @@ import { getCountryDisplay } from '@/lib/countries'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import { getCurrentSession } from '@/lib/auth/session'
 
-// Demo projects
+// Demo projects (UI-focused)
 const projects = [
   {
     id: 'demo-project-1',
     title: 'City Guardians Story Maps',
-    description: 'In this project, students collaborate with peers from another country to explore the diverse...',
+    description:
+      'In this project, students collaborate with peers from another country to explore the diverse...',
     startingMonth: 'November',
     status: 'active' as const,
     programName: 'Build the Change',
-    teacherName: 'Maria Hansen',
+    teacherName: 'Anne Holm',
     teacherCountry: 'Denmark',
-    teacherInitials: 'MH',
+    teacherInitials: 'AH',
+    teacherPhoto: '/images/avatars/anne-holm.png',
     projectType: 'Explore Global Challenges',
     ageRange: 'Ages 11 - 15 years',
     timezone: '+2 hours from you',
     language: 'English',
     createdAt: 'Created 2 days ago',
-    coverImageUrl: 'https://images.unsplash.com/photo-1529101091764-c3526daf38fe?w=800&h=480&fit=crop',
+    coverImageUrl:
+      'https://images.unsplash.com/photo-1529101091764-c3526daf38fe?w=800&h=480&fit=crop',
   },
   {
     id: 'demo-project-2',
     title: 'Community Story Circles',
-    description: 'Hello! We are a small group of five students in the subject: International Studies. We a...',
+    description:
+      'Hello! We are a small group of five students in the subject: International Studies. We a...',
     startingMonth: 'December',
     status: 'draft' as const,
     programName: 'Communities in Focus',
-    teacherName: 'Peter Nielsen',
-    teacherCountry: 'Germany',
-    teacherInitials: 'PN',
+    teacherName: 'Anne Holm',
+    teacherCountry: 'Denmark',
+    teacherInitials: 'AH',
+    teacherPhoto: '/images/avatars/anne-holm.png',
     projectType: 'Cultural Exchange',
     ageRange: 'Ages 6 - 13 years',
     timezone: '+1 hour from you',
     language: 'German, English',
     createdAt: 'Created 5 hours ago',
-    coverImageUrl: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&h=480&fit=crop',
+    coverImageUrl:
+      'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&h=480&fit=crop',
   },
 ]
 
@@ -55,8 +61,7 @@ function ProjectCard({ project }: { project: typeof projects[0] }) {
   const { flag: countryFlag, name: countryName } = getCountryDisplay(project.teacherCountry)
 
   return (
-    <Card className="flex h-full flex-col overflow-hidden hover:shadow-lg transition-shadow">
-      {/* Hero Image */}
+    <Card className="flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
       <div className="relative h-44 overflow-hidden">
         <Image
           src={project.coverImageUrl}
@@ -67,32 +72,23 @@ function ProjectCard({ project }: { project: typeof projects[0] }) {
         />
       </div>
 
-      {/* Content */}
-      <CardContent className="flex flex-1 flex-col p-5 space-y-4">
-        {/* Starting Month Label */}
-        <p className="text-xs font-medium text-purple-600 uppercase tracking-wide">
+      <CardContent className="flex flex-1 flex-col space-y-4 p-5">
+        <p className="text-xs font-medium uppercase tracking-wide text-purple-600">
           Starting Month: {project.startingMonth}
         </p>
 
-        {/* Title */}
-        <h3 className="text-lg font-semibold text-gray-900 leading-tight">
-          {project.title}
-        </h3>
+        <h3 className="text-lg font-semibold leading-tight text-gray-900">{project.title}</h3>
 
-        {/* Description */}
         <div className="text-sm text-gray-600">
-          <p className={cn(!isExpanded && 'line-clamp-2')}>
-            {project.description}
-          </p>
+          <p className={cn(!isExpanded && 'line-clamp-2')}>{project.description}</p>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-purple-600 hover:text-purple-700 text-sm font-medium mt-1"
+            className="mt-1 text-sm font-medium text-purple-600 hover:text-purple-700"
           >
             {isExpanded ? 'Read less' : 'Read more'}
           </button>
         </div>
 
-        {/* Metadata Icons */}
         <div className="space-y-2 text-sm text-gray-600">
           <div className="flex items-center gap-2">
             <Globe2 className="h-4 w-4 text-gray-400" />
@@ -112,33 +108,44 @@ function ProjectCard({ project }: { project: typeof projects[0] }) {
           </div>
         </div>
 
-        {/* Spacer */}
-        <div className="flex-1" />
+        <div className="flex flex-1" />
 
-        {/* Created By Section */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center text-xs font-semibold text-white">
-            {project.teacherInitials}
+        <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+          <div className="flex items-center gap-2">
+            {project.teacherPhoto ? (
+              <Image
+                src={project.teacherPhoto}
+                alt={project.teacherName}
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500 text-xs font-semibold text-white">
+                {project.teacherInitials}
+              </div>
+            )}
+            <div className="text-xs">
+              <p className="font-medium text-gray-900">{project.teacherName}</p>
+              <Badge
+                variant="outline"
+                className="mt-1 flex items-center gap-1 border-purple-200 text-gray-600"
+              >
+                <span className="text-base leading-none">{countryFlag}</span>
+                <span>{countryName}</span>
+              </Badge>
+              <p className="mt-1 text-gray-500">{project.createdAt}</p>
+            </div>
           </div>
-          <div className="text-xs">
-            <p className="font-medium text-gray-900">{project.teacherName}</p>
-            <Badge
-              variant="outline"
-              className="mt-1 flex items-center gap-1 border-purple-200 text-gray-600"
-            >
-              <span className="text-base leading-none">{countryFlag}</span>
-              <span>{countryName}</span>
-            </Badge>
-            <p className="mt-1 text-gray-500">{project.createdAt}</p>
-          </div>
+
+          <Button
+            variant="outline"
+            className="w-auto border-purple-600 text-purple-600 hover:bg-purple-50"
+            asChild
+          >
+            <Link href={`/teacher/projects?project=${project.id}`}>View details</Link>
+          </Button>
         </div>
-      </div>
-
-        {/* Action Button */}
-        <Button variant="outline" className="w-full border-purple-600 text-purple-600 hover:bg-purple-50" asChild>
-          <Link href={`/teacher/projects?project=${project.id}`}>Request to join</Link>
-        </Button>
       </CardContent>
     </Card>
   )
@@ -156,16 +163,16 @@ export default function SchoolProjectsPage() {
     const normalizedEmail = session?.email?.toLowerCase()
     const normalizedName = session?.organization?.trim().toLowerCase()
 
-    const matchesCurrentSchool = (institution: { id: string; name?: string | null; contactEmail?: string | null }) => {
+    const matchesCurrentSchool = (institution: { id?: string; name?: string | null; contactEmail?: string | null }) => {
       if (activeInstitutionId && institution.id === activeInstitutionId) return true
       const name = institution.name?.trim().toLowerCase()
       const email = institution.contactEmail?.toLowerCase()
       const nameMatch = normalizedName && name === normalizedName
       const emailMatch = normalizedEmail && email === normalizedEmail
-      return Boolean(nameMatch || emailMatch)
+      return nameMatch || emailMatch
     }
 
-    return database.institutions.filter((inst) => matchesCurrentSchool(inst)).map((inst) => inst.id)
+    return database.institutions.filter((institution) => matchesCurrentSchool(institution)).map((inst) => inst.id)
   }, [prototypeReady, database, session])
 
   useEffect(() => {
@@ -202,7 +209,7 @@ export default function SchoolProjectsPage() {
         <div>
           <h1 className="text-3xl font-semibold text-gray-900">Projects</h1>
           <p className="text-sm text-gray-600">
-            Projects will appear once teachers from your school start creating them.
+            Projects created by teachers at your school across all programs.
           </p>
         </div>
         <Card className="border-dashed border-purple-200">
@@ -210,7 +217,7 @@ export default function SchoolProjectsPage() {
             <div className="rounded-full bg-purple-50 px-4 py-1 text-xs font-semibold text-purple-700">
               No teachers connected yet
             </div>
-            <p className="text-sm text-gray-600 max-w-md">
+            <p className="max-w-md text-sm text-gray-600">
               Invite teachers to your school workspace so projects show up here automatically.
             </p>
             <div className="flex gap-2">

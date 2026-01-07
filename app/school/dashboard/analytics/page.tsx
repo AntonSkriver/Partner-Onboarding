@@ -1,17 +1,25 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import {
   GraduationCap,
   Users,
   BookOpen,
   Globe,
-  Sparkles,
   CheckCircle2,
   ArrowRight,
+  ChevronRight,
 } from 'lucide-react'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import { getCurrentSession } from '@/lib/auth/session'
@@ -28,6 +36,7 @@ export default function SchoolAnalyticsPage() {
   const [session] = useState(getCurrentSession())
   const [institution, setInstitution] = useState<Institution | null>(null)
   const [loading, setLoading] = useState(true)
+  const [selectedMetric, setSelectedMetric] = useState<string | null>(null)
 
   const activeProgramIds = useMemo(() => {
     if (typeof window === 'undefined') return []
@@ -74,6 +83,22 @@ export default function SchoolAnalyticsPage() {
     return programsForSchool.map((program) => buildProgramSummary(database, program))
   }, [database, institution, programsForSchool])
 
+  const teacherPrograms = useMemo(() => {
+    const map = new Map<string, Set<string>>()
+    programSummaries.forEach((summary) => {
+      const programName = summary.program.displayTitle || summary.program.name
+      summary.teachers.forEach((teacher) => {
+        if (teacher.institutionId !== institution?.id) return
+        const key = teacher.id
+        if (!map.has(key)) {
+          map.set(key, new Set())
+        }
+        map.get(key)!.add(programName)
+      })
+    })
+    return map
+  }, [programSummaries, institution?.id])
+
   const schoolTeachers = useMemo(() => {
     if (!institution) return []
     const teachers = programSummaries.flatMap((summary) =>
@@ -103,19 +128,91 @@ export default function SchoolAnalyticsPage() {
   }, [institution, programSummaries])
 
   const countryConnections = useMemo(() => {
+    if (!institution) return []
     const countryCodes = new Set<string>()
+
     programSummaries.forEach((summary) => {
-      summary.program.countriesInScope.forEach((code) => countryCodes.add(code))
+      const teacherIds = summary.teachers
+        .filter((teacher) => teacher.institutionId === institution.id)
+        .map((t) => t.id)
+      if (teacherIds.length === 0) return
+
+      summary.projects.forEach((project) => {
+        if (!teacherIds.includes(project.createdById)) return
+        summary.institutions.forEach((inst) => {
+          if (inst.id === institution.id) return
+          if (inst.country) {
+            countryCodes.add(inst.country)
+          }
+        })
+      })
+
+      // Fallback: add program scope countries
+      if (countryCodes.size === 0) {
+        summary.program.countriesInScope.forEach((code) => countryCodes.add(code))
+      }
     })
+
     return Array.from(countryCodes)
       .map((code) => getCountryDisplay(code))
       .filter((c) => c.name)
-  }, [programSummaries])
+  }, [programSummaries, institution])
 
   const studentsReached = institution?.studentCount ?? 0
   const educatorCount = schoolTeachers.length
   const programCount = programSummaries.length
   const projectCount = schoolProjects.length
+  const reachCount = countryConnections.length
+
+  const headlineMetrics = [
+    {
+      id: 'students',
+      label: 'Students reached',
+      value: studentsReached.toLocaleString(),
+      caption: `${programCount || 0} program${programCount === 1 ? '' : 's'}`,
+      icon: GraduationCap,
+      bgColor: 'bg-purple-50',
+      textColor: 'text-purple-700',
+    },
+    {
+      id: 'educators',
+      label: 'Educators engaged',
+      value: educatorCount.toString(),
+      caption: `${teacherPrograms.size || 0} teacher${educatorCount === 1 ? '' : 's'}`,
+      icon: Users,
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-700',
+    },
+    {
+      id: 'programs',
+      label: 'Programs',
+      value: programCount.toString(),
+      caption: 'Active for this school',
+      icon: BookOpen,
+      bgColor: 'bg-emerald-50',
+      textColor: 'text-emerald-700',
+    },
+    {
+      id: 'projects',
+      label: 'Projects',
+      value: projectCount.toString(),
+      caption: 'Started by your teachers',
+      icon: CheckCircle2,
+      bgColor: 'bg-amber-50',
+      textColor: 'text-amber-700',
+    },
+    {
+      id: 'reach',
+      label: 'Geographic reach',
+      value: countryConnections.length.toString(),
+      caption: 'Partner countries',
+      icon: Globe,
+      bgColor: 'bg-indigo-50',
+      textColor: 'text-indigo-700',
+    },
+  ]
+
+  const selectedMetricData = headlineMetrics.find((metric) => metric.id === selectedMetric)
 
   if (loading || !prototypeReady) {
     return (
@@ -138,31 +235,172 @@ export default function SchoolAnalyticsPage() {
     )
   }
 
-  return (
-    <div className="space-y-8">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 p-8 text-white">
-        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
-        <div className="relative space-y-4">
-          <div className="flex items-center gap-2 text-purple-100">
-            <Sparkles className="h-5 w-5" />
-            <span className="text-sm font-medium">School impact overview</span>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="text-3xl font-semibold">Impact & analytics</h1>
-              <p className="text-sm text-purple-100">
-                Students, educators, and projects connected through your programs.
-              </p>
+  const renderMetricDetail = () => {
+    switch (selectedMetric) {
+      case 'students':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-3">
+              <StatPill label="Students" value={studentsReached.toLocaleString()} />
+              <StatPill label="Educators" value={educatorCount.toString()} />
+              <StatPill label="Programs" value={programCount.toString()} />
+            </div>
+            <div className="space-y-2">
+              <h4 className="text-sm font-semibold text-gray-900">By program</h4>
+              {programSummaries.map((summary) => (
+                <div key={summary.program.id} className="flex items-center justify-between rounded-lg border border-gray-100 p-3">
+                  <div>
+                    <p className="font-medium text-gray-900">{summary.program.displayTitle || summary.program.name}</p>
+                    <p className="text-xs text-gray-500">{summary.metrics.institutionCount} institutions</p>
+                  </div>
+                  <p className="text-sm font-semibold text-purple-700">
+                    {summary.metrics.studentCount.toLocaleString()} students
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <MetricCard icon={GraduationCap} label="Students reached" value={studentsReached.toLocaleString()} />
-            <MetricCard icon={Users} label="Educators engaged" value={educatorCount.toString()} />
-            <MetricCard icon={BookOpen} label="Programs" value={programCount.toString()} />
-            <MetricCard icon={CheckCircle2} label="Projects" value={projectCount.toString()} />
+        )
+      case 'educators':
+        return (
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-gray-900">Teachers</h4>
+            {schoolTeachers.length === 0 ? (
+              <p className="text-sm text-gray-600">No educators yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {schoolTeachers.map((teacher) => {
+                  const fullName = `${teacher.firstName} ${teacher.lastName}`.trim() || 'Educator'
+                  const programs = Array.from(teacherPrograms.get(teacher.id) ?? [])
+                  return (
+                    <div key={teacher.id} className="flex items-start justify-between rounded-lg border border-gray-100 p-3">
+                      <div>
+                        <p className="font-medium text-gray-900">{fullName}</p>
+                        <p className="text-xs text-gray-500">{teacher.subject || 'General'}</p>
+                        {programs.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {programs.map((p) => (
+                              <Badge key={p} variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+                                {p}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500">{teacher.status}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
-        </div>
-      </div>
+        )
+      case 'programs':
+        return (
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-gray-900">Programs</h4>
+            {programSummaries.length === 0 ? (
+              <p className="text-sm text-gray-600">No programs yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {programSummaries.map((summary) => (
+                  <div key={summary.program.id} className="rounded-lg border border-gray-100 p-3">
+                    <p className="font-medium text-gray-900">
+                      {summary.program.displayTitle || summary.program.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {summary.metrics.studentCount.toLocaleString()} students · {summary.metrics.institutionCount} institutions
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      case 'projects':
+        return (
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-gray-900">Projects</h4>
+            {schoolProjects.length === 0 ? (
+              <p className="text-sm text-gray-600">No projects yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {schoolProjects.map(({ project, programName }) => (
+                  <div key={project.id} className="rounded-lg border border-gray-100 p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-gray-900">{project.title || 'Program project'}</p>
+                        <p className="text-xs text-gray-500">{programName}</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {project.status === 'completed' ? 'Completed' : 'Active'}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      case 'reach':
+        return (
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-gray-900">Geographic reach</h4>
+            {reachCount === 0 ? (
+              <p className="text-sm text-gray-600">No partner countries yet.</p>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {countryConnections.map((country) => (
+                  <div key={country.name} className="flex items-center justify-between rounded-lg border border-gray-100 p-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{country.flag}</span>
+                      <p className="font-medium text-gray-900">{country.name}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
+  return (
+    <div className="space-y-8">
+      <header className="space-y-2">
+        <h1 className="text-3xl font-semibold text-gray-900">Impact & analytics</h1>
+        <p className="text-sm text-gray-600">
+          Students, educators, and projects connected through your programs.{' '}
+          <span className="font-medium text-purple-600">Click any metric for details.</span>
+        </p>
+      </header>
+
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        {headlineMetrics.map(({ id, label, value, caption, icon: Icon, bgColor, textColor }) => (
+          <motion.div key={id} whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+            <Card
+              className="group cursor-pointer border-gray-100 transition-all hover:border-gray-200 hover:shadow-lg"
+              onClick={() => setSelectedMetric(id)}
+            >
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${bgColor}`}>
+                    <Icon className={`h-6 w-6 ${textColor}`} />
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-gray-400" />
+                </div>
+                <div className="mt-4">
+                  <p className="text-3xl font-bold text-gray-900">{value}</p>
+                  <p className="mt-1 text-sm font-medium text-gray-700">{label}</p>
+                  <p className="mt-0.5 text-xs text-gray-500">{caption}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </section>
 
       <Card>
         <CardHeader>
@@ -281,9 +519,9 @@ export default function SchoolAnalyticsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-purple-600" />
-            Country connections
+            Project connections
           </CardTitle>
-          <CardDescription>Where your programs operate</CardDescription>
+          <CardDescription>Countries reached through your school&apos;s projects</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
           {countryConnections.length === 0 ? (
@@ -306,26 +544,38 @@ export default function SchoolAnalyticsPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!selectedMetric} onOpenChange={(open) => !open && setSelectedMetric(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              {selectedMetricData && (
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${selectedMetricData.bgColor}`}>
+                  <selectedMetricData.icon className={`h-6 w-6 ${selectedMetricData.textColor}`} />
+                </div>
+              )}
+              <div>
+                <DialogTitle className="text-lg font-semibold">
+                  {selectedMetricData?.label}
+                </DialogTitle>
+                <DialogDescription>
+                  {selectedMetricData?.caption}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="mt-2">{renderMetricDetail()}</div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
 
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof GraduationCap
-  label: string
-  value: string
-}) {
+function StatPill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-white/10 p-4 backdrop-blur">
-      <div className="flex items-center gap-2 text-purple-100">
-        <Icon className="h-5 w-5" />
-        <span className="text-sm font-medium">{label}</span>
-      </div>
-      <p className="mt-2 text-3xl font-semibold text-white">{value}</p>
+    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-center">
+      <p className="text-2xl font-semibold text-gray-900">{value}</p>
+      <p className="text-xs text-gray-500 mt-1">{label}</p>
     </div>
   )
 }
