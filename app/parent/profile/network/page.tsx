@@ -62,17 +62,17 @@ export default function ParentNetworkPage() {
       const mockCoordinators = [
         {
           id: 'coord-dk-1',
-          name: 'Christian Bindslev',
+          name: 'Mette Victoria',
           country: 'Denmark',
-          email: 'christian@unicef.dk',
+          email: 'mette@unicef.dk',
           role: 'Project Leader',
         },
         {
           id: 'coord-dk-2',
-          name: 'Mette Victoria',
+          name: 'Christian Bindslev',
           country: 'Denmark',
-          email: 'mette@unicef.dk',
-          role: 'Country Coordinator',
+          email: 'christian@unicef.dk',
+          role: 'Senior Consultant',
         },
         {
           id: 'coord-uk-1',

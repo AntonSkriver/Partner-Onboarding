@@ -49,6 +49,49 @@ const statusStyles: Record<string, string> = {
   archived: 'bg-gray-100 text-gray-600',
 }
 
+const CRC_TITLES: Record<string, string> = {
+  '1': 'Definition of child',
+  '2': 'Non-discrimination',
+  '3': 'Best interests of child',
+  '4': 'Implementation of rights',
+  '5': 'Parental guidance',
+  '6': 'Life, survival & development',
+  '7': 'Birth registration & nationality',
+  '8': 'Preservation of identity',
+  '9': 'Separation from parents',
+  '10': 'Family reunification',
+  '11': 'Illicit transfer',
+  '12': 'Respect for views of child',
+  '13': 'Freedom of expression',
+  '14': 'Freedom of thought',
+  '15': 'Freedom of association',
+  '16': 'Right to privacy',
+  '17': 'Access to information',
+  '18': 'Parental responsibilities',
+  '19': 'Protection from violence',
+  '20': 'Children without families',
+  '21': 'Adoption',
+  '22': 'Refugee children',
+  '23': 'Children with disabilities',
+  '24': 'Health services',
+  '25': 'Periodic review',
+  '26': 'Social security',
+  '27': 'Adequate standard of living',
+  '28': 'Right to education',
+  '29': 'Goals of education',
+  '30': 'Minority rights',
+  '31': 'Leisure & play',
+  '32': 'Child labour',
+  '33': 'Drug abuse',
+  '34': 'Sexual exploitation',
+  '35': 'Abduction & trafficking',
+  '36': 'Other exploitation',
+  '37': 'Detention & punishment',
+  '38': 'Armed conflicts',
+  '39': 'Rehabilitative care',
+  '40': 'Juvenile justice',
+}
+
 const COUNTRY_LABELS: Record<string, string> = {
   DK: 'Denmark',
   UK: 'United Kingdom',
@@ -294,21 +337,27 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
                     {summary.program.crcFocus.map((article) => {
                       const paddedNum = article.toString().padStart(2, '0')
                       const imageUrl = `/crc/icons/article-${paddedNum}.png`
+                      const articleTitle = CRC_TITLES[article.toString()] ?? `Article ${article}`
 
                       return (
                         <div key={article} className="flex flex-col items-center gap-2 text-center">
                           <div className="relative w-24 h-24">
                             <Image
                               src={imageUrl}
-                              alt={`CRC Article ${article}`}
+                              alt={`CRC Article ${article}: ${articleTitle}`}
                               fill
                               sizes="96px"
                               className="rounded object-contain"
                             />
                           </div>
-                          <p className="text-sm text-gray-600 max-w-[100px] leading-tight">
-                            Article {article}
-                          </p>
+                          <div className="max-w-[120px]">
+                            <p className="text-sm font-medium text-gray-900 leading-tight">
+                              Article {article}
+                            </p>
+                            <p className="text-xs text-gray-600 leading-tight mt-0.5">
+                              {articleTitle}
+                            </p>
+                          </div>
                         </div>
                       )
                     })}

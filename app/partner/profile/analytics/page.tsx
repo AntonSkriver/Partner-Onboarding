@@ -21,7 +21,6 @@ import {
   BookOpen,
   MapPin,
 } from 'lucide-react'
-import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import {
@@ -517,11 +516,7 @@ export default function PartnerAnalyticsPage() {
   const loadOrganizationProfile = async () => {
     setLoading(true)
     try {
-      const session = getCurrentSession()
-      if (!session || session.role !== 'partner') {
-        return
-      }
-
+      // Use sample data for prototype - no strict session check needed
       const sampleOrg: Organization = {
         id: 'demo-org-id',
         name: 'UNICEF Denmark',

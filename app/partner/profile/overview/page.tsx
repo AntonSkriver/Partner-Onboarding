@@ -163,15 +163,15 @@ export default function PartnerOverviewPage() {
           'Connecting classrooms worldwide through collaborative learning experiences aligned with UN Sustainable Development Goals',
         primary_contacts: [
           {
-            name: 'Christian Bindslev',
-            email: 'Christian@unicef.dk',
+            name: 'Mette Victoria',
+            email: 'Mette@unicef.dk',
             role: 'Project Leader',
             isPrimary: true,
           },
           {
-            name: 'Mette Victoria',
-            email: 'Mette@unicef.dk',
-            role: 'Country Coordinator',
+            name: 'Christian Bindslev',
+            email: 'Christian@unicef.dk',
+            role: 'Senior Consultant',
             isPrimary: false,
           },
         ],

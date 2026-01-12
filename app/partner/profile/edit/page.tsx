@@ -139,8 +139,8 @@ const DEFAULT_MISSION =
   'UNICEF Danmark works to secure all children’s rights through fundraising, education and advocacy in Denmark. We collaborate with schools, organizations and communities to create awareness about children’s global situation and mobilize resources for UNICEF’s work worldwide.'
 
 const DEFAULT_PRIMARY_CONTACT: ContactEntry = {
-  name: 'Christian Bindslev',
-  email: 'Christian@unicef.dk',
+  name: 'Mette Victoria',
+  email: 'Mette@unicef.dk',
   role: 'Project Leader',
   phone: '',
   isPrimary: true,
@@ -148,9 +148,9 @@ const DEFAULT_PRIMARY_CONTACT: ContactEntry = {
 
 const DEFAULT_OTHER_CONTACTS: ContactEntry[] = [
   {
-    name: 'Mette Victoria',
-    email: 'Mette@unicef.dk',
-    role: 'Country Coordinator',
+    name: 'Christian Bindslev',
+    email: 'Christian@unicef.dk',
+    role: 'Senior Consultant',
     phone: '',
     isPrimary: false,
   },

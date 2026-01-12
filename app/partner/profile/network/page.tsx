@@ -16,7 +16,6 @@ import {
   CheckCircle2,
   Clock,
 } from 'lucide-react'
-import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import { buildProgramSummariesForPartner, type ProgramSummary } from '@/lib/programs/selectors'
@@ -93,11 +92,7 @@ export default function PartnerNetworkPage() {
   const loadOrganizationData = async () => {
     setLoading(true)
     try {
-      const session = getCurrentSession()
-      if (!session || session.role !== 'partner') {
-        return
-      }
-
+      // Use sample data for prototype - no strict session check needed
       // For demo purposes - sample organization data
       const sampleOrg: Organization = {
         id: 'demo-org-id',

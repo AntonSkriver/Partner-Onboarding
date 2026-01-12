@@ -821,7 +821,7 @@ export default function UploadContentPage() {
                   {CRC_CATEGORIES.map(category => (
                     <TabsContent key={category.id} value={category.id} className="mt-4">
                       <p className="text-sm text-gray-600 mb-4">{category.description}</p>
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {category.articles.map(articleId => {
                           const crc = crcOptions.find(c => c.id === articleId)
                           const isSelected = selectedCRCs.includes(articleId)
@@ -830,15 +830,14 @@ export default function UploadContentPage() {
                           return (
                             <div
                               key={articleId}
-                              className="flex flex-col items-center cursor-pointer group"
-                              onClick={() => handleCRCToggle(articleId)}
-                              title={crc?.title}
-                            >
-                              <div className={`relative w-16 h-16 transition-all ${
+                              className={`flex flex-col items-center cursor-pointer p-3 rounded-lg border transition-all ${
                                 isSelected
-                                  ? 'ring-4 ring-purple-500 ring-offset-2 rounded-lg shadow-lg scale-105'
-                                  : 'opacity-70 hover:opacity-100 hover:scale-105'
-                              }`}>
+                                  ? 'border-purple-500 bg-purple-50 shadow-md'
+                                  : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                              }`}
+                              onClick={() => handleCRCToggle(articleId)}
+                            >
+                              <div className="relative w-16 h-16 mb-2">
                                 <Image
                                   src={iconPath}
                                   alt={`CRC Article ${articleId}: ${crc?.title || ''}`}
@@ -847,8 +846,11 @@ export default function UploadContentPage() {
                                   className="object-contain rounded-lg"
                                 />
                               </div>
-                              <p className="text-xs text-gray-600 text-center mt-1 leading-tight">
-                                Art. {articleId}
+                              <p className="text-xs font-medium text-gray-900 text-center leading-tight">
+                                Article {articleId}
+                              </p>
+                              <p className="text-xs text-gray-600 text-center mt-0.5 leading-tight">
+                                {crc?.title}
                               </p>
                             </div>
                           )
