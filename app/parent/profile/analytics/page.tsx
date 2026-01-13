@@ -122,7 +122,9 @@ export default function ParentAnalyticsPage() {
       })
     })
 
-    return Array.from(schoolMap.values()).sort((a, b) => b.students - a.students)
+    return Array.from(schoolMap.values())
+      .filter((entry) => entry.teachers > 0 || entry.students > 0)
+      .sort((a, b) => b.students - a.students)
   }, [programSummaries])
 
   // Build detailed project data
@@ -573,22 +575,37 @@ export default function ParentAnalyticsPage() {
       case 'schools':
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-xl bg-blue-50 p-4 text-center">
-                <p className="text-3xl font-bold text-blue-700">{programMetrics.institutions}</p>
-                <p className="mt-1 text-sm text-blue-600">Total Schools</p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="flex items-center gap-3 rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                  <School className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-blue-800">{programMetrics.institutions}</p>
+                  <p className="text-xs text-blue-700/80">Schools & institutions</p>
+                </div>
               </div>
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">
-                  {schoolDetails.reduce((sum, s) => sum + s.students, 0).toLocaleString()}
-                </p>
-                <p className="mt-1 text-sm text-gray-600">Total Students</p>
+              <div className="flex items-center gap-3 rounded-xl border border-purple-100 bg-gradient-to-br from-purple-50 to-white p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-700">
+                  <GraduationCap className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-purple-800">
+                    {schoolDetails.reduce((sum, s) => sum + s.students, 0).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-purple-700/80">Students served</p>
+                </div>
               </div>
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">
-                  {schoolDetails.reduce((sum, s) => sum + s.teachers, 0)}
-                </p>
-                <p className="mt-1 text-sm text-gray-600">Total Teachers</p>
+              <div className="flex items-center gap-3 rounded-xl border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-amber-800">
+                    {schoolDetails.reduce((sum, s) => sum + s.teachers, 0)}
+                  </p>
+                  <p className="text-xs text-amber-700/80">Educators engaged</p>
+                </div>
               </div>
             </div>
 
@@ -601,7 +618,7 @@ export default function ParentAnalyticsPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.03 }}
-                    className="rounded-xl border border-gray-100 p-4 transition-shadow hover:shadow-sm"
+                    className="rounded-xl border border-gray-100 bg-white/80 p-4 transition-shadow hover:shadow-md"
                   >
                     <div className="flex items-start gap-3">
                       <span className="text-2xl">{school.flag}</span>
@@ -611,11 +628,15 @@ export default function ParentAnalyticsPage() {
                         </p>
                         <div className="mt-0.5 flex items-center gap-1 text-sm text-gray-500">
                           <MapIcon className="h-3 w-3" />
-                          <span>{school.city}, {school.country}</span>
+                          <span className="min-w-0 flex-1 truncate">{school.city}, {school.country}</span>
                         </div>
                         <div className="mt-2 flex items-center gap-4 text-sm">
-                          <span className="font-medium text-blue-600">{school.students.toLocaleString()} students</span>
-                          <span className="text-gray-500">{school.teachers} teachers</span>
+                          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                            {school.students.toLocaleString()} students
+                          </span>
+                          <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+                            {school.teachers} {school.teachers === 1 ? 'teacher' : 'teachers'}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -630,70 +651,88 @@ export default function ParentAnalyticsPage() {
         const completedProjectCount = projectDetails.filter((p) => p.status === 'completed').length
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-4 gap-4">
-              <div className="rounded-xl bg-emerald-50 p-4 text-center">
-                <p className="text-3xl font-bold text-emerald-700">{activeProjectCount}</p>
-                <p className="mt-1 text-sm text-emerald-600">Active</p>
+            <div className="grid gap-3 sm:grid-cols-4">
+              <div className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                  <Target className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-emerald-800">{activeProjectCount}</p>
+                  <p className="text-xs text-emerald-700/80">Active projects</p>
+                </div>
               </div>
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">{completedProjectCount}</p>
-                <p className="mt-1 text-sm text-gray-600">Completed</p>
+              <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-gray-700">
+                  <BookOpen className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-gray-900">{completedProjectCount}</p>
+                  <p className="text-xs text-gray-600">Completed</p>
+                </div>
               </div>
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">{programMetrics.students.toLocaleString()}</p>
-                <p className="mt-1 text-sm text-gray-600">Total Students</p>
+              <div className="flex items-center gap-3 rounded-xl border border-purple-100 bg-gradient-to-br from-purple-50 to-white p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-700">
+                  <GraduationCap className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-purple-800">{programMetrics.students.toLocaleString()}</p>
+                  <p className="text-xs text-purple-700/80">Students reached</p>
+                </div>
               </div>
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">{educatorDetails.length}</p>
-                <p className="mt-1 text-sm text-gray-600">Total Educators</p>
+              <div className="flex items-center gap-3 rounded-xl border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-amber-800">{educatorDetails.length}</p>
+                  <p className="text-xs text-amber-700/80">Educators involved</p>
+                </div>
               </div>
             </div>
 
             <div>
               <h4 className="mb-3 text-sm font-semibold text-gray-900">Project Impact Details</h4>
-              <div className="space-y-3">
+              <div className="grid gap-3 md:grid-cols-2">
                 {projectDetails.map((project, idx) => (
                   <motion.div
                     key={project.name}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
-                    className="rounded-xl border border-gray-100 p-4 transition-shadow hover:shadow-sm"
+                    className="rounded-xl border border-gray-100 bg-white/80 p-4 transition-all hover:-translate-y-0.5 hover:shadow-md"
                   >
-                    <div className="mb-3 flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{project.flag}</span>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-gray-900">{project.name}</p>
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${
-                              project.status === 'active'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-gray-100 text-gray-600'
-                            }`}>
-                              {project.status}
-                            </span>
-                          </div>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-2">
+                        <span className="text-2xl leading-none">{project.flag}</span>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-gray-900">{project.name}</p>
                           {project.partnerSchool && (
-                            <p className="mt-0.5 text-sm text-gray-500">Partner: {project.partnerSchool}</p>
+                            <p className="text-xs text-gray-500">Partner: {project.partnerSchool}</p>
+                          )}
+                          {project.country && (
+                            <p className="text-xs text-gray-400">{project.country}</p>
                           )}
                         </div>
                       </div>
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          project.status === 'active'
+                            ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100'
+                            : 'bg-gray-100 text-gray-700 ring-1 ring-gray-200'
+                        }`}
+                      >
+                        {project.status}
+                      </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center gap-2">
-                        <GraduationCap className="h-4 w-4 text-purple-500" />
-                        <div>
-                          <p className="text-lg font-bold text-gray-900">{project.studentsReached}</p>
-                          <p className="text-xs text-gray-500">students reached</p>
-                        </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                      <div className="rounded-lg border border-purple-100 bg-purple-50/60 px-3 py-2">
+                        <p className="text-lg font-semibold text-purple-800">{project.studentsReached}</p>
+                        <p className="text-xs text-purple-700/80">students reached</p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-purple-500" />
-                        <div>
-                          <p className="text-lg font-bold text-gray-900">{project.educatorsEngaged}</p>
-                          <p className="text-xs text-gray-500">educators engaged</p>
-                        </div>
+                      <div className="rounded-lg border border-amber-100 bg-amber-50/60 px-3 py-2">
+                        <p className="text-lg font-semibold text-amber-800">{project.educatorsEngaged}</p>
+                        <p className="text-xs text-amber-700/80">educators engaged</p>
                       </div>
                     </div>
                   </motion.div>
@@ -706,6 +745,40 @@ export default function ParentAnalyticsPage() {
       case 'educators':
         return (
           <div className="space-y-6">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="flex items-center gap-3 rounded-xl border border-purple-100 bg-gradient-to-br from-purple-50 to-white p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-700">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-purple-800">{educatorDetails.length}</p>
+                  <p className="text-xs text-purple-700/80">Educators engaged</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                  <School className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-blue-800">
+                    {new Set(educatorDetails.map(e => e.school)).size}
+                  </p>
+                  <p className="text-xs text-blue-700/80">Schools represented</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 rounded-xl border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                  <MapIcon className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-amber-800">
+                    {new Set(educatorDetails.map(e => e.country)).size}
+                  </p>
+                  <p className="text-xs text-amber-700/80">Countries</p>
+                </div>
+              </div>
+            </div>
+
             <h4 className="text-sm font-semibold text-gray-900">Educator Details</h4>
             <div className="grid gap-3 md:grid-cols-2">
               {educatorDetails.map((educator, idx) => (
@@ -714,15 +787,15 @@ export default function ParentAnalyticsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className="rounded-xl border border-gray-100 p-4 transition-shadow hover:shadow-sm"
+                  className="rounded-xl border border-gray-100 bg-white/80 p-4 transition-all hover:-translate-y-0.5 hover:shadow-md"
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-sm font-medium text-purple-700">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-sm font-semibold text-purple-700">
                         {educator.name.split(' ').map(n => n[0]).join('')}
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{educator.name}</p>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900">{educator.name}</p>
                         <p className="text-xs text-gray-500">{educator.subject} · {educator.school}</p>
                       </div>
                     </div>
@@ -734,6 +807,14 @@ export default function ParentAnalyticsPage() {
                         </p>
                       )}
                     </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                    <span className="rounded-full bg-purple-50 px-2.5 py-1 font-medium text-purple-700">
+                      {educator.subject}
+                    </span>
+                    <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-700">
+                      {educator.school}
+                    </span>
                   </div>
                 </motion.div>
               ))}

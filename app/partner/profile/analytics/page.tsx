@@ -143,7 +143,9 @@ export default function PartnerAnalyticsPage() {
       })
     })
 
-    return Array.from(merged.values()).sort((a, b) => b.students - a.students)
+    return Array.from(merged.values())
+      .filter((entry) => entry.teachers > 0 || entry.students > 0)
+      .sort((a, b) => b.students - a.students)
   }, [database, programSummaries])
 
   // Build detailed project data
@@ -678,11 +680,15 @@ export default function PartnerAnalyticsPage() {
                         </p>
                         <div className="flex items-center gap-1 text-sm text-gray-500 mt-0.5">
                           <MapPin className="h-3 w-3" />
-                          <span>{school.city}, {school.country}</span>
+                          <span className="min-w-0 flex-1 truncate">{school.city}, {school.country}</span>
                         </div>
-                        <div className="flex items-center gap-4 mt-2 text-sm">
-                          <span className="text-blue-600 font-medium">{school.students.toLocaleString()} students</span>
-                          <span className="text-gray-500">{school.teachers} teachers</span>
+                        <div className="mt-2 flex items-center gap-4 text-sm">
+                          <span className="whitespace-nowrap font-medium text-blue-600">
+                            {school.students.toLocaleString()} students
+                          </span>
+                          <span className="whitespace-nowrap text-gray-500">
+                            {school.teachers} teachers
+                          </span>
                         </div>
                       </div>
                     </div>
