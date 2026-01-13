@@ -558,27 +558,29 @@ export default function ParentAnalyticsPage() {
     }
 
     const schoolCoordinates: Record<string, [number, number]> = {
+      // Denmark schools
       'Ørestad Gymnasium': [55.6295, 12.6144],
+      'Vesterbjerg Rettighedsskole': [57.0488, 9.9217],
+      // UK schools
       'London Academy': [51.5074, -0.1278],
       'Manchester International': [53.4808, -2.2426],
-      'Vesterbjerg Rettighedsskole': [57.0488, 9.9217],
     }
 
     if (countryImpact.length === 0) {
-      // Fallback mock data
+      // Fallback mock data - using only actual schools from schoolDetails
       return [
         {
           id: 'dk',
           name: 'Denmark',
           flag: '🇩🇰',
           coordinates: [55.6761, 12.5683],
-          metrics: { students: 1500, schools: 2, educators: 4, projects: 3, completedProjects: 1 },
+          metrics: { students: 1500, schools: 2, educators: 7, projects: 2, completedProjects: 1 },
           regions: ['Capital Region', 'North Denmark'],
           engagementScore: 4.2,
           growthRate: 0.15,
           schools: [
-            { name: 'Ørestad Gymnasium', city: 'Copenhagen', students: 850, educators: 2, coordinates: [55.6295, 12.6144] },
-            { name: 'Vesterbjerg Rettighedsskole', city: 'Aalborg', students: 650, educators: 2, coordinates: [57.0488, 9.9217] },
+            { name: 'Ørestad Gymnasium', city: 'Copenhagen', students: 850, educators: 4, coordinates: [55.6295, 12.6144] as [number, number] },
+            { name: 'Vesterbjerg Rettighedsskole', city: 'Aalborg', students: 650, educators: 3, coordinates: [57.0488, 9.9217] as [number, number] },
           ],
         },
         {
@@ -586,13 +588,13 @@ export default function ParentAnalyticsPage() {
           name: 'United Kingdom',
           flag: '🇬🇧',
           coordinates: [51.5074, -0.1278],
-          metrics: { students: 2180, schools: 2, educators: 4, projects: 3, completedProjects: 1 },
+          metrics: { students: 2180, schools: 2, educators: 9, projects: 4, completedProjects: 1 },
           regions: ['London', 'Manchester'],
           engagementScore: 3.8,
           growthRate: 0.12,
           schools: [
-            { name: 'London Academy', city: 'London', students: 1200, educators: 2, coordinates: [51.5074, -0.1278] },
-            { name: 'Manchester International', city: 'Manchester', students: 980, educators: 2, coordinates: [53.4808, -2.2426] },
+            { name: 'London Academy', city: 'London', students: 1200, educators: 5, coordinates: [51.5074, -0.1278] as [number, number] },
+            { name: 'Manchester International', city: 'Manchester', students: 980, educators: 4, coordinates: [53.4808, -2.2426] as [number, number] },
           ],
         },
       ]

@@ -211,3 +211,60 @@
   background-position: center;
   background-repeat: no-repeat;
 }
+
+/* Leaflet Map Styles - ensure proper interactions */
+.leaflet-container {
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.leaflet-container,
+.leaflet-container * {
+  box-sizing: border-box;
+}
+
+.leaflet-grab {
+  cursor: grab;
+}
+
+.leaflet-dragging .leaflet-grab,
+.leaflet-dragging .leaflet-grab .leaflet-interactive {
+  cursor: grabbing;
+}
+
+/* Ensure custom markers don't block map interactions */
+.custom-marker,
+.school-marker {
+  pointer-events: auto;
+}
+
+/* Fix for map pane interactions */
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-container,
+.leaflet-overlay-pane svg,
+.leaflet-zoom-box,
+.leaflet-image-layer,
+.leaflet-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.leaflet-tile-pane {
+  pointer-events: none;
+}
+
+.leaflet-map-pane {
+  z-index: 2;
+}
+
+.leaflet-overlay-pane {
+  z-index: 4;
+}
+
+.leaflet-marker-pane {
+  z-index: 6;
+}
