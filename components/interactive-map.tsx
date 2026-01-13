@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useState, useRef } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -15,6 +14,7 @@ if (typeof window !== 'undefined') {
     iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
   })
+
 }
 
 export interface CountryData {
@@ -82,94 +82,192 @@ function createCustomIcon(color: string, size: 'sm' | 'md' | 'lg' = 'md') {
   })
 }
 
-// Component to handle map view changes and expose controls
-function MapController({
-  selectedCountry,
-  onMapReady
-}: {
-  selectedCountry: CountryData | null
-  onMapReady?: (controls: { zoomIn: () => void; zoomOut: () => void; resetView: () => void }) => void
-}) {
-  const map = useMap()
-
-  // Explicitly enable all map interactions on mount
-  useEffect(() => {
-    // Enable all interactions
-    map.dragging.enable()
-    map.scrollWheelZoom.enable()
-    map.doubleClickZoom.enable()
-    map.touchZoom.enable()
-    map.boxZoom.enable()
-    map.keyboard.enable()
-
-    // Set cursor style on the map container
-    const container = map.getContainer()
-    if (container) {
-      container.style.cursor = 'grab'
-    }
-
-    // Add drag event listeners for visual feedback
-    map.on('dragstart', () => {
-      if (container) container.style.cursor = 'grabbing'
-    })
-    map.on('dragend', () => {
-      if (container) container.style.cursor = 'grab'
-    })
-
-    return () => {
-      map.off('dragstart')
-      map.off('dragend')
-    }
-  }, [map])
-
-  useEffect(() => {
-    if (onMapReady) {
-      onMapReady({
-        zoomIn: () => map.zoomIn(),
-        zoomOut: () => map.zoomOut(),
-        resetView: () => map.flyTo([54, 10], 4, { duration: 1.5 }),
-      })
-    }
-  }, [map, onMapReady])
-
-  useEffect(() => {
-    if (selectedCountry) {
-      map.flyTo(selectedCountry.coordinates, 6, { duration: 1.5 })
-    } else {
-      // Reset to show Europe
-      map.flyTo([54, 10], 4, { duration: 1.5 })
-    }
-  }, [selectedCountry, map])
-
-  return null
-}
-
 export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapProps) {
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null)
-  const [mapReady, setMapReady] = useState(false)
-  const [mounted, setMounted] = useState(false)
   const [mapControls, setMapControls] = useState<{ zoomIn: () => void; zoomOut: () => void; resetView: () => void } | null>(null)
-  const mapInstanceRef = useRef<L.Map | null>(null)
-  const containerIdRef = useRef(`interactive-map-${Math.random().toString(36).slice(2)}`)
+  const [mounted, setMounted] = useState(false)
+  const mapRef = useRef<L.Map | null>(null)
+  const markerLayerRef = useRef<L.LayerGroup | null>(null)
+  const schoolLayerRef = useRef<L.LayerGroup | null>(null)
+  const mapContainerRef = useRef<HTMLDivElement | null>(null)
+  const mapId = useMemo(() => `leaflet-map-${Math.random().toString(36).slice(2)}`, [])
 
-  // Avoid React strict-mode double init and ensure cleanup on hot reload/unmount
+  // Mount flag to avoid SSR/strict-mode double render issues
   useEffect(() => {
     setMounted(true)
     return () => {
-      mapInstanceRef.current?.remove()
-      mapInstanceRef.current = null
+      if (mapRef.current) {
+        const container = mapRef.current.getContainer() as (HTMLElement & { _leaflet_id?: string | null }) | null
+        mapRef.current.remove()
+        mapRef.current = null
+        if (container && container._leaflet_id) {
+          container._leaflet_id = null
+        }
+      }
     }
   }, [])
 
-  // If Leaflet has already attached to this DOM node (hot reload / fast refresh),
-  // clear the stored id before react-leaflet tries to initialize again.
-  useLayoutEffect(() => {
-    if (!mounted) return
-    const container = L.DomUtil.get(containerIdRef.current) as (HTMLElement & { _leaflet_id?: string | null }) | null
-    if (container && container._leaflet_id) {
+  // Initialize Leaflet map imperatively to avoid react-leaflet double-init issues
+  useEffect(() => {
+    if (!mounted || mapRef.current || !mapContainerRef.current) return
+
+    // If the container is already stamped, clear it so we can re-init safely
+    const container = mapContainerRef.current as (HTMLDivElement & { _leaflet_id?: string | null })
+    if (container._leaflet_id) {
       container._leaflet_id = null
     }
+    container.innerHTML = ''
+    const targetContainer = container
+
+    const map = L.map(targetContainer, {
+      center: [54, 10],
+      zoom: 4,
+      zoomControl: false,
+      scrollWheelZoom: true,
+      doubleClickZoom: true,
+      dragging: true,
+      boxZoom: true,
+      touchZoom: true,
+      keyboard: true,
+    })
+
+    mapRef.current = map
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map)
+
+    // Set controls for external buttons
+    setMapControls({
+      zoomIn: () => map.zoomIn(),
+      zoomOut: () => map.zoomOut(),
+      resetView: () => map.flyTo([54, 10], 4, { duration: 1.2 }),
+    })
+
+    // Cursor affordance
+    const mapDom = map.getContainer()
+    if (mapDom) {
+      mapDom.style.cursor = 'grab'
+      map.on('dragstart', () => {
+        mapDom.style.cursor = 'grabbing'
+      })
+      map.on('dragend', () => {
+        mapDom.style.cursor = 'grab'
+      })
+    }
+
+    return () => {
+      map.off()
+      markerLayerRef.current?.clearLayers()
+      schoolLayerRef.current?.clearLayers()
+      const container = map.getContainer() as (HTMLElement & { _leaflet_id?: string | null }) | null
+      try {
+        const mapContainerId = (map as unknown as { _containerId?: number })._containerId
+        if (container && mapContainerId && container._leaflet_id !== mapContainerId) {
+          container._leaflet_id = mapContainerId
+        }
+        map.remove()
+      } catch (err) {
+        if (container) {
+          container._leaflet_id = null
+          container.innerHTML = ''
+        }
+      }
+      mapRef.current = null
+      markerLayerRef.current = null
+      schoolLayerRef.current = null
+    }
   }, [mounted])
+
+  // Update country markers when data changes
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    // Clear old markers
+    markerLayerRef.current?.remove()
+    const layer = L.layerGroup()
+
+    countries.forEach((country) => {
+      const marker = L.marker(country.coordinates, {
+        icon: createCustomIcon(
+          (function scoreToColor(score: number) {
+            if (score >= 4) return 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+            if (score >= 3) return 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
+            return 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+          })(country.engagementScore),
+          (function studentsToSize(students: number): 'sm' | 'md' | 'lg' {
+            if (students >= 3000) return 'lg'
+            if (students >= 1000) return 'md'
+            return 'sm'
+          })(country.metrics.students)
+        ),
+      })
+      marker.on('click', () => {
+        setSelectedCountry(country)
+        onCountrySelect?.(country)
+      })
+      marker.bindPopup(
+        `<div style="text-align:center;">
+          <div style="font-weight:600;">${country.flag} ${country.name}</div>
+          <div style="font-size:12px;color:#4b5563;margin-top:4px;">${country.metrics.students.toLocaleString()} students</div>
+          <div style="font-size:11px;color:#6b7280;">${country.metrics.schools} schools · ${country.metrics.educators} educators</div>
+        </div>`
+      )
+      layer.addLayer(marker)
+    })
+
+    layer.addTo(map)
+    markerLayerRef.current = layer
+  }, [countries, onCountrySelect])
+
+  // Fly map when selection changes and render school markers
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    if (selectedCountry) {
+      map.flyTo(selectedCountry.coordinates, 6, { duration: 1.2 })
+    } else {
+      map.flyTo([54, 10], 4, { duration: 1.2 })
+    }
+
+    // Schools
+    schoolLayerRef.current?.remove()
+    const schoolLayer = L.layerGroup()
+    if (selectedCountry) {
+      selectedCountry.schools.forEach((school, idx) => {
+        if (!school.coordinates) return
+        const marker = L.marker(school.coordinates, {
+          icon: L.divIcon({
+            className: 'school-marker',
+            html: `
+              <div style="
+                width: 20px;
+                height: 20px;
+                background: #3b82f6;
+                border: 2px solid white;
+                border-radius: 4px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+              "></div>
+            `,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+          }),
+        })
+        marker.bindPopup(
+          `<div style="font-size:12px;">
+            <div style="font-weight:600;">${school.name}</div>
+            <div style="color:#6b7280;">${school.city}</div>
+            <div style="margin-top:4px;color:#374151;">${school.students} students · ${school.educators} educators</div>
+          </div>`
+        )
+        schoolLayer.addLayer(marker)
+      })
+    }
+    schoolLayer.addTo(map)
+    schoolLayerRef.current = schoolLayer
+  }, [selectedCountry])
 
   const handleCountryClick = (country: CountryData) => {
     setSelectedCountry(country)
@@ -199,99 +297,12 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
     <div className="relative h-full w-full">
       {/* Map Container */}
       <div className="h-full w-full rounded-xl border border-gray-200 shadow-lg" style={{ overflow: 'clip' }}>
-        {!mounted ? null : (
-        <MapContainer
-          key="interactive-map"
-          id={containerIdRef.current}
-          center={[54, 10]}
-          zoom={4}
-          style={{ height: '100%', width: '100%', cursor: 'grab' }}
-          zoomControl={false}
-          dragging={true}
-          scrollWheelZoom={true}
-          doubleClickZoom={true}
-          touchZoom={true}
-          ref={(map) => {
-            if (map) {
-              mapInstanceRef.current = map
-              setMapReady(true)
-            }
-          }}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-          />
-
-          <MapController selectedCountry={selectedCountry} onMapReady={setMapControls} />
-
-          {mapReady && countries.map((country) => (
-            <Marker
-              key={country.id}
-              position={country.coordinates}
-              icon={createCustomIcon(
-                getMarkerColor(country.engagementScore),
-                getMarkerSize(country.metrics.students)
-              )}
-            >
-              <Popup>
-                <div className="text-center p-1">
-                  <span className="text-xl mr-1">{country.flag}</span>
-                  <span className="font-semibold">{country.name}</span>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {country.metrics.students.toLocaleString()} students
-                  </div>
-                  <div className="text-xs text-gray-500 mt-0.5">
-                    {country.metrics.schools} schools · {country.metrics.educators} educators
-                  </div>
-                  <button
-                    onClick={() => handleCountryClick(country)}
-                    className="mt-2 text-xs bg-purple-600 text-white hover:bg-purple-700 font-medium px-3 py-1 rounded-full transition-colors"
-                  >
-                    View details →
-                  </button>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-
-          {/* School markers when country is selected */}
-          {selectedCountry && selectedCountry.schools.map((school, idx) => (
-            school.coordinates && (
-              <Marker
-                key={`school-${idx}`}
-                position={school.coordinates}
-                icon={L.divIcon({
-                  className: 'school-marker',
-                  html: `
-                    <div style="
-                      width: 20px;
-                      height: 20px;
-                      background: #3b82f6;
-                      border: 2px solid white;
-                      border-radius: 4px;
-                      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-                    "></div>
-                  `,
-                  iconSize: [20, 20],
-                  iconAnchor: [10, 10],
-                })}
-              >
-                <Popup>
-                  <div className="p-1">
-                    <p className="font-semibold text-sm">{school.name}</p>
-                    <p className="text-xs text-gray-500">{school.city}</p>
-                    <div className="flex gap-3 mt-1 text-xs">
-                      <span>{school.students} students</span>
-                      <span>{school.educators} educators</span>
-                    </div>
-                  </div>
-                </Popup>
-              </Marker>
-            )
-          ))}
-        </MapContainer>
-        )}
+        <div
+          id={mapId}
+          ref={mapContainerRef}
+          className="h-full w-full"
+          style={{ minHeight: 300 }}
+        />
       </div>
 
       {/* Country Detail Panel */}
