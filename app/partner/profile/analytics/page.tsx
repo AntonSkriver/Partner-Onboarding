@@ -21,6 +21,7 @@ import {
   BookOpen,
   MapPin,
 } from 'lucide-react'
+import { InteractiveMapWrapper, type CountryData } from '@/components/interactive-map-wrapper'
 import { Database } from '@/lib/types/database'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import {
@@ -419,6 +420,102 @@ export default function PartnerAnalyticsPage() {
     }
   }, [programSummaries, focusCountries, focusSchoolCount])
 
+  const denmarkLabel = getCountryDisplay('DK').name
+
+  const denmarkImpact = useMemo(
+    () => countryImpact.find((entry) => entry.countryLabel === denmarkLabel) ?? null,
+    [countryImpact, denmarkLabel],
+  )
+
+  const denmarkSchools = useMemo(
+    () => schoolDetails.filter((school) => school.country === denmarkLabel),
+    [schoolDetails, denmarkLabel],
+  )
+
+  const denmarkProgramCount = useMemo(() => {
+    const programs = new Set<string>()
+    programSummaries.forEach((summary) => {
+      const hasDenmarkInstitution = summary.institutions.some((inst) => {
+        if (EXCLUDED_INSTITUTION_IDS.has(inst.id)) return false
+        const { name } = getCountryDisplay(inst.country)
+        return name === denmarkLabel
+      })
+      if (hasDenmarkInstitution) {
+        programs.add(summary.program.id)
+      }
+    })
+    return programs.size
+  }, [programSummaries, denmarkLabel])
+
+  const denmarkMapData = useMemo<CountryData[]>(() => {
+    const countryCoordinates: [number, number] = [55.6761, 12.5683]
+    const cityCoordinates: Record<string, [number, number]> = {
+      Copenhagen: [55.6761, 12.5683],
+      Aarhus: [56.1629, 10.2039],
+      Aalborg: [57.0488, 9.9217],
+      Odense: [55.4038, 10.4024],
+      Esbjerg: [55.4765, 8.4594],
+    }
+    const schoolCoordinates: Record<string, [number, number]> = {
+      'Ørestad Gymnasium': [55.6295, 12.6144],
+      'Vesterbjerg Rettighedsskole': [57.0488, 9.9217],
+    }
+
+    const fallbackSchools = [
+      {
+        name: 'Ørestad Gymnasium',
+        city: 'Copenhagen',
+        students: 850,
+        educators: 4,
+        coordinates: schoolCoordinates['Ørestad Gymnasium'],
+      },
+      {
+        name: 'Vesterbjerg Rettighedsskole',
+        city: 'Aalborg',
+        students: 650,
+        educators: 3,
+        coordinates: schoolCoordinates['Vesterbjerg Rettighedsskole'],
+      },
+    ]
+
+    const totalStudents = denmarkImpact?.students ??
+      denmarkSchools.reduce((sum, school) => sum + school.students, 0)
+    const totalTeachers = denmarkImpact?.teachers ??
+      denmarkSchools.reduce((sum, school) => sum + school.teachers, 0)
+    const totalProjects = denmarkImpact?.projects ?? 0
+    const completedProjects = denmarkImpact?.completedProjects ?? 0
+
+    return [
+      {
+        id: 'dk',
+        name: denmarkLabel,
+        flag: getCountryDisplay('DK').flag,
+        coordinates: countryCoordinates,
+        metrics: {
+          students: totalStudents,
+          schools: denmarkImpact?.institutions ?? denmarkSchools.length,
+          educators: totalTeachers,
+          projects: totalProjects,
+          completedProjects,
+        },
+        regions: denmarkImpact?.regions ?? [],
+        engagementScore:
+          totalTeachers > 0 && totalProjects > 0
+            ? 4.0 + (completedProjects / Math.max(totalProjects, 1)) * 0.5
+            : 3.6,
+        growthRate: 0.08,
+        schools: (denmarkSchools.length > 0 ? denmarkSchools.map((school) => ({
+          name: school.name,
+          city: school.city || '',
+          students: school.students,
+          educators: school.teachers,
+          coordinates: schoolCoordinates[school.name] ||
+            (school.city ? cityCoordinates[school.city] : undefined),
+        })) : fallbackSchools),
+      },
+    ]
+  }, [denmarkImpact, denmarkSchools, denmarkLabel])
+
   const headlineMetrics = [
     {
       id: 'students',
@@ -472,16 +569,16 @@ export default function PartnerAnalyticsPage() {
 
   const countryReachStats = [
     {
-      label: 'Countries active (DK/UK)',
-      value: filteredImpact.length.toString(),
+      label: 'Country active',
+      value: denmarkLabel,
     },
     {
       label: 'Institutions onboarded',
-      value: filteredTotals.institutions.toString(),
+      value: (denmarkImpact?.institutions ?? denmarkSchools.length).toString(),
     },
     {
       label: 'Programs live',
-      value: filteredTotals.programs.toString(),
+      value: denmarkProgramCount.toString(),
     },
   ]
 
@@ -491,29 +588,6 @@ export default function PartnerAnalyticsPage() {
   useEffect(() => {
     loadOrganizationProfile()
   }, [])
-
-  const markerPositions: Record<string, { x: string; y: string }> = {
-    Denmark: { x: '62%', y: '40%' },
-    'United Kingdom': { x: '48%', y: '45%' },
-  }
-
-  const mapMarkers =
-    filteredImpact.length > 0
-      ? filteredImpact.map((entry) => ({
-          country: entry.countryLabel,
-          flag: entry.flag,
-          x: markerPositions[entry.countryLabel]?.x ?? '50%',
-          y: markerPositions[entry.countryLabel]?.y ?? '50%',
-        }))
-      : [
-          { country: 'Denmark', flag: '🇩🇰', x: markerPositions.Denmark.x, y: markerPositions.Denmark.y },
-          {
-            country: 'United Kingdom',
-            flag: '🇬🇧',
-            x: markerPositions['United Kingdom'].x,
-            y: markerPositions['United Kingdom'].y,
-          },
-        ]
 
   const loadOrganizationProfile = async () => {
     setLoading(true)
@@ -1018,59 +1092,19 @@ export default function PartnerAnalyticsPage() {
               <MapIcon className="h-5 w-5 text-purple-600" />
               Geographic reach
             </CardTitle>
-            <CardDescription>Where UNICEF Denmark collaborations are active.</CardDescription>
+            <CardDescription>UNICEF Denmark activity across participating Danish schools.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="relative h-56 overflow-hidden rounded-xl border border-purple-100 bg-gradient-to-br from-purple-50 via-white to-blue-50 shadow-sm">
-              <div className="absolute inset-0 opacity-70">
-                <div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,rgba(99,102,241,0.18),transparent_35%),radial-gradient(circle_at_70%_40%,rgba(59,130,246,0.15),transparent_30%),radial-gradient(circle_at_55%_70%,rgba(34,197,94,0.12),transparent_28%)]" />
-              </div>
-              <div className="absolute inset-0">
-                <div className="mx-auto flex h-full max-w-xl items-center justify-between px-8">
-                  <div className="flex flex-col gap-3 text-xs text-gray-600">
-                    {countryReachStats.map((stat) => (
-                      <div key={stat.label} className="flex items-center justify-between gap-4">
-                        <span className="text-gray-600">{stat.label}</span>
-                        <span className="text-lg font-semibold text-gray-900">{stat.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="relative h-52 w-80 overflow-hidden rounded-xl border border-white/60 bg-white/85 p-4 shadow-sm backdrop-blur">
-                    <div className="absolute inset-0 opacity-60">
-                      <img
-                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/World_map_-_low_resolution.svg/1024px-World_map_-_low_resolution.svg.png"
-                        alt="World map"
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <div className="absolute inset-0 rounded-xl bg-[radial-gradient(circle_at_50%_30%,rgba(99,102,241,0.08),transparent_40%)]" />
-                    <div className="relative h-full w-full">
-                      {mapMarkers.map((marker) => (
-                        <motion.div
-                          key={marker.country}
-                          className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center gap-1 text-[11px] font-medium text-gray-800"
-                          style={{ left: marker.x, top: marker.y }}
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ delay: 0.3, type: "spring" }}
-                          whileHover={{ scale: 1.1 }}
-                        >
-                          <motion.span
-                            className="h-2.5 w-2.5 rounded-full bg-purple-600 shadow-sm"
-                            animate={{
-                              boxShadow: ['0 0 0 0 rgba(147, 51, 234, 0.4)', '0 0 0 8px rgba(147, 51, 234, 0)', '0 0 0 0 rgba(147, 51, 234, 0)']
-                            }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                          />
-                          <span className="rounded-full bg-white/90 px-2 py-0.5 shadow-sm">
-                            {marker.flag} {marker.country}
-                          </span>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-3">
+              {countryReachStats.map((stat) => (
+                <div key={stat.label} className="rounded-xl border border-gray-100 bg-gray-50/80 p-3">
+                  <p className="text-xs text-gray-500">{stat.label}</p>
+                  <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
                 </div>
-              </div>
+              ))}
+            </div>
+            <div className="h-[420px] w-full">
+              <InteractiveMapWrapper countries={denmarkMapData} />
             </div>
           </CardContent>
         </Card>
