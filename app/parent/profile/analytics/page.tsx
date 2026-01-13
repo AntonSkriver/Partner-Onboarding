@@ -29,6 +29,7 @@ import {
   type ProgramSummary,
 } from '@/lib/programs/selectors'
 import { getCountryDisplay } from '@/lib/countries'
+import { InteractiveMapWrapper, type CountryData } from '@/components/interactive-map-wrapper'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 
@@ -548,6 +549,83 @@ export default function ParentAnalyticsPage() {
             y: markerPositions['United Kingdom'].y,
           },
         ]
+
+  // Transform data for interactive map
+  const mapCountryData = useMemo<CountryData[]>(() => {
+    const countryCoordinates: Record<string, [number, number]> = {
+      Denmark: [55.6761, 12.5683],
+      'United Kingdom': [51.5074, -0.1278],
+    }
+
+    const schoolCoordinates: Record<string, [number, number]> = {
+      'Ørestad Gymnasium': [55.6295, 12.6144],
+      'London Academy': [51.5074, -0.1278],
+      'Manchester International': [53.4808, -2.2426],
+      'Vesterbjerg Rettighedsskole': [57.0488, 9.9217],
+    }
+
+    if (countryImpact.length === 0) {
+      // Fallback mock data
+      return [
+        {
+          id: 'dk',
+          name: 'Denmark',
+          flag: '🇩🇰',
+          coordinates: [55.6761, 12.5683],
+          metrics: { students: 1500, schools: 2, educators: 4, projects: 3, completedProjects: 1 },
+          regions: ['Capital Region', 'North Denmark'],
+          engagementScore: 4.2,
+          growthRate: 0.15,
+          schools: [
+            { name: 'Ørestad Gymnasium', city: 'Copenhagen', students: 850, educators: 2, coordinates: [55.6295, 12.6144] },
+            { name: 'Vesterbjerg Rettighedsskole', city: 'Aalborg', students: 650, educators: 2, coordinates: [57.0488, 9.9217] },
+          ],
+        },
+        {
+          id: 'uk',
+          name: 'United Kingdom',
+          flag: '🇬🇧',
+          coordinates: [51.5074, -0.1278],
+          metrics: { students: 2180, schools: 2, educators: 4, projects: 3, completedProjects: 1 },
+          regions: ['London', 'Manchester'],
+          engagementScore: 3.8,
+          growthRate: 0.12,
+          schools: [
+            { name: 'London Academy', city: 'London', students: 1200, educators: 2, coordinates: [51.5074, -0.1278] },
+            { name: 'Manchester International', city: 'Manchester', students: 980, educators: 2, coordinates: [53.4808, -2.2426] },
+          ],
+        },
+      ]
+    }
+
+    return countryImpact.map((country) => {
+      const countrySchools = schoolDetails.filter((s) => s.country === country.countryLabel)
+
+      return {
+        id: country.country.toLowerCase(),
+        name: country.countryLabel,
+        flag: country.flag,
+        coordinates: countryCoordinates[country.countryLabel] || [0, 0],
+        metrics: {
+          students: country.students,
+          schools: country.institutions,
+          educators: country.teachers,
+          projects: country.projects,
+          completedProjects: country.completedProjects,
+        },
+        regions: country.regions,
+        engagementScore: country.teachers > 0 && country.projects > 0 ? 4.0 + (country.completedProjects / country.projects) * 0.5 : 3.0,
+        growthRate: 0.12,
+        schools: countrySchools.map((s) => ({
+          name: s.name,
+          city: s.city || '',
+          students: s.students,
+          educators: s.teachers,
+          coordinates: schoolCoordinates[s.name],
+        })),
+      }
+    })
+  }, [countryImpact, schoolDetails])
 
   useEffect(() => {
     loadOrganizationProfile()
@@ -1088,7 +1166,7 @@ export default function ParentAnalyticsPage() {
         </DialogContent>
       </Dialog>
 
-      <section className="grid gap-6 lg:grid-cols-[3fr,2fr]">
+      <section className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Country impact breakdown</CardTitle>
@@ -1152,217 +1230,26 @@ export default function ParentAnalyticsPage() {
           </CardContent>
         </Card>
 
+        {/* Interactive Geographic Map */}
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ delay: 0.3, type: "spring", stiffness: 100 }}
         >
-          <Card className="overflow-hidden group">
+          <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <motion.div
-                  animate={{ rotate: [0, 10, -10, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <MapIcon className="h-5 w-5 text-purple-600" />
-                </motion.div>
-                <motion.span
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  Geographic reach
-                </motion.span>
+                <MapIcon className="h-5 w-5 text-purple-600" />
+                Geographic reach
               </CardTitle>
-              <CardDescription>Visual map of where UNICEF parent programs are active.</CardDescription>
+              <CardDescription>
+                Interactive map of UNICEF parent programs. Click on a country to see detailed metrics.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <motion.div
-                className="relative h-64 overflow-hidden rounded-xl border border-purple-100 shadow-lg"
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                {/* Animated gradient background */}
-                <motion.div
-                  className="absolute inset-0"
-                  animate={{
-                    background: [
-                      'linear-gradient(135deg, #f3e8ff 0%, #ffffff 50%, #dbeafe 100%)',
-                      'linear-gradient(135deg, #dbeafe 0%, #ffffff 50%, #f3e8ff 100%)',
-                      'linear-gradient(135deg, #f3e8ff 0%, #ffffff 50%, #dbeafe 100%)',
-                    ],
-                  }}
-                  transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                />
-
-                {/* Floating particles */}
-                {[...Array(6)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="absolute w-2 h-2 rounded-full bg-purple-300/40"
-                    style={{
-                      left: `${20 + i * 15}%`,
-                      top: `${30 + (i % 3) * 20}%`,
-                    }}
-                    animate={{
-                      y: [0, -20, 0],
-                      x: [0, 10, 0],
-                      opacity: [0.3, 0.6, 0.3],
-                      scale: [1, 1.2, 1],
-                    }}
-                    transition={{
-                      duration: 3 + i * 0.5,
-                      repeat: Infinity,
-                      delay: i * 0.3,
-                      ease: "easeInOut",
-                    }}
-                  />
-                ))}
-
-                <div className="absolute inset-0">
-                  <div className="mx-auto flex h-full max-w-xl items-center justify-between px-8">
-                    {/* Stats with staggered animation */}
-                    <div className="flex flex-col gap-4 text-xs text-gray-600">
-                      {countryReachStats.map((stat, index) => (
-                        <motion.div
-                          key={stat.label}
-                          className="flex items-center justify-between gap-4 bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm"
-                          initial={{ opacity: 0, x: -30 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.5 + index * 0.15, type: "spring" }}
-                          whileHover={{ x: 5, backgroundColor: "rgba(255,255,255,0.9)" }}
-                        >
-                          <span className="text-gray-600">{stat.label}</span>
-                          <motion.span
-                            className="text-lg font-bold text-purple-700"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 0.7 + index * 0.15, type: "spring", stiffness: 200 }}
-                          >
-                            {stat.value}
-                          </motion.span>
-                        </motion.div>
-                      ))}
-                    </div>
-
-                    {/* Map container with enhanced animations */}
-                    <motion.div
-                      className="relative h-56 w-80 overflow-hidden rounded-xl border-2 border-white/80 bg-white/90 p-4 shadow-xl backdrop-blur"
-                      initial={{ opacity: 0, scale: 0.8, rotateY: -15 }}
-                      animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-                      transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
-                      whileHover={{ boxShadow: "0 20px 40px rgba(147, 51, 234, 0.2)" }}
-                    >
-                      {/* World map */}
-                      <motion.div
-                        className="absolute inset-0 opacity-50"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 0.5 }}
-                        transition={{ delay: 0.6 }}
-                      >
-                        <img
-                          src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/World_map_-_low_resolution.svg/1024px-World_map_-_low_resolution.svg.png"
-                          alt="World map"
-                          className="h-full w-full object-cover"
-                        />
-                      </motion.div>
-
-                      {/* Animated overlay gradient */}
-                      <motion.div
-                        className="absolute inset-0 rounded-xl"
-                        animate={{
-                          background: [
-                            'radial-gradient(circle at 50% 30%, rgba(147, 51, 234, 0.1), transparent 50%)',
-                            'radial-gradient(circle at 48% 28%, rgba(59, 130, 246, 0.1), transparent 50%)',
-                            'radial-gradient(circle at 50% 30%, rgba(147, 51, 234, 0.1), transparent 50%)',
-                          ],
-                        }}
-                        transition={{ duration: 4, repeat: Infinity }}
-                      />
-
-                      {/* Connection line between markers */}
-                      <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                        <motion.line
-                          x1="47%"
-                          y1="29%"
-                          x2="51%"
-                          y2="27%"
-                          stroke="url(#gradient)"
-                          strokeWidth="2"
-                          strokeDasharray="4 2"
-                          initial={{ pathLength: 0, opacity: 0 }}
-                          animate={{ pathLength: 1, opacity: 0.6 }}
-                          transition={{ delay: 1.2, duration: 1 }}
-                        />
-                        <defs>
-                          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor="#9333ea" />
-                            <stop offset="100%" stopColor="#3b82f6" />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-
-                      {/* Map markers with enhanced animations */}
-                      <div className="relative h-full w-full">
-                        {mapMarkers.map((marker, index) => (
-                          <motion.div
-                            key={marker.country}
-                            className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 text-[11px] font-medium text-gray-800 cursor-pointer"
-                            style={{ left: marker.x, top: marker.y }}
-                            initial={{ scale: 0, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            transition={{
-                              delay: 0.8 + index * 0.2,
-                              type: "spring",
-                              stiffness: 200,
-                              damping: 15,
-                            }}
-                            whileHover={{ scale: 1.15, zIndex: 10 }}
-                          >
-                            {/* Outer pulsing ring */}
-                            <motion.span
-                              className="absolute -inset-2 rounded-full border-2 border-purple-400/50"
-                              animate={{
-                                scale: [1, 1.5, 1],
-                                opacity: [0.5, 0, 0.5],
-                              }}
-                              transition={{ duration: 2, repeat: Infinity, delay: index * 0.3 }}
-                            />
-
-                            {/* Inner dot with glow */}
-                            <motion.span
-                              className="relative h-3 w-3 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg"
-                              animate={{
-                                boxShadow: [
-                                  '0 0 0 0 rgba(147, 51, 234, 0.4), 0 0 10px rgba(147, 51, 234, 0.3)',
-                                  '0 0 0 8px rgba(147, 51, 234, 0), 0 0 20px rgba(147, 51, 234, 0.5)',
-                                  '0 0 0 0 rgba(147, 51, 234, 0.4), 0 0 10px rgba(147, 51, 234, 0.3)',
-                                ],
-                              }}
-                              transition={{ duration: 2, repeat: Infinity, delay: index * 0.5 }}
-                            />
-
-                            {/* Country label */}
-                            <motion.span
-                              className="rounded-full bg-white px-2.5 py-1 shadow-lg border border-purple-100"
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 1 + index * 0.2 }}
-                              whileHover={{
-                                backgroundColor: "#f3e8ff",
-                                scale: 1.05,
-                              }}
-                            >
-                              <span className="mr-1">{marker.flag}</span>
-                              {marker.country}
-                            </motion.span>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  </div>
-                </div>
-              </motion.div>
+              <div className="h-[500px] w-full">
+                <InteractiveMapWrapper countries={mapCountryData} />
+              </div>
             </CardContent>
           </Card>
         </motion.div>
