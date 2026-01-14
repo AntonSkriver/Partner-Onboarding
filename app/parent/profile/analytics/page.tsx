@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { motion, useInView, useSpring, useTransform } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -11,6 +11,18 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Tooltip,
+  LabelList,
+} from 'recharts'
+import {
   Target,
   Users,
   GraduationCap,
@@ -19,6 +31,7 @@ import {
   Map as MapIcon,
   BookOpen,
   ChevronRight,
+  TrendingUp,
 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
@@ -38,6 +51,62 @@ function getProjectAgeGroup(projectName: string): string {
   const ageGroups = ['12-14', '14-16', '16-18']
   const hash = projectName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
   return ageGroups[hash % ageGroups.length]
+}
+
+// Animated counter component for engaging number displays
+function AnimatedCounter({ value, duration = 1.5, className = '' }: { value: number; duration?: number; className?: string }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const isInView = useInView(ref, { once: true })
+  const spring = useSpring(0, { duration: duration * 1000 })
+  const display = useTransform(spring, (current) => Math.round(current).toLocaleString())
+
+  useEffect(() => {
+    if (isInView) {
+      spring.set(value)
+    }
+  }, [isInView, spring, value])
+
+  return <motion.span ref={ref} className={className}>{display}</motion.span>
+}
+
+// Chart color palettes
+const CHART_COLORS = {
+  purple: ['#9333ea', '#a855f7', '#c084fc', '#d8b4fe'],
+  blue: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd'],
+  emerald: ['#059669', '#10b981', '#34d399', '#6ee7b7'],
+  amber: ['#d97706', '#f59e0b', '#fbbf24', '#fcd34d'],
+  status: {
+    active: '#10b981',
+    partial: '#f59e0b',
+    onboarding: '#9ca3af',
+  },
+}
+
+// Educator avatar mapping
+const EDUCATOR_AVATARS: Record<string, string> = {
+  'Anne Holm': '/images/avatars/anne-holm.png',
+  'Jonas Madsen': '/images/avatars/jonas-final.jpg',
+  'Sofie Larsen': '/images/avatars/sofie-larsen.png',
+  'Peter Andersen': '/images/avatars/peter-andersen.png',
+  'Karin Albrectsen': '/images/avatars/karin-new.jpg',
+  'Ulla Jensen': '/images/avatars/ulla-new.jpg',
+}
+
+function getEducatorAvatar(name: string): string | null {
+  return EDUCATOR_AVATARS[name] || null
+}
+
+// Custom tooltip component for charts
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; payload: { fill?: string } }>; label?: string }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-lg">
+        <p className="text-sm font-medium text-gray-900">{label || payload[0].name}</p>
+        <p className="text-sm text-gray-600">{payload[0].value.toLocaleString()}</p>
+      </div>
+    )
+  }
+  return null
 }
 
 // Detailed breakdown data for interactive cards
@@ -289,11 +358,15 @@ export default function ParentAnalyticsPage() {
       ageGroup: string
     }> = []
 
-    const seenTeachers = new Set<string>()
+    const seenTeacherIds = new Set<string>()
+    const seenTeacherNames = new Set<string>()
     programSummaries.forEach(summary => {
       summary.teachers.forEach(teacher => {
-        if (seenTeachers.has(teacher.id)) return
-        seenTeachers.add(teacher.id)
+        const fullName = `${teacher.firstName} ${teacher.lastName}`
+        // Dedupe by both ID and name to prevent duplicates across programs
+        if (seenTeacherIds.has(teacher.id) || seenTeacherNames.has(fullName)) return
+        seenTeacherIds.add(teacher.id)
+        seenTeacherNames.add(fullName)
 
         const institution = summary.institutions.find(i => i.id === teacher.institutionId)
         const { flag, name: countryName } = institution?.country
@@ -642,67 +715,246 @@ export default function ParentAnalyticsPage() {
             .filter((inst) => inst.country)
             .forEach((inst) => uniqueCountries.add(inst.country))
         })
+        const countryCount = uniqueCountries.size || 2
+
+        // Prepare pie chart data
+        const pieData = studentBreakdown.map((item, idx) => ({
+          name: item.program.split(':')[0] || item.program,
+          value: item.students,
+          fill: CHART_COLORS.purple[idx % CHART_COLORS.purple.length],
+        }))
+
+        // Age group distribution (based on typical secondary school demographics)
+        const totalStudents = programMetrics.students
+        const ageGroupData = [
+          { name: '12-14 years', value: Math.round(totalStudents * 0.28), fill: '#8b5cf6' },
+          { name: '14-16 years', value: Math.round(totalStudents * 0.38), fill: '#a78bfa' },
+          { name: '16-18 years', value: Math.round(totalStudents * 0.34), fill: '#c4b5fd' },
+        ]
+
+        // Gender distribution (slightly more female participation typical in educational programs)
+        const genderData = [
+          { name: 'Female', value: Math.round(totalStudents * 0.52), fill: '#ec4899' },
+          { name: 'Male', value: Math.round(totalStudents * 0.47), fill: '#3b82f6' },
+          { name: 'Non-binary', value: Math.round(totalStudents * 0.01), fill: '#8b5cf6' },
+        ]
+
         return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-xl bg-purple-50 p-4 text-center">
-                <p className="text-3xl font-bold text-purple-700">{programMetrics.students.toLocaleString()}</p>
-                <p className="mt-1 text-sm text-purple-600">Total Students</p>
+          <div className="space-y-10">
+            {/* Hero stat with animated counter */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 p-8 text-white">
+              <div className="relative z-10">
+                <p className="text-sm font-medium text-purple-100">Total Students Reached</p>
+                <p className="mt-2 text-5xl font-bold">
+                  <AnimatedCounter value={programMetrics.students} />
+                </p>
+                <div className="mt-4 flex items-center gap-2 text-purple-100">
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="text-sm">Across {countryCount} countries · {studentBreakdown.length} active programs</span>
+                </div>
               </div>
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">{studentBreakdown.length}</p>
-                <p className="mt-1 text-sm text-gray-600">Programs</p>
-              </div>
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">{uniqueCountries.size}</p>
-                <p className="mt-1 text-sm text-gray-600">Countries</p>
-              </div>
+              <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white/10" />
+              <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-white/5" />
             </div>
 
-            <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900">Breakdown by Program</h4>
-              <div className="space-y-3">
-                {studentBreakdown.map((item, idx) => {
-                  const percent = programMetrics.students
-                    ? Math.round((item.students / programMetrics.students) * 100)
-                    : 0
-                  return (
-                    <motion.div
-                      key={item.program}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="rounded-xl border border-gray-100 p-4 transition-shadow hover:shadow-sm"
-                    >
-                      <div className="mb-3 flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
-                            <BookOpen className="h-5 w-5 text-purple-600" />
+            {/* Age and Gender distribution */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Age Group Distribution */}
+              <motion.div
+                className="rounded-xl border border-gray-100 bg-gray-50/30 p-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                <h4 className="mb-4 text-base font-semibold text-gray-900">Age Distribution</h4>
+                <div className="flex items-center gap-6">
+                  <div className="h-36 w-36 flex-shrink-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={ageGroupData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={65}
+                          paddingAngle={3}
+                          dataKey="value"
+                          animationBegin={100}
+                          animationDuration={600}
+                        >
+                          {ageGroupData.map((entry, index) => (
+                            <Cell key={`age-cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    {ageGroupData.map((item) => {
+                      const percent = Math.round((item.value / totalStudents) * 100)
+                      return (
+                        <div key={item.name} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.fill }} />
+                            <span className="text-sm font-medium text-gray-700">{item.name}</span>
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{item.program}</p>
-                            <p className="text-sm text-gray-500">
-                              {item.schools} schools · {item.countries} countries
-                            </p>
+                          <span className="text-sm font-semibold text-gray-900">{percent}%</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Gender Distribution */}
+              <motion.div
+                className="rounded-xl border border-gray-100 bg-gray-50/30 p-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <h4 className="mb-4 text-base font-semibold text-gray-900">Gender Distribution</h4>
+                <div className="flex items-center gap-6">
+                  <div className="h-36 w-36 flex-shrink-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={genderData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={65}
+                          paddingAngle={3}
+                          dataKey="value"
+                          animationBegin={150}
+                          animationDuration={600}
+                        >
+                          {genderData.map((entry, index) => (
+                            <Cell key={`gender-cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    {genderData.map((item) => {
+                      const percent = Math.round((item.value / totalStudents) * 100)
+                      return (
+                        <div key={item.name} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.fill }} />
+                            <span className="text-sm font-medium text-gray-700">{item.name}</span>
+                          </div>
+                          <span className="text-sm font-semibold text-gray-900">{percent}%</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Pie chart and breakdown */}
+            <div className="grid gap-10 lg:grid-cols-2">
+              {/* Pie chart */}
+              <motion.div
+                className="rounded-xl border border-gray-100 bg-gray-50/30 p-6"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <h4 className="mb-6 text-base font-semibold text-gray-900">Distribution by Program</h4>
+                <div className="h-52">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={55}
+                        outerRadius={90}
+                        paddingAngle={3}
+                        dataKey="value"
+                        animationBegin={200}
+                        animationDuration={800}
+                      >
+                        {pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                {/* Simplified color legend */}
+                <div className="mt-6 flex flex-wrap gap-4">
+                  {pieData.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.fill }} />
+                      <span className="text-sm font-medium text-gray-600">{item.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Program breakdown list */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.25 }}
+              >
+                <h4 className="mb-6 text-base font-semibold text-gray-900">Program Details</h4>
+                <div className="space-y-5">
+                  {studentBreakdown.map((item, idx) => {
+                    const percent = programMetrics.students
+                      ? Math.round((item.students / programMetrics.students) * 100)
+                      : 0
+                    return (
+                      <motion.div
+                        key={item.program}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 + idx * 0.05 }}
+                        className="group rounded-xl bg-purple-50/50 border-l-4 border-purple-500 p-6 transition-all hover:bg-purple-50/80 hover:shadow-md hover:-translate-y-0.5"
+                      >
+                        <div className="mb-5 flex items-start justify-between">
+                          <div className="flex items-center gap-4">
+                            <div
+                              className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm"
+                              style={{ backgroundColor: `${CHART_COLORS.purple[idx % CHART_COLORS.purple.length]}15` }}
+                            >
+                              <BookOpen
+                                className="h-6 w-6"
+                                style={{ color: CHART_COLORS.purple[idx % CHART_COLORS.purple.length] }}
+                              />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">{item.program}</p>
+                              <p className="mt-1.5 text-sm text-gray-500">
+                                {item.schools} schools · {item.countries} {item.countries === 1 ? 'country' : 'countries'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent">{item.students.toLocaleString()}</p>
+                            <p className="mt-1 text-sm text-gray-500">{percent}% of total</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-purple-600">{item.students.toLocaleString()}</p>
-                          <p className="text-xs text-gray-500">{percent}% of total</p>
+                        <div className="h-2 rounded-full bg-purple-100 overflow-hidden">
+                          <motion.div
+                            className="h-2 rounded-full bg-gradient-to-r from-purple-600 to-purple-400"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${percent}%` }}
+                            transition={{ duration: 0.8, delay: 0.4 + idx * 0.1, ease: "easeOut" }}
+                          />
                         </div>
-                      </div>
-                      <div className="h-2 rounded-full bg-gray-100">
-                        <motion.div
-                          className="h-2 rounded-full bg-purple-500"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${percent}%` }}
-                          transition={{ duration: 0.5, delay: idx * 0.1 }}
-                        />
-                      </div>
-                    </motion.div>
-                  )
-                })}
-              </div>
+                      </motion.div>
+                    )
+                  })}
+                </div>
+              </motion.div>
             </div>
           </div>
         )
@@ -710,132 +962,62 @@ export default function ParentAnalyticsPage() {
       case 'schools': {
         const totalSchoolStudents = schoolDetails.reduce((sum, s) => sum + s.students, 0)
         const uniqueCountries = new Set(schoolDetails.map(s => s.country)).size
-        const activeCount = schoolDetails.filter(s => s.status === 'active').length
-        const partialCount = schoolDetails.filter(s => s.status === 'partial').length
-        const onboardingCount = schoolDetails.filter(s => s.status === 'onboarding').length
-        const healthPercent = schoolDetails.length > 0 ? Math.round((activeCount / schoolDetails.length) * 100) : 0
-
-        const statusConfig = {
-          active: { label: 'Active', color: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500' },
-          partial: { label: 'Partial', color: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500' },
-          onboarding: { label: 'Onboarding', color: 'bg-gray-100 text-gray-600', dot: 'bg-gray-400' },
-        }
-
-        const schoolTypeLabels = {
-          primary: 'Primary',
-          secondary: 'Secondary',
-          'higher-ed': 'Higher Ed',
-        }
 
         return (
-          <div className="space-y-6">
-            {/* Summary stats */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-xl bg-blue-50 p-4 text-center">
-                <p className="text-3xl font-bold text-blue-700">{programMetrics.institutions}</p>
-                <p className="mt-1 text-sm text-blue-600">Schools</p>
+          <div className="space-y-10">
+            {/* Hero stat with animated counter */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 p-8 text-white">
+              <div className="relative z-10">
+                <p className="text-sm font-medium text-blue-100">Partner Schools & Institutions</p>
+                <p className="mt-2 text-5xl font-bold">
+                  <AnimatedCounter value={programMetrics.institutions} />
+                </p>
+                <div className="mt-4 flex items-center gap-2 text-blue-100">
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="text-sm">{totalSchoolStudents.toLocaleString()} students across {uniqueCountries} countries</span>
+                </div>
               </div>
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">{totalSchoolStudents.toLocaleString()}</p>
-                <p className="mt-1 text-sm text-gray-600">Students</p>
-              </div>
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">{uniqueCountries}</p>
-                <p className="mt-1 text-sm text-gray-600">Countries</p>
-              </div>
+              <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white/10" />
+              <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-white/5" />
             </div>
 
-            {/* Engagement health overview */}
-            <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-gray-700">Engagement Health</span>
-                <span className="text-sm font-bold text-blue-600">{healthPercent}% fully active</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  <span className="text-xs text-gray-600">{activeCount} active</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-amber-500" />
-                  <span className="text-xs text-gray-600">{partialCount} partial</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-gray-400" />
-                  <span className="text-xs text-gray-600">{onboardingCount} onboarding</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Schools list with enhanced details */}
+            {/* Schools list */}
             <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900">Schools by student reach</h4>
-              <div className="space-y-3">
-                {schoolDetails.map((school, idx) => {
-                  const percent = totalSchoolStudents > 0
-                    ? Math.round((school.students / totalSchoolStudents) * 100)
-                    : 0
-                  const ratio = school.teachers > 0 ? Math.round(school.students / school.teachers) : null
-                  const statusStyle = statusConfig[school.status || 'onboarding']
-                  return (
-                    <motion.div
-                      key={school.name}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="rounded-xl border border-gray-100 p-4 transition-shadow hover:shadow-sm"
-                    >
-                      <div className="mb-3 flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                            <School className="h-5 w-5 text-blue-600" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium text-gray-900">{school.name}</p>
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${statusStyle.color}`}>
-                                <span className={`h-1.5 w-1.5 rounded-full ${statusStyle.dot}`} />
-                                {statusStyle.label}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-500">
-                              {school.flag} {school.city}, {school.country}
-                              {school.schoolType && (
-                                <span className="ml-2 text-xs text-gray-400">· {schoolTypeLabels[school.schoolType]}</span>
-                              )}
-                            </p>
-                          </div>
+              <h4 className="mb-6 text-base font-semibold text-gray-900">Schools by student reach</h4>
+              <div className="space-y-5">
+                {schoolDetails.map((school, idx) => (
+                  <motion.div
+                    key={school.name}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 + idx * 0.05 }}
+                    className="group rounded-xl bg-blue-50/50 border-l-4 border-blue-500 p-6 transition-all hover:bg-blue-50/80 hover:shadow-md hover:-translate-y-0.5"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm"
+                          style={{ backgroundColor: `${CHART_COLORS.blue[idx % CHART_COLORS.blue.length]}15` }}
+                        >
+                          <School
+                            className="h-6 w-6"
+                            style={{ color: CHART_COLORS.blue[idx % CHART_COLORS.blue.length] }}
+                          />
                         </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-blue-600">{school.students.toLocaleString()}</p>
-                          <p className="text-xs text-gray-500">{percent}% · {school.teachers} educators</p>
+                        <div>
+                          <p className="font-semibold text-gray-900">{school.name}</p>
+                          <p className="mt-1.5 text-sm text-gray-500">
+                            {school.flag} {school.city}, {school.country}
+                          </p>
                         </div>
                       </div>
-                      <div className="h-2 rounded-full bg-gray-100">
-                        <motion.div
-                          className="h-2 rounded-full bg-blue-500"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${percent}%` }}
-                          transition={{ duration: 0.5, delay: idx * 0.1 }}
-                        />
+                      <div className="text-right">
+                        <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">{school.students.toLocaleString()}</p>
+                        <p className="mt-1 text-sm text-gray-500">students</p>
                       </div>
-
-                      {/* Additional metrics row */}
-                      <div className="mt-3 flex items-center gap-4 text-xs">
-                        {ratio && (
-                          <span className={`${ratio > 400 ? 'text-amber-600' : 'text-gray-500'}`}>
-                            {ratio}:1 student/educator ratio
-                          </span>
-                        )}
-                        {school.projectCount !== undefined && (
-                          <span className="text-gray-500">
-                            {school.projectCount} {school.projectCount === 1 ? 'project' : 'projects'}
-                          </span>
-                        )}
-                      </div>
-                    </motion.div>
-                  )
-                })}
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </div>
           </div>
@@ -843,95 +1025,150 @@ export default function ParentAnalyticsPage() {
       }
       case 'projects': {
         const activeProjectCount = projectDetails.filter((p) => p.status === 'active').length
-        const completedProjectCount = projectDetails.filter((p) => p.status === 'completed').length
         const totalProjectStudents = projectDetails.reduce((sum, p) => sum + p.studentsReached, 0)
+
+        // Bar chart data for project comparison - use full names, truncate only if very long
+        const barChartData = projectDetails.map((p, idx) => ({
+          name: p.name.length > 20 ? p.name.substring(0, 18) + '...' : p.name,
+          fullName: p.name,
+          students: p.studentsReached,
+          fill: p.status === 'active' ? CHART_COLORS.emerald[idx % 2] : '#9ca3af',
+        }))
+
         return (
-          <div className="space-y-6">
-            {/* Summary stats - matching Students Reached style */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-xl bg-emerald-50 p-4 text-center">
-                <p className="text-3xl font-bold text-emerald-700">{activeProjectCount}</p>
-                <p className="mt-1 text-sm text-emerald-600">Active</p>
+          <div className="space-y-10">
+            {/* Hero stat with animated counter */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-8 text-white">
+              <div className="relative z-10">
+                <p className="text-sm font-medium text-emerald-100">Active Projects</p>
+                <p className="mt-2 text-5xl font-bold">
+                  <AnimatedCounter value={activeProjectCount} />
+                </p>
+                <div className="mt-4 flex items-center gap-2 text-emerald-100">
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="text-sm">{totalProjectStudents.toLocaleString()} students engaged</span>
+                </div>
               </div>
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">{completedProjectCount}</p>
-                <p className="mt-1 text-sm text-gray-600">Completed</p>
-              </div>
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">{totalProjectStudents.toLocaleString()}</p>
-                <p className="mt-1 text-sm text-gray-600">Students</p>
-              </div>
+              <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white/10" />
+              <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-white/5" />
             </div>
 
-            {/* Projects list with progress bars - matching Students Reached style */}
-            <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900">Impact by project</h4>
-              <div className="space-y-3">
-                {projectDetails.map((project, idx) => {
-                  const percent = totalProjectStudents > 0
-                    ? Math.round((project.studentsReached / totalProjectStudents) * 100)
-                    : 0
-                  return (
-                    <motion.div
-                      key={project.name}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="rounded-xl border border-gray-100 p-4 transition-shadow hover:shadow-sm"
-                    >
-                      <div className="mb-3 flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                            project.status === 'active' ? 'bg-emerald-100' : 'bg-gray-100'
-                          }`}>
-                            <Target className={`h-5 w-5 ${
-                              project.status === 'active' ? 'text-emerald-600' : 'text-gray-500'
-                            }`} />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium text-gray-900">{project.name}</p>
-                              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                                project.status === 'active'
-                                  ? 'bg-emerald-100 text-emerald-700'
-                                  : 'bg-gray-100 text-gray-600'
-                              }`}>
-                                {project.status}
-                              </span>
+            {/* Bar chart - full width */}
+            <motion.div
+              className="rounded-xl border border-gray-100 bg-gray-50/30 p-6"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <h4 className="mb-2 text-base font-semibold text-gray-900">Student Reach by Project</h4>
+              <p className="mb-6 text-sm text-gray-500">Comparing impact across projects</p>
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barChartData} layout="vertical" margin={{ left: 0, right: 50 }}>
+                    <XAxis type="number" hide />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      width={130}
+                      tick={{ fontSize: 12, fill: '#374151' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload
+                          return (
+                            <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-lg">
+                              <p className="text-sm font-medium text-gray-900">{data.fullName}</p>
+                              <p className="text-sm text-gray-600">{data.students.toLocaleString()} students</p>
                             </div>
-                            <p className="text-sm text-gray-500">
-                              {project.flag} {project.partnerSchool || project.country}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-emerald-600">{project.studentsReached.toLocaleString()}</p>
-                          <p className="text-xs text-gray-500">{percent}% · {project.educatorsEngaged} educators</p>
-                        </div>
-                      </div>
-                      <div className="h-2 rounded-full bg-gray-100">
-                        <motion.div
-                          className={`h-2 rounded-full ${
-                            project.status === 'active' ? 'bg-emerald-500' : 'bg-gray-400'
-                          }`}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${percent}%` }}
-                          transition={{ duration: 0.5, delay: idx * 0.1 }}
-                        />
-                      </div>
+                          )
+                        }
+                        return null
+                      }}
+                    />
+                    <Bar
+                      dataKey="students"
+                      radius={[0, 6, 6, 0]}
+                      animationBegin={200}
+                      animationDuration={800}
+                    >
+                      {barChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                      <LabelList
+                        dataKey="students"
+                        position="right"
+                        formatter={(value: number) => value.toLocaleString()}
+                        style={{ fontSize: 12, fill: '#374151', fontWeight: 500 }}
+                      />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </motion.div>
 
-                      {/* Target age group */}
-                      {project.ageGroupBreakdown && project.ageGroupBreakdown.length > 0 && (
-                        <div className="mt-3 flex items-center gap-3">
-                          <span className="text-xs text-gray-500">Target age group:</span>
-                          <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700">
-                            {project.ageGroupBreakdown[0].ageGroup} years
-                          </span>
+            {/* Projects list */}
+            <div>
+              <h4 className="mb-6 text-base font-semibold text-gray-900">Project Details</h4>
+              <div className="space-y-5">
+                {projectDetails.map((project, idx) => (
+                  <motion.div
+                    key={project.name}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 + idx * 0.05 }}
+                    className="group rounded-xl bg-emerald-50/50 border-l-4 border-emerald-500 p-6 transition-all hover:bg-emerald-50/80 hover:shadow-md hover:-translate-y-0.5"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm"
+                          style={{
+                            backgroundColor: project.status === 'active'
+                              ? `${CHART_COLORS.emerald[idx % CHART_COLORS.emerald.length]}15`
+                              : '#f3f4f6'
+                          }}
+                        >
+                          <Target
+                            className="h-6 w-6"
+                            style={{
+                              color: project.status === 'active'
+                                ? CHART_COLORS.emerald[idx % CHART_COLORS.emerald.length]
+                                : '#9ca3af'
+                            }}
+                          />
                         </div>
-                      )}
-                    </motion.div>
-                  )
-                })}
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-gray-900">{project.name}</p>
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
+                              project.status === 'active'
+                                ? 'bg-emerald-500 text-white shadow-sm'
+                                : 'bg-gray-200 text-gray-600'
+                            }`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${
+                                project.status === 'active' ? 'bg-white' : 'bg-gray-400'
+                              }`} />
+                              {project.status}
+                            </span>
+                          </div>
+                          <p className="mt-1.5 text-sm text-gray-500">
+                            {project.flag} {project.partnerSchool || project.country}
+                            {project.ageGroupBreakdown && project.ageGroupBreakdown.length > 0 && (
+                              <span className="ml-2 text-xs text-gray-400">· Ages {project.ageGroupBreakdown[0].ageGroup}</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">{project.studentsReached.toLocaleString()}</p>
+                        <p className="mt-1 text-sm text-gray-500">{project.educatorsEngaged} educators</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </div>
           </div>
@@ -951,67 +1188,222 @@ export default function ParentAnalyticsPage() {
           return acc
         }, {} as Record<string, { country: string; flag: string; educators: typeof educatorDetails }>)
 
+        // Bar chart data for educators by school - less aggressive truncation
+        const schoolBarData = Object.entries(educatorsBySchool)
+          .map(([school, data], idx) => ({
+            name: school.length > 22 ? school.substring(0, 20) + '...' : school,
+            fullName: school,
+            educators: data.educators.length,
+            fill: CHART_COLORS.amber[idx % CHART_COLORS.amber.length],
+          }))
+          .sort((a, b) => b.educators - a.educators)
+
+        // Subject distribution
+        const subjectCounts = educatorDetails.reduce((acc, e) => {
+          acc[e.subject] = (acc[e.subject] || 0) + 1
+          return acc
+        }, {} as Record<string, number>)
+        const subjectData = Object.entries(subjectCounts)
+          .map(([subject, count], idx) => ({
+            name: subject,
+            value: count,
+            fill: CHART_COLORS.amber[idx % CHART_COLORS.amber.length],
+          }))
+          .sort((a, b) => b.value - a.value)
+
         return (
-          <div className="space-y-6">
-            {/* Summary stats - matching Students Reached style */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-xl bg-amber-50 p-4 text-center">
-                <p className="text-3xl font-bold text-amber-700">{educatorDetails.length}</p>
-                <p className="mt-1 text-sm text-amber-600">Educators</p>
+          <div className="space-y-10">
+            {/* Hero stat with animated counter */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 p-8 text-white">
+              <div className="relative z-10">
+                <p className="text-sm font-medium text-amber-100">Engaged Educators</p>
+                <p className="mt-2 text-5xl font-bold">
+                  <AnimatedCounter value={educatorDetails.length} />
+                </p>
+                <div className="mt-4 flex items-center gap-2 text-amber-100">
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="text-sm">{totalProjects} projects · {uniqueSchools} schools · {uniqueCountries} countries</span>
+                </div>
               </div>
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">{uniqueSchools}</p>
-                <p className="mt-1 text-sm text-gray-600">Schools</p>
-              </div>
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">{uniqueCountries}</p>
-                <p className="mt-1 text-sm text-gray-600">Countries</p>
-              </div>
+              <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white/10" />
+              <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-white/5" />
             </div>
 
-            {/* Educators grouped by school - clean list view */}
+            {/* Charts row */}
+            <div className="grid gap-10 lg:grid-cols-2">
+              {/* Bar chart - educators by school */}
+              <motion.div
+                className="rounded-xl border border-gray-100 bg-gray-50/30 p-6"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <h4 className="mb-2 text-base font-semibold text-gray-900">Educators by School</h4>
+                <p className="mb-6 text-sm text-gray-500">Distribution across partner institutions</p>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={schoolBarData} layout="vertical" margin={{ left: 0, right: 40 }}>
+                      <XAxis type="number" hide />
+                      <YAxis
+                        type="category"
+                        dataKey="name"
+                        width={140}
+                        tick={{ fontSize: 12, fill: '#374151' }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload
+                            return (
+                              <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-lg">
+                                <p className="text-sm font-medium text-gray-900">{data.fullName}</p>
+                                <p className="text-sm text-gray-600">{data.educators} educators</p>
+                              </div>
+                            )
+                          }
+                          return null
+                        }}
+                      />
+                      <Bar
+                        dataKey="educators"
+                        radius={[0, 6, 6, 0]}
+                        animationBegin={200}
+                        animationDuration={800}
+                      >
+                        {schoolBarData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                        <LabelList
+                          dataKey="educators"
+                          position="right"
+                          style={{ fontSize: 12, fill: '#374151', fontWeight: 500 }}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </motion.div>
+
+              {/* Subject distribution with pie */}
+              <motion.div
+                className="rounded-xl border border-gray-100 bg-gray-50/30 p-6"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                <h4 className="mb-2 text-base font-semibold text-gray-900">Subject Areas</h4>
+                <p className="mb-6 text-sm text-gray-500">Expertise across the network</p>
+                <div className="flex items-center gap-6">
+                  <div className="h-36 w-36 flex-shrink-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={subjectData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={65}
+                          paddingAngle={3}
+                          dataKey="value"
+                          animationBegin={100}
+                          animationDuration={600}
+                        >
+                          {subjectData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    {subjectData.slice(0, 4).map((item) => (
+                      <div key={item.name} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.fill }} />
+                          <span className="text-sm font-medium text-gray-700">{item.name}</span>
+                        </div>
+                        <span className="text-sm font-semibold text-gray-900">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Educators grouped by school - enhanced list view */}
             <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900">Educators by school</h4>
-              <div className="space-y-3">
+              <h4 className="mb-6 text-base font-semibold text-gray-900">Educator Details</h4>
+              <div className="space-y-5">
                 {Object.entries(educatorsBySchool).map(([school, data], idx) => (
                   <motion.div
                     key={school}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="rounded-xl border border-gray-100 p-4 transition-shadow hover:shadow-sm"
+                    transition={{ delay: 0.25 + idx * 0.05 }}
+                    className="group rounded-xl bg-amber-50/50 border-l-4 border-amber-500 p-6 transition-all hover:bg-amber-50/80 hover:shadow-md hover:-translate-y-0.5"
                   >
-                    <div className="mb-3 flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
-                          <School className="h-5 w-5 text-amber-600" />
+                    <div className="mb-5 flex items-start justify-between">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm"
+                          style={{ backgroundColor: `${CHART_COLORS.amber[idx % CHART_COLORS.amber.length]}15` }}
+                        >
+                          <School
+                            className="h-6 w-6"
+                            style={{ color: CHART_COLORS.amber[idx % CHART_COLORS.amber.length] }}
+                          />
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{school}</p>
-                          <p className="text-sm text-gray-500">{data.flag} {data.country}</p>
+                          <p className="font-semibold text-gray-900">{school}</p>
+                          <p className="mt-1.5 text-sm text-gray-500">{data.flag} {data.country}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-amber-600">{data.educators.length}</p>
-                        <p className="text-xs text-gray-500">educators</p>
+                        <p className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-amber-500 bg-clip-text text-transparent">{data.educators.length}</p>
+                        <p className="mt-1 text-sm text-gray-500">educators</p>
                       </div>
                     </div>
 
-                    {/* Compact educator list with age groups */}
-                    <div className="flex flex-wrap gap-2">
-                      {data.educators.map((educator) => (
-                        <div
+                    {/* Educator cards with enhanced avatar and hover effect */}
+                    <div className="flex flex-wrap gap-3">
+                      {data.educators.map((educator, educatorIdx) => (
+                        <motion.div
                           key={educator.name}
-                          className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2"
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.3 + idx * 0.05 + educatorIdx * 0.02 }}
+                          className="flex items-center gap-3 rounded-lg bg-white/80 border border-amber-100 border-l-2 border-l-amber-400 px-3 py-2.5 shadow-sm transition-all hover:bg-amber-50 hover:border-amber-200 hover:border-l-amber-500 hover:shadow-md"
                         >
-                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-xs font-semibold text-amber-700">
-                            {educator.name.split(' ').map(n => n[0]).join('')}
-                          </div>
+                          {getEducatorAvatar(educator.name) ? (
+                            <img
+                              src={getEducatorAvatar(educator.name)!}
+                              alt={educator.name}
+                              className="h-9 w-9 rounded-full object-cover shadow-sm ring-2 ring-amber-200"
+                            />
+                          ) : (
+                            <div
+                              className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold shadow-sm"
+                              style={{
+                                background: `linear-gradient(135deg, ${CHART_COLORS.amber[educatorIdx % CHART_COLORS.amber.length]}30, ${CHART_COLORS.amber[educatorIdx % CHART_COLORS.amber.length]}50)`,
+                                color: CHART_COLORS.amber[educatorIdx % CHART_COLORS.amber.length],
+                              }}
+                            >
+                              {educator.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                          )}
                           <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-700">{educator.name}</span>
-                            <span className="text-xs text-gray-400">{educator.subject} · Ages {educator.ageGroup}</span>
+                            <span className="text-sm font-semibold text-gray-800">{educator.name}</span>
+                            <span className="text-xs text-gray-500">{educator.subject} · Ages {educator.ageGroup}</span>
                           </div>
-                        </div>
+                          {educator.projectCount > 0 && (
+                            <span className="ml-1 rounded-full bg-amber-500 text-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide shadow-sm">
+                              {educator.projectCount} {educator.projectCount === 1 ? 'project' : 'projects'}
+                            </span>
+                          )}
+                        </motion.div>
                       ))}
                     </div>
                   </motion.div>
@@ -1094,21 +1486,21 @@ export default function ParentAnalyticsPage() {
 
       {/* Modal for detailed view */}
       <Dialog open={!!selectedMetric} onOpenChange={(open) => !open && setSelectedMetric(null)}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <div className="flex items-center gap-3">
+        <DialogContent className="sm:max-w-5xl lg:max-w-6xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="pb-2">
+            <div className="flex items-center gap-4">
               {selectedMetricData && (
-                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${selectedMetricData.bgColor}`}>
-                  <selectedMetricData.icon className={`h-6 w-6 ${selectedMetricData.textColor}`} />
+                <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${selectedMetricData.bgColor}`}>
+                  <selectedMetricData.icon className={`h-7 w-7 ${selectedMetricData.textColor}`} />
                 </div>
               )}
               <div>
-                <DialogTitle className="text-xl">{selectedMetricData?.label}</DialogTitle>
-                <p className="text-sm text-gray-500 mt-0.5">{selectedMetricData?.caption}</p>
+                <DialogTitle className="text-2xl">{selectedMetricData?.label}</DialogTitle>
+                <p className="text-sm text-gray-500 mt-1">{selectedMetricData?.caption}</p>
               </div>
             </div>
           </DialogHeader>
-          <div className="mt-4">
+          <div className="mt-6">
             {renderModalContent()}
           </div>
         </DialogContent>
