@@ -108,6 +108,28 @@ const COUNTRY_LABELS: Record<string, string> = {
   IN: 'India',
 }
 
+// Helper for consistent age group calculation based on project name hash
+function getProjectAgeGroup(projectName: string): string {
+  const ageGroups = ['12-14', '14-16', '16-18']
+  const hash = projectName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return ageGroups[hash % ageGroups.length]
+}
+
+// Teacher avatar mappings
+const TEACHER_AVATARS: Record<string, string> = {
+  'Karin Albrectsen': '/images/avatars/karin-new.jpg',
+  'Ulla Jensen': '/images/avatars/ulla-new.jpg',
+  'Anne Holm': '/images/avatars/anne-holm.png',
+  'Sofie Larsen': '/images/avatars/sofie-larsen.png',
+  'Sara Ricci': '/images/avatars/sara-ricci.png',
+  'Lucas Souza': '/images/avatars/lucas-souza.png',
+  'Peter Andersen': '/images/avatars/peter-andersen.png',
+}
+
+function getTeacherAvatar(teacherName: string): string {
+  return TEACHER_AVATARS[teacherName] || `https://ui-avatars.com/api/?name=${encodeURIComponent(teacherName)}&background=random`
+}
+
 const getCountryBadgeStyles = (countryCode: string) => {
   if (countryCode === 'DK') {
     return 'bg-emerald-100 text-emerald-800 border-emerald-200'
@@ -497,7 +519,7 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
 
               // Mock data for display to match Discover card richness
               const projectType = template?.projectType ?? 'Collaboration'
-              const ageRange = template?.ageRange ?? 'Ages 9-13'
+              const ageRange = `Ages ${getProjectAgeGroup(title)} years`
               const dateLabel = formatMonthFromDate(project.createdAt) ?? 'Flexible'
 
               // We'll use the host partner/teacher details if available, or fallbacks
@@ -568,7 +590,9 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
                       </div>
                       <div className="flex items-center gap-2.5">
                         <Users2 className="h-4 w-4" />
-                        <span>{ageRange}</span>
+                        <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                          {ageRange}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2.5">
                         <Clock className="h-4 w-4" />
@@ -587,9 +611,8 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full overflow-hidden border border-gray-200 bg-gray-100">
-                          {/* Placeholder avatar */}
                           <img
-                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(teacherName)}&background=random`}
+                            src={getTeacherAvatar(teacherName)}
                             alt={teacherName}
                             className="w-full h-full object-cover"
                           />

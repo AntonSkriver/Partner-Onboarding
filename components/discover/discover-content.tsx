@@ -177,7 +177,9 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
           </div>
           <div className="flex items-center gap-2">
             <Users2 className="h-3.5 w-3.5" />
-            <span>{project.ageRange}</span>
+            <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+              {project.ageRange}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Clock className="h-3.5 w-3.5" />
@@ -302,6 +304,13 @@ const mockProjects = {
     })),
 }
 
+// Helper for consistent age group calculation based on project name hash
+function getProjectAgeGroup(projectName: string): string {
+  const ageGroups = ['12-14', '14-16', '16-18']
+  const hash = projectName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return ageGroups[hash % ageGroups.length]
+}
+
 // Helper for relative time
 function timeAgo(dateString: string) {
   const date = new Date(dateString)
@@ -342,15 +351,18 @@ const mapDbProjectToUi = (
     createdAt = new Date(Date.now() - 9000000).toISOString() // 2.5 hours ago
   }
 
+  const projectTitle = template?.title ?? 'Untitled Project'
+  const ageGroup = getProjectAgeGroup(projectTitle)
+
   const uiProject = {
     id: project.id,
-    title: template?.title ?? 'Untitled Project',
+    title: projectTitle,
     subtitle: '',
     startMonth: template?.recommendedStartMonth ?? 'Flexible',
     image: project.coverImageUrl ?? template?.heroImageUrl ?? program?.heroImageUrl ?? 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=500&h=300&fit=crop',
     description: template?.summary ?? 'No description available',
     projectType: program?.projectTypes?.[0]?.replaceAll('_', ' ') ?? 'Global Project',
-    ageRange: program?.targetAgeRanges?.[0] ?? 'All ages',
+    ageRange: `Ages ${ageGroup} years`,
     timezone: 'Varies',
     language: institution?.languages?.join(', ') ?? 'English',
     teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : 'Partner Teacher',
@@ -400,9 +412,13 @@ export function DiscoverContent({
       projects = [...projects, ...dbProjects]
     }
 
-    // Apply avatar overrides to ALL projects (mock and DB)
+    // Apply avatar overrides and consistent age groups to ALL projects (mock and DB)
     projects = projects.map(p => {
       const project = { ...p }
+      // Apply consistent age group based on project title hash
+      const ageGroup = getProjectAgeGroup(project.title)
+      project.ageRange = `Ages ${ageGroup} years`
+
       // Override for Ulla Jensen as per request
       if (project.teacherName?.includes('Ulla Jensen')) {
         project.image = '/images/ulla-jensen-project.jpg' // User uploaded image

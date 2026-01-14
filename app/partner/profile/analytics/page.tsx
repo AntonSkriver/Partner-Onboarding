@@ -19,7 +19,6 @@ import {
   Map as MapIcon,
   ChevronRight,
   BookOpen,
-  MapPin,
 } from 'lucide-react'
 import { InteractiveMapWrapper, type CountryData } from '@/components/interactive-map-wrapper'
 import { Database } from '@/lib/types/database'
@@ -57,6 +56,9 @@ interface SchoolDetail {
   students: number
   teachers: number
   city?: string
+  schoolType?: 'primary' | 'secondary' | 'higher-ed'
+  status?: 'active' | 'partial' | 'onboarding'
+  projectCount?: number
 }
 
 interface ProjectDetail {
@@ -67,6 +69,7 @@ interface ProjectDetail {
   partnerSchool?: string
   country?: string
   flag?: string
+  ageGroup: string
 }
 
 export default function PartnerAnalyticsPage() {
@@ -103,15 +106,29 @@ export default function PartnerAnalyticsPage() {
   const schoolDetails = useMemo<SchoolDetail[]>(() => {
     if (!database || programSummaries.length === 0) return []
 
-    const schoolMap = new Map<string, SchoolDetail>()
+    const schoolMap = new Map<string, SchoolDetail & { _ids: Set<string> }>()
 
     programSummaries.forEach(summary => {
       summary.institutions.forEach(inst => {
         if (EXCLUDED_INSTITUTION_IDS.has(inst.id)) return
-        if (!schoolMap.has(inst.id)) {
-          const { flag, name: countryName } = getCountryDisplay(inst.country || '')
-          const teacherCount = summary.teachers.filter(t => t.institutionId === inst.id).length
-          schoolMap.set(inst.id, {
+        const { flag, name: countryName } = getCountryDisplay(inst.country || '')
+        const teacherCount = summary.teachers.filter(t => t.institutionId === inst.id).length
+        const projectCount = summary.projects.filter(p => {
+          const creator = summary.teachers.find(t => t.id === p.createdById)
+          return creator?.institutionId === inst.id
+        }).length
+
+        const existing = schoolMap.get(inst.name)
+        if (existing) {
+          // Merge: accumulate teachers/projects, keep highest student count
+          if (!existing._ids.has(inst.id)) {
+            existing._ids.add(inst.id)
+            existing.teachers += teacherCount
+            existing.projectCount = (existing.projectCount || 0) + projectCount
+            existing.students = Math.max(existing.students, inst.studentCount || 0)
+          }
+        } else {
+          schoolMap.set(inst.name, {
             name: inst.name,
             originalName: inst.name,
             country: countryName,
@@ -119,32 +136,25 @@ export default function PartnerAnalyticsPage() {
             students: inst.studentCount || 0,
             teachers: teacherCount,
             city: inst.city,
+            schoolType: 'secondary',
+            projectCount,
+            _ids: new Set([inst.id]),
           })
         }
       })
     })
 
-    const merged = new Map<string, SchoolDetail>()
-    schoolMap.forEach((school) => {
-      const key = school.name.trim().toLowerCase()
-      const existing = merged.get(key)
-      if (!existing) {
-        merged.set(key, { ...school })
-        return
-      }
-      const combinedName = existing.name.length >= school.name.length
-        ? existing.name
-        : school.name
-      merged.set(key, {
-        ...existing,
-        name: combinedName,
-        originalName: existing.originalName,
-        students: existing.students + school.students,
-        teachers: existing.teachers + school.teachers,
+    // Calculate status based on merged data and return without internal _ids field
+    return Array.from(schoolMap.values())
+      .map(({ _ids, ...school }) => {
+        let status: 'active' | 'partial' | 'onboarding' = 'onboarding'
+        if (school.teachers > 0 && (school.projectCount || 0) > 1) {
+          status = 'active'
+        } else if (school.teachers > 0 || (school.projectCount || 0) > 0) {
+          status = 'partial'
+        }
+        return { ...school, status }
       })
-    })
-
-    return Array.from(merged.values())
       .filter((entry) => entry.teachers > 0 || entry.students > 0)
       .sort((a, b) => b.students - a.students)
   }, [database, programSummaries])
@@ -184,6 +194,11 @@ export default function PartnerAnalyticsPage() {
         const template = project.templateId ? templateById.get(project.templateId) : null
         const projectName = template?.title || `${summary.program.name} Project ${projectIdx + 1}`
 
+        // Assign a consistent age group based on project name hash
+        const ageGroups = ['12-14', '14-16', '16-18']
+        const projectHash = projectName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+        const ageGroup = ageGroups[projectHash % ageGroups.length]
+
         projects.push({
           name: projectName,
           studentsReached,
@@ -192,6 +207,7 @@ export default function PartnerAnalyticsPage() {
           partnerSchool: institution?.name,
           country: countryName,
           flag,
+          ageGroup,
         })
       })
     })
@@ -203,7 +219,7 @@ export default function PartnerAnalyticsPage() {
   const educatorDetails = useMemo(() => {
     if (programSummaries.length === 0) return []
 
-    const educators: Array<{
+    const educatorMap = new Map<string, {
       name: string
       avatar?: string | null
       subject: string
@@ -211,39 +227,54 @@ export default function PartnerAnalyticsPage() {
       country: string
       flag: string
       projectCount: number
-    }> = []
-
-    const seenTeachers = new Set<string>()
+      ageGroup: string
+    }>()
 
     programSummaries.forEach(summary => {
       summary.teachers.forEach(teacher => {
         // Skip teachers from excluded institutions
         if (EXCLUDED_INSTITUTION_IDS.has(teacher.institutionId)) return
-        if (seenTeachers.has(teacher.id)) return
-        seenTeachers.add(teacher.id)
 
         const institution = summary.institutions.find(i => i.id === teacher.institutionId)
         const { flag, name: countryName } = institution?.country
           ? getCountryDisplay(institution.country)
           : { flag: '', name: '' }
 
+        const fullName = `${teacher.firstName} ${teacher.lastName}`.trim()
+        const schoolName = institution?.name || 'Unknown'
+
+        // Use name + school as key to deduplicate
+        const key = `${fullName.toLowerCase()}-${schoolName.toLowerCase()}`
+
+        if (educatorMap.has(key)) {
+          // Accumulate project count for duplicate entries
+          const existing = educatorMap.get(key)!
+          const additionalProjects = summary.projects.filter(p => p.createdById === teacher.id).length
+          existing.projectCount += additionalProjects
+          return
+        }
+
         const projectCount = summary.projects.filter(p => p.createdById === teacher.id).length
 
-        const fullName = `${teacher.firstName} ${teacher.lastName}`.trim()
+        // Generate a consistent age group based on name hash
+        const ageGroups = ['12-14', '14-16', '16-18']
+        const nameHash = fullName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+        const ageGroup = ageGroups[nameHash % ageGroups.length]
 
-        educators.push({
+        educatorMap.set(key, {
           name: fullName,
           avatar: TEACHER_AVATARS[fullName] ?? null,
           subject: teacher.subject || 'General',
-          school: institution?.name || 'Unknown',
+          school: schoolName,
           country: countryName,
           flag,
           projectCount,
+          ageGroup,
         })
       })
     })
 
-    return educators.sort((a, b) => b.projectCount - a.projectCount)
+    return Array.from(educatorMap.values()).sort((a, b) => b.projectCount - a.projectCount)
   }, [programSummaries])
 
   // Student breakdown by program
@@ -432,21 +463,6 @@ export default function PartnerAnalyticsPage() {
     [schoolDetails, denmarkLabel],
   )
 
-  const denmarkProgramCount = useMemo(() => {
-    const programs = new Set<string>()
-    programSummaries.forEach((summary) => {
-      const hasDenmarkInstitution = summary.institutions.some((inst) => {
-        if (EXCLUDED_INSTITUTION_IDS.has(inst.id)) return false
-        const { name } = getCountryDisplay(inst.country)
-        return name === denmarkLabel
-      })
-      if (hasDenmarkInstitution) {
-        programs.add(summary.program.id)
-      }
-    })
-    return programs.size
-  }, [programSummaries, denmarkLabel])
-
   const denmarkMapData = useMemo<CountryData[]>(() => {
     const countryCoordinates: [number, number] = [55.6761, 12.5683]
     const cityCoordinates: Record<string, [number, number]> = {
@@ -523,11 +539,8 @@ export default function PartnerAnalyticsPage() {
       value: studentsTotal.toLocaleString(),
       caption: 'Learners participating in partner programs',
       icon: GraduationCap,
-      color: 'purple',
-      bgColor: 'bg-purple-100',
+      bgColor: 'bg-purple-50',
       textColor: 'text-purple-700',
-      gradientFrom: 'from-purple-500',
-      gradientTo: 'to-purple-600',
     },
     {
       id: 'schools',
@@ -535,11 +548,8 @@ export default function PartnerAnalyticsPage() {
       value: filteredTotals.institutions.toString(),
       caption: 'Active learning sites onboarded',
       icon: School,
-      color: 'blue',
-      bgColor: 'bg-blue-100',
+      bgColor: 'bg-blue-50',
       textColor: 'text-blue-700',
-      gradientFrom: 'from-blue-500',
-      gradientTo: 'to-blue-600',
     },
     {
       id: 'projects',
@@ -547,11 +557,8 @@ export default function PartnerAnalyticsPage() {
       value: projectDetails.filter(p => p.status === 'active').length.toString(),
       caption: 'Currently collaborating across regions',
       icon: Target,
-      color: 'emerald',
-      bgColor: 'bg-emerald-100',
+      bgColor: 'bg-emerald-50',
       textColor: 'text-emerald-700',
-      gradientFrom: 'from-emerald-500',
-      gradientTo: 'to-emerald-600',
     },
     {
       id: 'educators',
@@ -559,28 +566,10 @@ export default function PartnerAnalyticsPage() {
       value: educatorDetails.length.toString(),
       caption: 'Teachers collaborating with peers',
       icon: Users,
-      color: 'amber',
-      bgColor: 'bg-amber-100',
+      bgColor: 'bg-amber-50',
       textColor: 'text-amber-700',
-      gradientFrom: 'from-amber-500',
-      gradientTo: 'to-amber-600',
     },
   ] as const
-
-  const countryReachStats = [
-    {
-      label: 'Country active',
-      value: denmarkLabel,
-    },
-    {
-      label: 'Institutions onboarded',
-      value: (denmarkImpact?.institutions ?? denmarkSchools.length).toString(),
-    },
-    {
-      label: 'Programs live',
-      value: denmarkProgramCount.toString(),
-    },
-  ]
 
   const maxCountryStudents =
     countryImpact.reduce((max, entry) => Math.max(max, entry.students), 0) || 1
@@ -708,219 +697,319 @@ export default function PartnerAnalyticsPage() {
           </div>
         )
 
-      case 'schools':
+      case 'schools': {
+        const totalSchoolStudents = schoolDetails.reduce((sum, s) => sum + s.students, 0)
+        const uniqueCountries = new Set(schoolDetails.map(s => s.country)).size
+        const activeCount = schoolDetails.filter(s => s.status === 'active').length
+        const partialCount = schoolDetails.filter(s => s.status === 'partial').length
+        const onboardingCount = schoolDetails.filter(s => s.status === 'onboarding').length
+        const healthPercent = schoolDetails.length > 0 ? Math.round((activeCount / schoolDetails.length) * 100) : 0
+
+        const statusConfig = {
+          active: { label: 'Active', color: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500' },
+          partial: { label: 'Partial', color: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500' },
+          onboarding: { label: 'Onboarding', color: 'bg-gray-100 text-gray-600', dot: 'bg-gray-400' },
+        }
+
+        const schoolTypeLabels = {
+          primary: 'Primary',
+          secondary: 'Secondary',
+          'higher-ed': 'Higher Ed',
+        }
+
         return (
           <div className="space-y-6">
-            {/* Summary */}
+            {/* Summary stats */}
             <div className="grid grid-cols-3 gap-4">
               <div className="rounded-xl bg-blue-50 p-4 text-center">
                 <p className="text-3xl font-bold text-blue-700">{filteredTotals.institutions}</p>
-                <p className="text-sm text-blue-600 mt-1">Total Schools</p>
+                <p className="mt-1 text-sm text-blue-600">Schools</p>
               </div>
               <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">
-                  {schoolDetails.reduce((sum, s) => sum + s.students, 0).toLocaleString()}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Total Students</p>
+                <p className="text-3xl font-bold text-gray-700">{totalSchoolStudents.toLocaleString()}</p>
+                <p className="mt-1 text-sm text-gray-600">Students</p>
               </div>
               <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">
-                  {schoolDetails.reduce((sum, s) => sum + s.teachers, 0)}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Total Teachers</p>
+                <p className="text-3xl font-bold text-gray-700">{uniqueCountries}</p>
+                <p className="mt-1 text-sm text-gray-600">Countries</p>
               </div>
             </div>
 
-            {/* School List */}
+            {/* Engagement health overview */}
+            <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-gray-700">Engagement Health</span>
+                <span className="text-sm font-bold text-blue-600">{healthPercent}% fully active</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  <span className="text-xs text-gray-600">{activeCount} active</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-amber-500" />
+                  <span className="text-xs text-gray-600">{partialCount} partial</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-gray-400" />
+                  <span className="text-xs text-gray-600">{onboardingCount} onboarding</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Schools list with enhanced details */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-3">All Schools & Institutions</h4>
-              <div className="grid gap-3 md:grid-cols-2">
-                {schoolDetails.map((school, idx) => (
-                  <motion.div
-                    key={school.name}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.03 }}
-                    className="rounded-xl border border-gray-100 p-4 hover:shadow-sm transition-shadow"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl">{school.flag}</span>
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className="font-medium text-gray-900 whitespace-normal break-words"
-                          title={school.originalName}
-                        >
-                          {school.name}
-                        </p>
-                        <div className="flex items-center gap-1 text-sm text-gray-500 mt-0.5">
-                          <MapPin className="h-3 w-3" />
-                          <span className="min-w-0 flex-1 truncate">{school.city}, {school.country}</span>
+              <h4 className="mb-3 text-sm font-semibold text-gray-900">Schools by student reach</h4>
+              <div className="space-y-3">
+                {schoolDetails.map((school, idx) => {
+                  const percent = totalSchoolStudents > 0
+                    ? Math.round((school.students / totalSchoolStudents) * 100)
+                    : 0
+                  const ratio = school.teachers > 0 ? Math.round(school.students / school.teachers) : null
+                  const statusStyle = statusConfig[school.status || 'onboarding']
+                  return (
+                    <motion.div
+                      key={school.name}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="rounded-xl border border-gray-100 p-4 transition-shadow hover:shadow-sm"
+                    >
+                      <div className="mb-3 flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+                            <School className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-gray-900">{school.name}</p>
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${statusStyle.color}`}>
+                                <span className={`h-1.5 w-1.5 rounded-full ${statusStyle.dot}`} />
+                                {statusStyle.label}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-500">
+                              {school.flag} {school.city}, {school.country}
+                              {school.schoolType && (
+                                <span className="ml-2 text-xs text-gray-400">· {schoolTypeLabels[school.schoolType]}</span>
+                              )}
+                            </p>
+                          </div>
                         </div>
-                        <div className="mt-2 flex items-center gap-4 text-sm">
-                          <span className="whitespace-nowrap font-medium text-blue-600">
-                            {school.students.toLocaleString()} students
-                          </span>
-                          <span className="whitespace-nowrap text-gray-500">
-                            {school.teachers} teachers
-                          </span>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-blue-600">{school.students.toLocaleString()}</p>
+                          <p className="text-xs text-gray-500">{percent}% · {school.teachers} educators</p>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                      <div className="h-2 rounded-full bg-gray-100">
+                        <motion.div
+                          className="h-2 rounded-full bg-blue-500"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${percent}%` }}
+                          transition={{ duration: 0.5, delay: idx * 0.1 }}
+                        />
+                      </div>
+
+                      {/* Additional metrics row */}
+                      <div className="mt-3 flex items-center gap-4 text-xs">
+                        {ratio && (
+                          <span className={`${ratio > 400 ? 'text-amber-600' : 'text-gray-500'}`}>
+                            {ratio}:1 student/educator ratio
+                          </span>
+                        )}
+                        {school.projectCount !== undefined && (
+                          <span className="text-gray-500">
+                            {school.projectCount} {school.projectCount === 1 ? 'project' : 'projects'}
+                          </span>
+                        )}
+                      </div>
+                    </motion.div>
+                  )
+                })}
               </div>
             </div>
           </div>
         )
+      }
 
-      case 'projects':
+      case 'projects': {
         const activeProjectCount = projectDetails.filter(p => p.status === 'active').length
         const completedProjectCount = projectDetails.filter(p => p.status === 'completed').length
+        const totalProjectStudents = projectDetails.reduce((sum, p) => sum + p.studentsReached, 0)
         return (
           <div className="space-y-6">
-            {/* Summary */}
-            <div className="grid grid-cols-4 gap-4">
+            {/* Summary stats - matching Students Reached style */}
+            <div className="grid grid-cols-3 gap-4">
               <div className="rounded-xl bg-emerald-50 p-4 text-center">
                 <p className="text-3xl font-bold text-emerald-700">{activeProjectCount}</p>
-                <p className="text-sm text-emerald-600 mt-1">Active</p>
+                <p className="mt-1 text-sm text-emerald-600">Active</p>
               </div>
               <div className="rounded-xl bg-gray-50 p-4 text-center">
                 <p className="text-3xl font-bold text-gray-700">{completedProjectCount}</p>
-                <p className="text-sm text-gray-600 mt-1">Completed</p>
+                <p className="mt-1 text-sm text-gray-600">Completed</p>
               </div>
               <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">
-                  {studentsTotal.toLocaleString()}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Total Students</p>
-              </div>
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">
-                  {educatorDetails.length}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Total Educators</p>
+                <p className="text-3xl font-bold text-gray-700">{totalProjectStudents.toLocaleString()}</p>
+                <p className="mt-1 text-sm text-gray-600">Students</p>
               </div>
             </div>
 
-            {/* Project List */}
+            {/* Projects list with progress bars - matching Students Reached style */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-3">Project Impact Details</h4>
+              <h4 className="mb-3 text-sm font-semibold text-gray-900">Impact by project</h4>
               <div className="space-y-3">
-                {projectDetails.map((project, idx) => (
-                  <motion.div
-                    key={project.name}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="rounded-xl border border-gray-100 p-4 hover:shadow-sm transition-shadow"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{project.flag}</span>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-gray-900">{project.name}</p>
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${
-                              project.status === 'active'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-gray-100 text-gray-600'
-                            }`}>
-                              {project.status}
-                            </span>
+                {projectDetails.map((project, idx) => {
+                  const percent = totalProjectStudents > 0
+                    ? Math.round((project.studentsReached / totalProjectStudents) * 100)
+                    : 0
+                  return (
+                    <motion.div
+                      key={project.name}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="rounded-xl border border-gray-100 p-4 transition-shadow hover:shadow-sm"
+                    >
+                      <div className="mb-3 flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+                            project.status === 'active' ? 'bg-emerald-100' : 'bg-gray-100'
+                          }`}>
+                            <Target className={`h-5 w-5 ${
+                              project.status === 'active' ? 'text-emerald-600' : 'text-gray-500'
+                            }`} />
                           </div>
-                          {project.partnerSchool && (
-                            <p className="text-sm text-gray-500 mt-0.5">School: {project.partnerSchool}</p>
-                          )}
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-gray-900">{project.name}</p>
+                              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                                project.status === 'active'
+                                  ? 'bg-emerald-100 text-emerald-700'
+                                  : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                {project.status}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-500">
+                              {project.flag} {project.partnerSchool || project.country}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-emerald-600">{project.studentsReached.toLocaleString()}</p>
+                          <p className="text-xs text-gray-500">{percent}% · {project.educatorsEngaged} educators</p>
                         </div>
                       </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-100">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50">
-                          <GraduationCap className="h-5 w-5 text-purple-600" />
-                        </div>
-                        <div>
-                          <p className="text-xl font-bold text-gray-900">{project.studentsReached}</p>
-                          <p className="text-xs text-gray-500">Students Reached</p>
-                        </div>
+                      <div className="h-2 rounded-full bg-gray-100">
+                        <motion.div
+                          className={`h-2 rounded-full ${
+                            project.status === 'active' ? 'bg-emerald-500' : 'bg-gray-400'
+                          }`}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${percent}%` }}
+                          transition={{ duration: 0.5, delay: idx * 0.1 }}
+                        />
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50">
-                          <Users className="h-5 w-5 text-amber-600" />
-                        </div>
-                        <div>
-                          <p className="text-xl font-bold text-gray-900">{project.educatorsEngaged}</p>
-                          <p className="text-xs text-gray-500">Educators Engaged</p>
-                        </div>
+
+                      {/* Target age group */}
+                      <div className="mt-3 flex items-center gap-3">
+                        <span className="text-xs text-gray-500">Target age group:</span>
+                        <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700">
+                          {project.ageGroup} years
+                        </span>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  )
+                })}
               </div>
             </div>
           </div>
         )
+      }
 
-      case 'educators':
+      case 'educators': {
+        const uniqueSchools = new Set(educatorDetails.map(e => e.school)).size
+        const uniqueCountries = new Set(educatorDetails.map(e => e.country)).size
+
+        // Group educators by school for cleaner display
+        const educatorsBySchool = educatorDetails.reduce((acc, educator) => {
+          if (!acc[educator.school]) {
+            acc[educator.school] = { country: educator.country, flag: educator.flag, educators: [] }
+          }
+          acc[educator.school].educators.push(educator)
+          return acc
+        }, {} as Record<string, { country: string; flag: string; educators: typeof educatorDetails }>)
+
         return (
           <div className="space-y-6">
-            {/* Summary */}
+            {/* Summary stats - matching Students Reached style */}
             <div className="grid grid-cols-3 gap-4">
               <div className="rounded-xl bg-amber-50 p-4 text-center">
                 <p className="text-3xl font-bold text-amber-700">{educatorDetails.length}</p>
-                <p className="text-sm text-amber-600 mt-1">Total Educators</p>
+                <p className="mt-1 text-sm text-amber-600">Educators</p>
               </div>
               <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">
-                  {new Set(educatorDetails.map(e => e.school)).size}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Schools</p>
+                <p className="text-3xl font-bold text-gray-700">{uniqueSchools}</p>
+                <p className="mt-1 text-sm text-gray-600">Schools</p>
               </div>
               <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-3xl font-bold text-gray-700">
-                  {new Set(educatorDetails.map(e => e.country)).size}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Countries</p>
+                <p className="text-3xl font-bold text-gray-700">{uniqueCountries}</p>
+                <p className="mt-1 text-sm text-gray-600">Countries</p>
               </div>
             </div>
 
-            {/* Educator List */}
+            {/* Educators grouped by school - clean list view */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-3">All Educators</h4>
-              <div className="grid gap-3 md:grid-cols-2">
-                {educatorDetails.map((educator, idx) => (
+              <h4 className="mb-3 text-sm font-semibold text-gray-900">Educators by school</h4>
+              <div className="space-y-3">
+                {Object.entries(educatorsBySchool).map(([school, data], idx) => (
                   <motion.div
-                    key={educator.name}
+                    key={school}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.03 }}
-                    className="rounded-xl border border-gray-100 p-4 hover:shadow-sm transition-shadow"
+                    transition={{ delay: idx * 0.05 }}
+                    className="rounded-xl border border-gray-100 p-4 transition-shadow hover:shadow-sm"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-amber-100 to-amber-50 text-base font-semibold text-amber-700">
-                        {educator.avatar ? (
-                          <img
-                            src={educator.avatar}
-                            alt={educator.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          educator.name.split(' ').map(n => n[0]).join('')
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900">{educator.name}</p>
-                        <p className="text-sm text-gray-500 truncate">{educator.subject}</p>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
-                          <span>{educator.flag} {educator.school}</span>
-                          {educator.projectCount > 0 && (
-                            <>
-                              <span>·</span>
-                              <span className="text-amber-600">{educator.projectCount} project{educator.projectCount > 1 ? 's' : ''}</span>
-                            </>
-                          )}
+                    <div className="mb-3 flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
+                          <School className="h-5 w-5 text-amber-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{school}</p>
+                          <p className="text-sm text-gray-500">{data.flag} {data.country}</p>
                         </div>
                       </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-amber-600">{data.educators.length}</p>
+                        <p className="text-xs text-gray-500">educators</p>
+                      </div>
+                    </div>
+
+                    {/* Compact educator list with age groups */}
+                    <div className="flex flex-wrap gap-2">
+                      {data.educators.map((educator) => (
+                        <div
+                          key={educator.name}
+                          className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2"
+                        >
+                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-xs font-semibold text-amber-700">
+                            {educator.avatar ? (
+                              <img
+                                src={educator.avatar}
+                                alt={educator.name}
+                                className="h-full w-full rounded-full object-cover"
+                              />
+                            ) : (
+                              educator.name.split(' ').map(n => n[0]).join('')
+                            )}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-gray-700">{educator.name}</span>
+                            <span className="text-xs text-gray-400">{educator.subject} · Ages {educator.ageGroup}</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </motion.div>
                 ))}
@@ -928,6 +1017,7 @@ export default function PartnerAnalyticsPage() {
             </div>
           </div>
         )
+      }
 
       default:
         return null
@@ -1022,7 +1112,7 @@ export default function PartnerAnalyticsPage() {
         </DialogContent>
       </Dialog>
 
-      <section className="grid gap-6 lg:grid-cols-[3fr,2fr]">
+      <section className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Country impact breakdown</CardTitle>
@@ -1086,28 +1176,29 @@ export default function PartnerAnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapIcon className="h-5 w-5 text-purple-600" />
-              Geographic reach
-            </CardTitle>
-            <CardDescription>UNICEF Denmark activity across participating Danish schools.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-3">
-              {countryReachStats.map((stat) => (
-                <div key={stat.label} className="rounded-xl border border-gray-100 bg-gray-50/80 p-3">
-                  <p className="text-xs text-gray-500">{stat.label}</p>
-                  <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
-                </div>
-              ))}
-            </div>
-            <div className="h-[420px] w-full">
-              <InteractiveMapWrapper countries={denmarkMapData} />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Interactive Geographic Map */}
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.3, type: "spring", stiffness: 100 }}
+        >
+          <Card className="overflow-hidden">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapIcon className="h-5 w-5 text-purple-600" />
+                Geographic reach
+              </CardTitle>
+              <CardDescription>
+                Interactive map of UNICEF Denmark programs. Click on a country to see detailed metrics.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[500px] w-full">
+                <InteractiveMapWrapper countries={denmarkMapData} />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </section>
     </div>
   )

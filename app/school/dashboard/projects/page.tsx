@@ -12,6 +12,13 @@ import { getCountryDisplay } from '@/lib/countries'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import { getCurrentSession } from '@/lib/auth/session'
 
+// Helper for consistent age group calculation based on project name hash
+function getProjectAgeGroup(projectName: string): string {
+  const ageGroups = ['12-14', '14-16', '16-18']
+  const hash = projectName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return ageGroups[hash % ageGroups.length]
+}
+
 // Demo projects (UI-focused)
 const projects = [
   {
@@ -59,6 +66,7 @@ const projects = [
 function ProjectCard({ project }: { project: typeof projects[0] }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const { flag: countryFlag, name: countryName } = getCountryDisplay(project.teacherCountry)
+  const ageGroup = getProjectAgeGroup(project.title)
 
   return (
     <Card className="flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
@@ -96,7 +104,9 @@ function ProjectCard({ project }: { project: typeof projects[0] }) {
           </div>
           <div className="flex items-center gap-2">
             <Users2 className="h-4 w-4 text-gray-400" />
-            <span>{project.ageRange}</span>
+            <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+              Ages {ageGroup} years
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-gray-400" />

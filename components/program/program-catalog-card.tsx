@@ -239,7 +239,9 @@ export function ProgramCatalogCard({
           </div>
           <div className="flex items-center gap-2">
             <Users2 className="h-4 w-4 text-gray-400" />
-            <span>{ageRange}</span>
+            <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+              {ageRange}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Languages className="h-4 w-4 text-gray-400" />
