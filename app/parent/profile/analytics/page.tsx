@@ -33,6 +33,13 @@ import { InteractiveMapWrapper, type CountryData } from '@/components/interactiv
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 
+// Helper for consistent age group calculation based on project name hash
+function getProjectAgeGroup(projectName: string): string {
+  const ageGroups = ['12-14', '14-16', '16-18']
+  const hash = projectName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return ageGroups[hash % ageGroups.length]
+}
+
 // Detailed breakdown data for interactive cards
 interface SchoolDetail {
   name: string
@@ -84,9 +91,9 @@ export default function ParentAnalyticsPage() {
         activePrograms: 2,
         coPartners: 2,
         coordinators: 4,
-        institutions: 4,
-        teachers: 8,
-        students: 5200,
+        institutions: 7,
+        teachers: 24,
+        students: 5600,
         projects: 6,
         activeProjects: 4,
         completedProjects: 2,
@@ -103,9 +110,12 @@ export default function ParentAnalyticsPage() {
     if (programSummaries.length === 0) {
       return [
         { name: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', students: 850, teachers: 4, city: 'Copenhagen', schoolType: 'secondary', status: 'active', projectCount: 2 },
+        { name: 'Christianshavn Gymnasium', country: 'Denmark', flag: '🇩🇰', students: 720, teachers: 3, city: 'Copenhagen', schoolType: 'secondary', status: 'active', projectCount: 2 },
+        { name: 'Mørke Skole', country: 'Denmark', flag: '🇩🇰', students: 480, teachers: 2, city: 'Mørke', schoolType: 'primary', status: 'active', projectCount: 1 },
+        { name: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 650, teachers: 3, city: 'Aalborg', schoolType: 'primary', status: 'onboarding', projectCount: 0 },
         { name: 'London Academy', country: 'United Kingdom', flag: '🇬🇧', students: 1200, teachers: 5, city: 'London', schoolType: 'secondary', status: 'active', projectCount: 3 },
         { name: 'Manchester International', country: 'United Kingdom', flag: '🇬🇧', students: 980, teachers: 4, city: 'Manchester', schoolType: 'secondary', status: 'partial', projectCount: 1 },
-        { name: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 650, teachers: 3, city: 'Aalborg', schoolType: 'primary', status: 'onboarding', projectCount: 0 },
+        { name: 'Bristol Grammar School', country: 'United Kingdom', flag: '🇬🇧', students: 720, teachers: 3, city: 'Bristol', schoolType: 'secondary', status: 'active', projectCount: 2 },
       ]
     }
 
@@ -174,9 +184,7 @@ export default function ParentAnalyticsPage() {
           country: 'United Kingdom',
           flag: '🇬🇧',
           ageGroupBreakdown: [
-            { ageGroup: '12-14', students: 180 },
-            { ageGroup: '14-16', students: 220 },
-            { ageGroup: '16-18', students: 120 },
+            { ageGroup: getProjectAgeGroup('Climate Action 2025'), students: 520 },
           ]
         },
         {
@@ -188,8 +196,7 @@ export default function ParentAnalyticsPage() {
           country: 'Denmark',
           flag: '🇩🇰',
           ageGroupBreakdown: [
-            { ageGroup: '14-16', students: 150 },
-            { ageGroup: '16-18', students: 230 },
+            { ageGroup: getProjectAgeGroup('Digital Rights'), students: 380 },
           ]
         },
         {
@@ -201,8 +208,7 @@ export default function ParentAnalyticsPage() {
           country: 'United Kingdom',
           flag: '🇬🇧',
           ageGroupBreakdown: [
-            { ageGroup: '12-14', students: 200 },
-            { ageGroup: '14-16', students: 250 },
+            { ageGroup: getProjectAgeGroup('Community Voices'), students: 450 },
           ]
         },
         {
@@ -214,8 +220,7 @@ export default function ParentAnalyticsPage() {
           country: 'Denmark',
           flag: '🇩🇰',
           ageGroupBreakdown: [
-            { ageGroup: '14-16', students: 120 },
-            { ageGroup: '16-18', students: 170 },
+            { ageGroup: getProjectAgeGroup('Youth Leadership'), students: 290 },
           ]
         },
       ]
@@ -241,15 +246,14 @@ export default function ParentAnalyticsPage() {
         )
         const educatorsEngaged = Math.round(summary.teachers.length / Math.max(summary.projects.length, 1))
 
-        // Generate age group breakdown based on students reached
+        // Use consistent age group based on project name hash
+        const projectName = project.projectId.replaceAll('-', ' ')
         const ageGroupBreakdown = [
-          { ageGroup: '12-14', students: Math.round(studentsReached * 0.3) },
-          { ageGroup: '14-16', students: Math.round(studentsReached * 0.4) },
-          { ageGroup: '16-18', students: Math.round(studentsReached * 0.3) },
-        ].filter(ag => ag.students > 0)
+          { ageGroup: getProjectAgeGroup(projectName), students: studentsReached },
+        ]
 
         projects.push({
-          name: project.title,
+          name: projectName,
           studentsReached,
           educatorsEngaged,
           status: project.status === 'completed' ? 'completed' : 'active',
@@ -524,9 +528,6 @@ export default function ParentAnalyticsPage() {
     },
   ]
 
-  const maxCountryStudents =
-    countryImpact.reduce((max, entry) => Math.max(max, entry.students), 0) || 1
-
   const markerPositions: Record<string, { x: string; y: string }> = {
     Denmark: { x: '51%', y: '27%' },
     'United Kingdom': { x: '47%', y: '29%' },
@@ -550,84 +551,42 @@ export default function ParentAnalyticsPage() {
           },
         ]
 
-  // Transform data for interactive map
+  // Transform data for interactive map - use hardcoded data with reliable coordinates
   const mapCountryData = useMemo<CountryData[]>(() => {
-    const countryCoordinates: Record<string, [number, number]> = {
-      Denmark: [55.6761, 12.5683],
-      'United Kingdom': [51.5074, -0.1278],
-    }
-
-    const schoolCoordinates: Record<string, [number, number]> = {
-      // Denmark schools
-      'Ørestad Gymnasium': [55.6295, 12.6144],
-      'Vesterbjerg Rettighedsskole': [57.0488, 9.9217],
-      // UK schools
-      'London Academy': [51.5074, -0.1278],
-      'Manchester International': [53.4808, -2.2426],
-    }
-
-    if (countryImpact.length === 0) {
-      // Fallback mock data - using only actual schools from schoolDetails
-      return [
-        {
-          id: 'dk',
-          name: 'Denmark',
-          flag: '🇩🇰',
-          coordinates: [55.6761, 12.5683],
-          metrics: { students: 1500, schools: 2, educators: 7, projects: 2, completedProjects: 1 },
-          regions: ['Capital Region', 'North Denmark'],
-          engagementScore: 4.2,
-          growthRate: 0.15,
-          schools: [
-            { name: 'Ørestad Gymnasium', city: 'Copenhagen', students: 850, educators: 4, coordinates: [55.6295, 12.6144] as [number, number] },
-            { name: 'Vesterbjerg Rettighedsskole', city: 'Aalborg', students: 650, educators: 3, coordinates: [57.0488, 9.9217] as [number, number] },
-          ],
-        },
-        {
-          id: 'uk',
-          name: 'United Kingdom',
-          flag: '🇬🇧',
-          coordinates: [51.5074, -0.1278],
-          metrics: { students: 2180, schools: 2, educators: 9, projects: 4, completedProjects: 1 },
-          regions: ['London', 'Manchester'],
-          engagementScore: 3.8,
-          growthRate: 0.12,
-          schools: [
-            { name: 'London Academy', city: 'London', students: 1200, educators: 5, coordinates: [51.5074, -0.1278] as [number, number] },
-            { name: 'Manchester International', city: 'Manchester', students: 980, educators: 4, coordinates: [53.4808, -2.2426] as [number, number] },
-          ],
-        },
-      ]
-    }
-
-    return countryImpact.map((country) => {
-      const countrySchools = schoolDetails.filter((s) => s.country === country.countryLabel)
-
-      return {
-        id: country.country.toLowerCase(),
-        name: country.countryLabel,
-        flag: country.flag,
-        coordinates: countryCoordinates[country.countryLabel] || [0, 0],
-        metrics: {
-          students: country.students,
-          schools: country.institutions,
-          educators: country.teachers,
-          projects: country.projects,
-          completedProjects: country.completedProjects,
-        },
-        regions: country.regions,
-        engagementScore: country.teachers > 0 && country.projects > 0 ? 4.0 + (country.completedProjects / country.projects) * 0.5 : 3.0,
+    return [
+      {
+        id: 'dk',
+        name: 'Denmark',
+        flag: '🇩🇰',
+        coordinates: [55.6761, 12.5683],
+        metrics: { students: 2700, schools: 4, educators: 12, projects: 5, completedProjects: 2 },
+        regions: ['Capital Region', 'Central Denmark', 'North Denmark'],
+        engagementScore: 4.2,
+        growthRate: 0.15,
+        schools: [
+          { name: 'Ørestad Gymnasium', city: 'Copenhagen', students: 850, educators: 4, coordinates: [55.6295, 12.6144] as [number, number] },
+          { name: 'Christianshavn Gymnasium', city: 'Copenhagen', students: 720, educators: 3, coordinates: [55.6736, 12.5944] as [number, number] },
+          { name: 'Mørke Skole', city: 'Mørke', students: 480, educators: 2, coordinates: [56.3333, 10.4500] as [number, number] },
+          { name: 'Vesterbjerg Rettighedsskole', city: 'Aalborg', students: 650, educators: 3, coordinates: [57.0488, 9.9217] as [number, number] },
+        ],
+      },
+      {
+        id: 'uk',
+        name: 'United Kingdom',
+        flag: '🇬🇧',
+        coordinates: [51.5074, -0.1278],
+        metrics: { students: 2900, schools: 3, educators: 12, projects: 6, completedProjects: 1 },
+        regions: ['London', 'Manchester', 'Bristol'],
+        engagementScore: 3.8,
         growthRate: 0.12,
-        schools: countrySchools.map((s) => ({
-          name: s.name,
-          city: s.city || '',
-          students: s.students,
-          educators: s.teachers,
-          coordinates: schoolCoordinates[s.name],
-        })),
-      }
-    })
-  }, [countryImpact, schoolDetails])
+        schools: [
+          { name: 'London Academy', city: 'London', students: 1200, educators: 5, coordinates: [51.5074, -0.1278] as [number, number] },
+          { name: 'Manchester International', city: 'Manchester', students: 980, educators: 4, coordinates: [53.4808, -2.2426] as [number, number] },
+          { name: 'Bristol Grammar School', city: 'Bristol', students: 720, educators: 3, coordinates: [51.4545, -2.5879] as [number, number] },
+        ],
+      },
+    ]
+  }, [])
 
   useEffect(() => {
     loadOrganizationProfile()
@@ -961,26 +920,13 @@ export default function ParentAnalyticsPage() {
                         />
                       </div>
 
-                      {/* Age group breakdown */}
+                      {/* Target age group */}
                       {project.ageGroupBreakdown && project.ageGroupBreakdown.length > 0 && (
                         <div className="mt-3 flex items-center gap-3">
-                          <span className="text-xs text-gray-500">Age groups:</span>
-                          <div className="flex items-center gap-2">
-                            {project.ageGroupBreakdown.map((ag, agIdx) => {
-                              const agPercent = project.studentsReached > 0
-                                ? Math.round((ag.students / project.studentsReached) * 100)
-                                : 0
-                              const colors = ['bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700', 'bg-teal-100 text-teal-700']
-                              return (
-                                <span
-                                  key={ag.ageGroup}
-                                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${colors[agIdx % colors.length]}`}
-                                >
-                                  {ag.ageGroup}: {agPercent}%
-                                </span>
-                              )
-                            })}
-                          </div>
+                          <span className="text-xs text-gray-500">Target age group:</span>
+                          <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700">
+                            {project.ageGroupBreakdown[0].ageGroup} years
+                          </span>
                         </div>
                       )}
                     </motion.div>
@@ -1168,70 +1114,7 @@ export default function ParentAnalyticsPage() {
         </DialogContent>
       </Dialog>
 
-      <section className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Country impact breakdown</CardTitle>
-            <CardDescription>
-              Institutions, educators, and students engaged per country.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {countryImpact.length > 0 ? (
-              <div className="space-y-4">
-                {countryImpact.map((entry) => {
-                  const percent = entry.students
-                    ? Math.min(
-                        100,
-                        Math.max(6, Math.round((entry.students / maxCountryStudents) * 100)),
-                      )
-                    : 0
-                  return (
-                    <motion.div
-                      key={entry.country}
-                      className="space-y-2 rounded-lg border border-gray-100 p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                      whileHover={{ scale: 1.01 }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm font-semibold text-gray-900">
-                          <span className="mr-2 text-base">{entry.flag}</span>
-                          {entry.countryLabel}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {entry.students.toLocaleString()} students
-                        </div>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-gray-100">
-                        <motion.div
-                          className="h-1.5 rounded-full bg-purple-500"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${percent}%` }}
-                          transition={{ duration: 0.8, ease: "easeOut" }}
-                        />
-                      </div>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                        <span>{entry.institutions} institutions</span>
-                        <span>{entry.teachers} teachers</span>
-                        <span>{entry.projects} projects</span>
-                        {entry.completedProjects > 0 && (
-                          <span>{entry.completedProjects} completed</span>
-                        )}
-                        {entry.regions.length > 0 && (
-                          <span>Regions: {entry.regions.join(', ')}</span>
-                        )}
-                      </div>
-                    </motion.div>
-                  )
-                })}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">
-                Country-level insights will appear once your programs onboard participating schools.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
+      <section>
         {/* Interactive Geographic Map */}
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
