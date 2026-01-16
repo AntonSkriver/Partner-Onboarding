@@ -139,7 +139,7 @@ export default function PartnersPage() {
                 Log in
               </Button>
             </Link>
-            <Link href="/signup">
+            <Link href="/partner/onboarding">
               <Button className="bg-[#8157D9] hover:bg-[#7048C6] text-white text-base font-medium px-6 py-5 rounded-full">
                 Sign up
               </Button>

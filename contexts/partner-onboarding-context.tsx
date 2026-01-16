@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, type ReactNode } from "react"
 
-export type PartnerType = "ngo" | "government" | "school_network" | "commercial" | "other"
+export type PartnerType = "ngo" | "government" | "school_network" | "commercial" | "school" | "other"
 export type ContactRole = "ceo" | "program_manager" | "education_director" | "partnerships_manager" | "communications_director" | "project_coordinator" | "outreach_coordinator" | "other"
 
 export interface PartnerFormData {
@@ -27,6 +27,12 @@ export interface PartnerFormData {
   primaryLanguage: string | null
   operatingCountries: string[]
   establishedYear: number | null
+
+  // School-specific fields (only used when organizationType is 'school')
+  numberOfStudents: number | null
+  numberOfTeachers: number | null
+  gradeLevels: string[]
+  schoolType: string | null
 }
 
 interface PartnerFormContextType {
@@ -38,17 +44,22 @@ interface PartnerFormContextType {
 
 const initialFormData: PartnerFormData = {
   organizationType: null,
-  organizationName: "UNICEF Denmark",
-  organizationWebsite: "https://unicef.dk",
-  missionStatement: "UNICEF Denmark works to secure all children's rights through fundraising, education and advocacy in Denmark. We collaborate with schools, organizations and communities to create awareness about children's global situation and mobilize resources for UNICEF's work worldwide.",
+  organizationName: "",
+  organizationWebsite: "",
+  missionStatement: "",
   sdgFocus: [],
-  contactName: "Anton Skriver",
-  contactEmail: "anton@class2class.org",
-  contactPhone: "004531640702",
-  contactRole: "partnerships_manager",
+  contactName: "",
+  contactEmail: "",
+  contactPhone: "",
+  contactRole: null,
   primaryLanguage: null,
   operatingCountries: [],
   establishedYear: null,
+  // School-specific fields
+  numberOfStudents: null,
+  numberOfTeachers: null,
+  gradeLevels: [],
+  schoolType: null,
 }
 
 const PartnerFormContext = createContext<PartnerFormContextType | undefined>(undefined)
@@ -76,11 +87,8 @@ export function PartnerOnboardingProvider({ children }: { children: ReactNode })
           (formData.organizationWebsite === "" || 
            /^https?:\/\/.+\..+/.test(formData.organizationWebsite))
         )
-      case 3: // Mission & SDG Focus
-        return (
-          formData.missionStatement.trim().length >= 50 &&
-          formData.sdgFocus.length > 0
-        )
+      case 3: // SDG Focus
+        return formData.sdgFocus.length > 0
       case 4: // Contact information
         return (
           formData.contactName.trim() !== "" &&
@@ -118,6 +126,7 @@ export const getOrganizationTypeLabel = (type: PartnerType | null): string => {
     government: 'Government Agency',
     school_network: 'School Network',
     commercial: 'Corporate Partner',
+    school: 'School',
     other: 'Other Organization'
   }
   return type ? typeLabels[type] : ''

@@ -93,7 +93,11 @@ export default function LoginPage() {
 
           {/* User Type Toggle */}
           <div className="flex gap-6 mb-8">
-            <label className="flex items-center gap-2 cursor-pointer group">
+            <button
+              type="button"
+              onClick={() => setUserType('partner')}
+              className="flex items-center gap-2 cursor-pointer group"
+            >
               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
                 userType === 'partner'
                   ? 'border-[#8157D9] bg-[#8157D9]'
@@ -106,16 +110,13 @@ export default function LoginPage() {
               <span className={`font-medium transition-colors ${
                 userType === 'partner' ? 'text-[#1a1a2e]' : 'text-gray-500'
               }`}>Partner</span>
-            </label>
-            <input
-              type="radio"
-              name="userType"
-              checked={userType === 'partner'}
-              onChange={() => setUserType('partner')}
-              className="sr-only"
-            />
+            </button>
 
-            <label className="flex items-center gap-2 cursor-pointer group">
+            <button
+              type="button"
+              onClick={() => setUserType('school')}
+              className="flex items-center gap-2 cursor-pointer group"
+            >
               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
                 userType === 'school'
                   ? 'border-[#8157D9] bg-[#8157D9]'
@@ -128,14 +129,7 @@ export default function LoginPage() {
               <span className={`font-medium transition-colors ${
                 userType === 'school' ? 'text-[#1a1a2e]' : 'text-gray-500'
               }`}>School</span>
-            </label>
-            <input
-              type="radio"
-              name="userType"
-              checked={userType === 'school'}
-              onChange={() => setUserType('school')}
-              className="sr-only"
-            />
+            </button>
           </div>
 
           {/* Login Form */}
@@ -219,7 +213,7 @@ export default function LoginPage() {
           {/* Sign Up Link */}
           <p className="mt-8 text-center text-gray-600">
             Don't have an account?{' '}
-            <Link href="/signup" className="text-[#8157D9] hover:text-[#7048C6] font-semibold">
+            <Link href="/partner/onboarding" className="text-[#8157D9] hover:text-[#7048C6] font-semibold">
               Sign Up
             </Link>
           </p>

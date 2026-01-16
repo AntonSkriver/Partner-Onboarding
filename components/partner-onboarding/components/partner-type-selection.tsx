@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { usePartnerOnboarding, type PartnerType } from "../../../contexts/partner-onboarding-context"
-import { Building2, Landmark, GraduationCap, Building, HelpCircle } from "lucide-react"
+import { Building2, Landmark, GraduationCap, Building, HelpCircle, School, Check, Sparkles } from "lucide-react"
 
 interface PartnerTypeSelectionProps {
   onNext: () => void
@@ -16,7 +16,8 @@ interface PartnerTypeOption {
   description: string
   examples: string
   icon: React.ElementType
-  color: string
+  gradient: string
+  iconBg: string
 }
 
 export function PartnerTypeSelection({ onNext, onPrevious }: PartnerTypeSelectionProps) {
@@ -25,43 +26,57 @@ export function PartnerTypeSelection({ onNext, onPrevious }: PartnerTypeSelectio
   const partnerTypes: PartnerTypeOption[] = [
     {
       id: 'ngo',
-      title: 'Non-Governmental Organization (NGO)',
-      description: 'Organizations focused on education, human rights, and social impact',
-      examples: 'UNICEF, Save the Children, Oxfam, World Vision',
+      title: 'NGO',
+      description: 'Non-profit organizations driving education and social impact',
+      examples: 'UNICEF, Save the Children, Oxfam',
       icon: Building2,
-      color: 'text-blue-600'
+      gradient: 'from-blue-500 to-cyan-400',
+      iconBg: 'bg-blue-500/10 group-hover:bg-blue-500/20',
     },
     {
       id: 'government',
-      title: 'Government Agency/Ministry',
-      description: 'Public institutions and governmental educational bodies',
-      examples: 'Ministry of Education, Health Department, UNESCO',
+      title: 'Government',
+      description: 'Public institutions and ministries of education',
+      examples: 'Ministry of Education, UNESCO',
       icon: Landmark,
-      color: 'text-green-600'
+      gradient: 'from-emerald-500 to-teal-400',
+      iconBg: 'bg-emerald-500/10 group-hover:bg-emerald-500/20',
+    },
+    {
+      id: 'school',
+      title: 'School',
+      description: 'Individual schools seeking global classroom connections',
+      examples: 'Primary, Secondary, International Schools',
+      icon: School,
+      gradient: 'from-cyan-500 to-blue-400',
+      iconBg: 'bg-cyan-500/10 group-hover:bg-cyan-500/20',
     },
     {
       id: 'school_network',
-      title: 'School Network/District',
-      description: 'Groups of schools, educational districts, or school systems',
-      examples: 'School Districts, Educational Networks, Academy Chains',
+      title: 'School Network',
+      description: 'Districts, networks, or groups of schools',
+      examples: 'School Districts, Academy Chains',
       icon: GraduationCap,
-      color: 'text-purple-600'
+      gradient: 'from-violet-500 to-purple-400',
+      iconBg: 'bg-violet-500/10 group-hover:bg-violet-500/20',
     },
     {
       id: 'commercial',
-      title: 'Corporate Partner',
-      description: 'Companies with educational CSR initiatives and programs',
-      examples: 'LEGO Education, Microsoft Education, Google for Education',
+      title: 'Corporate',
+      description: 'Companies with educational CSR initiatives',
+      examples: 'LEGO Education, Microsoft, Google',
       icon: Building,
-      color: 'text-orange-600'
+      gradient: 'from-orange-500 to-amber-400',
+      iconBg: 'bg-orange-500/10 group-hover:bg-orange-500/20',
     },
     {
       id: 'other',
-      title: 'Other Organization',
-      description: 'Other types of educational partners and institutions',
-      examples: 'Foundations, Research Institutes, Think Tanks',
+      title: 'Other',
+      description: 'Foundations, research institutes, and more',
+      examples: 'Think Tanks, Educational Foundations',
       icon: HelpCircle,
-      color: 'text-gray-600'
+      gradient: 'from-gray-500 to-slate-400',
+      iconBg: 'bg-gray-500/10 group-hover:bg-gray-500/20',
     }
   ]
 
@@ -74,77 +89,94 @@ export function PartnerTypeSelection({ onNext, onPrevious }: PartnerTypeSelectio
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center">
-        <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Building2 className="w-8 h-8 text-purple-600" />
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#8157D9]/10 border border-[#8157D9]/20">
+          <Sparkles className="w-4 h-4 text-[#8157D9]" />
+          <span className="text-[#8157D9] text-sm font-medium">Step 1 of 5</span>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-3">
-          What type of organization are you?
+
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+          What type of organization
+          <br />
+          <span className="text-[#8157D9]">are you?</span>
         </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          This helps us tailor the experience to your organization&apos;s needs and connect you 
-          with schools that align with your mission and goals.
+
+        <p className="text-gray-500 max-w-lg mx-auto">
+          This helps us tailor your experience and connect you with the right schools and partners.
         </p>
       </div>
 
-      {/* Organization Type Options */}
-      <div className="space-y-4">
-        {partnerTypes.map((type) => (
-          <div
-            key={type.id}
-            className={`group flex items-start p-6 rounded-2xl border-2 cursor-pointer transition-all duration-200 hover:shadow-lg ${
-              formData.organizationType === type.id
-                ? 'border-purple-500 bg-purple-50 shadow-lg scale-[1.02]'
-                : 'border-gray-200 hover:border-purple-300 hover:bg-purple-25'
-            }`}
-            onClick={() => selectPartnerType(type.id)}
-          >
-            <div className="flex items-start space-x-5 w-full">
-              {/* Icon */}
-              <div className={`mt-1 transition-colors ${
-                formData.organizationType === type.id ? 'text-purple-600' : type.color
-              }`}>
-                <type.icon className="h-7 w-7" />
+      {/* Organization Type Grid */}
+      <div className="grid md:grid-cols-2 gap-3">
+        {partnerTypes.map((type) => {
+          const Icon = type.icon
+          const isSelected = formData.organizationType === type.id
+
+          return (
+            <button
+              key={type.id}
+              onClick={() => selectPartnerType(type.id)}
+              className={`
+                group relative flex items-start gap-4 p-5 rounded-2xl text-left transition-all duration-300
+                ${isSelected
+                  ? 'bg-[#8157D9]/5 border-2 border-[#8157D9] shadow-lg shadow-[#8157D9]/10'
+                  : 'bg-white border-2 border-gray-100 hover:border-gray-200 hover:shadow-md'
+                }
+              `}
+            >
+              {/* Selection indicator */}
+              <div className={`
+                absolute top-4 right-4 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300
+                ${isSelected
+                  ? 'bg-[#8157D9] scale-100'
+                  : 'bg-gray-100 scale-90 group-hover:scale-100'
+                }
+              `}>
+                {isSelected && <Check className="w-4 h-4 text-white" />}
               </div>
-              
+
+              {/* Icon */}
+              <div className={`
+                w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300
+                ${isSelected ? 'bg-[#8157D9]/10' : type.iconBg}
+              `}>
+                <Icon className={`w-6 h-6 transition-colors duration-300 ${isSelected ? 'text-[#8157D9]' : 'text-gray-400 group-hover:text-gray-600'}`} />
+              </div>
+
               {/* Content */}
-              <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-purple-900">
+              <div className="flex-1 min-w-0 pr-8">
+                <h3 className={`font-semibold text-lg mb-1 transition-colors duration-300 ${isSelected ? 'text-[#8157D9]' : 'text-gray-900'}`}>
                   {type.title}
                 </h3>
-                <p className="text-gray-600 mb-3 leading-relaxed">
+                <p className="text-sm text-gray-500 mb-2 line-clamp-2">
                   {type.description}
                 </p>
-                <p className="text-sm text-gray-500">
-                  <span className="font-medium">Examples:</span> {type.examples}
+                <p className="text-xs text-gray-400">
+                  e.g., {type.examples}
                 </p>
               </div>
-              
-              {/* Radio Button */}
-              <div className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center ${
-                formData.organizationType === type.id
-                  ? 'border-purple-500 bg-purple-500'
-                  : 'border-gray-300 group-hover:border-purple-400'
-              }`}>
-                {formData.organizationType === type.id && (
-                  <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
+
+              {/* Gradient accent on hover/selection */}
+              <div className={`
+                absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl bg-gradient-to-r ${type.gradient} transition-opacity duration-300
+                ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}
+              `} />
+            </button>
+          )
+        })}
       </div>
 
-      {/* Information Box */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+      {/* Helper text */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-5 border border-blue-100/50">
         <div className="flex items-start gap-4">
-          <span className="text-blue-600 text-2xl">💡</span>
+          <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+            <span className="text-xl">💡</span>
+          </div>
           <div>
-            <h4 className="font-semibold text-blue-900 mb-2">Why we ask this</h4>
-            <p className="text-blue-800 leading-relaxed">
-              Understanding your organization type helps us connect you with schools that align 
-              with your mission, suggest relevant SDG-focused projects, and provide the most 
-              suitable collaboration opportunities for your sector.
+            <h4 className="font-medium text-gray-900 mb-1">Why does this matter?</h4>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Different organization types have different collaboration styles. We&apos;ll customize your dashboard,
+              suggest relevant SDG projects, and match you with schools that best fit your mission.
             </p>
           </div>
         </div>
@@ -152,17 +184,17 @@ export function PartnerTypeSelection({ onNext, onPrevious }: PartnerTypeSelectio
 
       {/* Navigation */}
       <div className="flex gap-4 pt-4">
-        <Button 
-          variant="outline" 
-          onClick={onPrevious} 
-          className="flex-1 py-3 text-base"
+        <Button
+          variant="outline"
+          onClick={onPrevious}
+          className="flex-1 py-6 text-base border-gray-200 hover:bg-gray-50"
           size="lg"
         >
           Back
         </Button>
         <Button
           onClick={onNext}
-          className="flex-1 py-3 text-base bg-purple-600 hover:bg-purple-700 text-white"
+          className="flex-1 py-6 text-base bg-[#8157D9] hover:bg-[#7048C6] text-white shadow-lg shadow-[#8157D9]/25 disabled:opacity-50 disabled:shadow-none"
           disabled={!canProceed}
           size="lg"
         >

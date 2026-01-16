@@ -17,6 +17,8 @@ import {
   Building2,
   Award,
   ShieldCheck,
+  GraduationCap,
+  Users,
 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { SDGIcon } from '@/components/sdg-icons'
@@ -41,6 +43,8 @@ interface SchoolProfile {
   childRightsFocus: string[]
   description?: string
   mission?: string
+  gradeLevels?: string[]
+  schoolType?: string
 }
 
 const CRC_ARTICLE_DETAILS: Record<string, { title: string }> = {
@@ -57,6 +61,8 @@ type InstitutionExtras = {
   childRightsFocus?: string[]
   description?: string
   mission?: string
+  gradeLevels?: string[]
+  schoolType?: string
 }
 
 export default function SchoolOverviewPage() {
@@ -152,6 +158,8 @@ export default function SchoolOverviewPage() {
         childRightsFocus: extras.childRightsFocus ?? [],
         description: extras.description ?? '',
         mission: extras.mission ?? '',
+        gradeLevels: extras.gradeLevels ?? [],
+        schoolType: extras.schoolType ?? '',
       }
 
       setSchool(mappedSchool)
@@ -301,6 +309,74 @@ export default function SchoolOverviewPage() {
                 <div className="text-sm text-gray-600">Teachers</div>
               </div>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* School Details Section */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* School Type & Grade Levels */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="h-4 w-4" />
+              School Details
+            </CardTitle>
+            <CardDescription>
+              Grade levels and school classification
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-gray-500 mb-1">School Type</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {school.schoolType || school.type || 'Not specified'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500 mb-2">Grade Levels</p>
+              {school.gradeLevels && school.gradeLevels.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {school.gradeLevels.map((grade) => (
+                    <Badge key={grade} variant="secondary" className="text-sm">
+                      {grade}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm">No grade levels specified</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* School Size */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              School Size
+            </CardTitle>
+            <CardDescription>
+              Student and teacher population
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="text-center p-4 bg-blue-50 rounded-xl">
+                <div className="text-3xl font-bold text-blue-600">{school.studentCount}</div>
+                <div className="text-sm text-gray-600 mt-1">Total Students</div>
+              </div>
+              <div className="text-center p-4 bg-amber-50 rounded-xl">
+                <div className="text-3xl font-bold text-amber-600">{school.teacherCount}</div>
+                <div className="text-sm text-gray-600 mt-1">Total Teachers</div>
+              </div>
+            </div>
+            {school.studentCount > 0 && school.teacherCount > 0 && (
+              <div className="mt-4 text-center text-sm text-gray-500">
+                Student-Teacher Ratio: {Math.round(school.studentCount / school.teacherCount)}:1
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

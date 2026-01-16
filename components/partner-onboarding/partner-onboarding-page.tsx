@@ -43,7 +43,7 @@ function PartnerOnboardingContent() {
     { name: "Welcome", component: PartnerWelcomeScreen },
     { name: "Type", component: PartnerTypeSelection },
     { name: "Details", component: PartnerOrganizationDetails },
-    { name: "Mission", component: PartnerMissionSdg },
+    { name: "SDG Focus", component: PartnerMissionSdg },
     { name: "Contact", component: PartnerContactInfo },
     { name: "Summary", component: PartnerSummary },
     { name: "Complete", component: PartnerFinalScreen },
@@ -100,23 +100,21 @@ function PartnerOnboardingContent() {
       ) : (
         <div className="flex flex-col lg:flex-row min-h-screen max-w-[1920px] mx-auto">
           {/* Left Column - Form */}
-          <div className={`w-full ${currentStep === steps.length - 1 ? 'lg:w-[55%] min-h-0' : 'lg:w-[55%]'} bg-white`}>
-            <div className={`relative flex flex-col justify-center mx-auto px-8 sm:px-4 md:px-5 lg:px-6 py-4 lg:py-6 ${currentStep === steps.length - 1 ? 'min-h-0' : 'min-h-screen'} max-w-[700px]`}>
-              {/* Progress Bar - Moved to top */}
+          <div className={`w-full ${currentStep === steps.length - 1 ? 'lg:w-[55%] min-h-0' : 'lg:w-[55%]'} bg-white overflow-y-auto`}>
+            <div className={`relative mx-auto px-8 sm:px-4 md:px-5 lg:px-6 py-4 lg:py-6 ${currentStep === steps.length - 1 ? 'min-h-0' : 'min-h-screen'} max-w-[700px]`}>
+              {/* Progress Bar - Fixed to top */}
               {currentStep !== steps.length - 1 && (
-                <div className="absolute top-0 left-0 right-0 bg-white z-10">
-                  <div className="max-w-[700px] mx-auto px-8 sm:px-4 md:px-5 lg:px-6 py-4">
-                    <PartnerProgressBar
-                      currentStep={getProgressStep()}
-                      totalSteps={getTotalSteps()}
-                      stepNames={steps.slice(1, -1).map((step) => step.name)}
-                      onGoToStep={(step) => goToStep(step + 1)}
-                    />
-                  </div>
+                <div className="sticky top-0 left-0 right-0 bg-white z-10 -mx-8 sm:-mx-4 md:-mx-5 lg:-mx-6 px-8 sm:px-4 md:px-5 lg:px-6 py-4 border-b border-gray-100/50">
+                  <PartnerProgressBar
+                    currentStep={getProgressStep()}
+                    totalSteps={getTotalSteps()}
+                    stepNames={steps.slice(1, -1).map((step) => step.name)}
+                    onGoToStep={(step) => goToStep(step + 1)}
+                  />
                 </div>
               )}
 
-              <div className={currentStep === steps.length - 1 ? 'mt-4' : 'mt-20 pt-4'}>
+              <div className={currentStep === steps.length - 1 ? 'mt-4' : 'pt-8 pb-8'}>
                 <CurrentStepComponent onNext={goToNextStep} onPrevious={goToPreviousStep} onGoToStep={goToStep} />
               </div>
             </div>

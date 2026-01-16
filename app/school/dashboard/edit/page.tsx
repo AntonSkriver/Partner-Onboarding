@@ -29,7 +29,34 @@ type InstitutionWithProfile = {
   childRightsFocus?: string[]
   mission?: string
   description?: string
+  studentCount?: number
+  teacherCount?: number
+  gradeLevels?: string[]
+  schoolType?: string
 }
+
+const GRADE_LEVEL_OPTIONS = [
+  'Pre-K',
+  'Kindergarten',
+  'Grade 1-3',
+  'Grade 4-6',
+  'Grade 7-9',
+  'Grade 10-12',
+  'Higher Education',
+]
+
+const SCHOOL_TYPE_OPTIONS = [
+  'Public School',
+  'Private School',
+  'International School',
+  'Charter School',
+  'Montessori School',
+  'Waldorf School',
+  'Religious School',
+  'Boarding School',
+  'Online School',
+  'Other',
+]
 
 const CRC_CATEGORIES = [
   {
@@ -132,6 +159,10 @@ export default function SchoolProfileEditPage() {
     description: '',
     sdgFocus: [] as string[],
     childRightsFocus: [] as string[],
+    studentCount: 0,
+    teacherCount: 0,
+    gradeLevels: [] as string[],
+    schoolType: '',
   })
 
   useEffect(() => {
@@ -142,6 +173,10 @@ export default function SchoolProfileEditPage() {
   const handleCRCToggle = (crcId: string) => toggleSelection('childRightsFocus', crcId)
 
   const loadInstitution = useCallback(() => {
+    if (!database) {
+      setLoading(false)
+      return
+    }
     setLoading(true)
     const activeInstitutionId =
       typeof window !== 'undefined' ? window.localStorage.getItem('activeInstitutionId') : null
@@ -163,6 +198,7 @@ export default function SchoolProfileEditPage() {
       return
     }
 
+    const matchWithExtras = match as InstitutionWithProfile
     const profile: InstitutionWithProfile = {
       id: match.id,
       name: match.name,
@@ -170,10 +206,14 @@ export default function SchoolProfileEditPage() {
       city: match.city,
       contactEmail: match.contactEmail,
       principalName: match.principalName,
-      sdgFocus: (match as InstitutionWithProfile).sdgFocus ?? [],
-      childRightsFocus: (match as InstitutionWithProfile).childRightsFocus ?? [],
-      mission: (match as InstitutionWithProfile).mission ?? '',
-      description: (match as InstitutionWithProfile).description ?? '',
+      sdgFocus: matchWithExtras.sdgFocus ?? [],
+      childRightsFocus: matchWithExtras.childRightsFocus ?? [],
+      mission: matchWithExtras.mission ?? '',
+      description: matchWithExtras.description ?? '',
+      studentCount: (match as { studentCount?: number }).studentCount ?? 0,
+      teacherCount: (match as { teacherCount?: number }).teacherCount ?? 0,
+      gradeLevels: matchWithExtras.gradeLevels ?? [],
+      schoolType: matchWithExtras.schoolType ?? '',
     }
 
     setInstitution(profile)
@@ -187,6 +227,10 @@ export default function SchoolProfileEditPage() {
       description: profile.description || '',
       sdgFocus: [...(profile.sdgFocus ?? [])],
       childRightsFocus: [...(profile.childRightsFocus ?? [])],
+      studentCount: profile.studentCount ?? 0,
+      teacherCount: profile.teacherCount ?? 0,
+      gradeLevels: [...(profile.gradeLevels ?? [])],
+      schoolType: profile.schoolType ?? '',
     })
     setLoading(false)
   }, [database, session])
@@ -223,6 +267,10 @@ export default function SchoolProfileEditPage() {
         description: formState.description,
         sdgFocus: formState.sdgFocus,
         childRightsFocus: formState.childRightsFocus,
+        studentCount: formState.studentCount,
+        teacherCount: formState.teacherCount,
+        gradeLevels: formState.gradeLevels,
+        schoolType: formState.schoolType,
         updatedAt: new Date().toISOString(),
       }
 
@@ -318,6 +366,91 @@ export default function SchoolProfileEditPage() {
                 type="email"
               />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>School Details</CardTitle>
+          <CardDescription>Information about your school size and type</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Number of Students</label>
+              <Input
+                type="number"
+                min="0"
+                value={formState.studentCount || ''}
+                onChange={(e) => setFormState((prev) => ({ ...prev, studentCount: parseInt(e.target.value) || 0 }))}
+                placeholder="e.g. 500"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Number of Teachers</label>
+              <Input
+                type="number"
+                min="0"
+                value={formState.teacherCount || ''}
+                onChange={(e) => setFormState((prev) => ({ ...prev, teacherCount: parseInt(e.target.value) || 0 }))}
+                placeholder="e.g. 35"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">School Type</label>
+              <select
+                value={formState.schoolType}
+                onChange={(e) => setFormState((prev) => ({ ...prev, schoolType: e.target.value }))}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Select school type</option>
+                {SCHOOL_TYPE_OPTIONS.map((type) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-700">Grade Levels</label>
+            <p className="text-xs text-gray-500">Select all grade levels your school wants to use for collaboration on the platform</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+              {GRADE_LEVEL_OPTIONS.map((grade) => {
+                const isSelected = formState.gradeLevels.includes(grade)
+                return (
+                  <div
+                    key={grade}
+                    onClick={() => {
+                      setFormState((prev) => {
+                        const current = new Set(prev.gradeLevels)
+                        if (current.has(grade)) {
+                          current.delete(grade)
+                        } else {
+                          current.add(grade)
+                        }
+                        return { ...prev, gradeLevels: Array.from(current) }
+                      })
+                    }}
+                    className={cn(
+                      'cursor-pointer rounded-lg border-2 p-3 text-center text-sm transition-all',
+                      isSelected
+                        ? 'border-purple-500 bg-purple-50 text-purple-700 font-medium'
+                        : 'border-gray-200 hover:border-purple-300 hover:bg-purple-25'
+                    )}
+                  >
+                    {grade}
+                  </div>
+                )
+              })}
+            </div>
+            {formState.gradeLevels.length > 0 && (
+              <div className="mt-2">
+                <p className="text-xs text-gray-600">
+                  Selected: {formState.gradeLevels.join(', ')}
+                </p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

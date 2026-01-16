@@ -1,6 +1,7 @@
 "use client"
 
 import { usePartnerOnboarding } from "../../../contexts/partner-onboarding-context"
+import { Check } from "lucide-react"
 
 interface PartnerProgressBarProps {
   currentStep: number
@@ -11,16 +12,9 @@ interface PartnerProgressBarProps {
 
 export function PartnerProgressBar({ currentStep, totalSteps, stepNames, onGoToStep }: PartnerProgressBarProps) {
   const { isStepComplete } = usePartnerOnboarding()
-  
-  // Calculate progress percentage
-  const progressPercentage = (currentStep / totalSteps) * 100
 
-  // Handle step click - only navigate if the step is completed or is the current step
   const handleStepClick = (stepIndex: number) => {
-    // If no onGoToStep function is provided, do nothing
     if (!onGoToStep) return
-
-    // Only allow navigation to completed steps or current step
     if (stepIndex <= currentStep && isStepComplete(stepIndex + 1)) {
       onGoToStep(stepIndex)
     }
@@ -28,39 +22,47 @@ export function PartnerProgressBar({ currentStep, totalSteps, stepNames, onGoToS
 
   return (
     <div className="space-y-4">
-      {/* Step counter and names */}
-      <div className="flex items-center justify-between mb-1">
-        <div>
-          <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+      {/* Header with step info */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#8157D9]/10 text-[#8157D9] font-bold text-sm">
             {currentStep + 1}/{totalSteps + 1}
-          </span>
-          <h2 className="text-lg font-medium text-purple-600 mt-1">{stepNames[currentStep]}</h2>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Current Step</p>
+            <h2 className="text-lg font-semibold text-gray-900">{stepNames[currentStep]}</h2>
+          </div>
         </div>
+
         {currentStep < totalSteps && (
-          <div className="text-right">
-            <span className="text-xs text-gray-400">Next</span>
+          <div className="text-right hidden sm:block">
+            <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Up Next</p>
             <p className="text-sm text-gray-500">{stepNames[currentStep + 1]}</p>
           </div>
         )}
       </div>
 
-      {/* Visual progress steps */}
+      {/* Progress track */}
       <div className="relative">
         {/* Background track */}
-        <div className="absolute top-1/2 left-0 right-0 h-0.5 -translate-y-1/2 bg-gray-200"></div>
+        <div className="absolute top-1/2 left-0 right-0 h-1 -translate-y-1/2 bg-gray-100 rounded-full" />
 
-        {/* Filled track */}
+        {/* Filled track with gradient */}
         <div
-          className="absolute top-1/2 left-0 h-0.5 -translate-y-1/2 bg-purple-600 transition-all duration-300 ease-in-out"
-          style={{ width: `${progressPercentage}%` }}
-        ></div>
+          className="absolute top-1/2 left-0 h-1 -translate-y-1/2 bg-gradient-to-r from-[#8157D9] to-[#a78bfa] rounded-full transition-all duration-500 ease-out"
+          style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+        >
+          {/* Animated glow effect */}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#8157D9] rounded-full shadow-[0_0_12px_rgba(129,87,217,0.6)]" />
+        </div>
 
         {/* Step indicators */}
         <div className="relative flex justify-between">
           {stepNames.slice(0, totalSteps + 1).map((step, index) => {
-            // Determine if this step is clickable (only completed steps)
             const stepComplete = isStepComplete(index + 1)
             const isClickable = !!onGoToStep && index <= currentStep && stepComplete
+            const isCurrent = index === currentStep
+            const isPast = index < currentStep
 
             return (
               <div
@@ -70,14 +72,13 @@ export function PartnerProgressBar({ currentStep, totalSteps, stepNames, onGoToS
               >
                 <div
                   className={`
-                    flex items-center justify-center w-7 h-7 rounded-full border-2 
-                    transition-all duration-300 z-10
-                    ${
-                      index < currentStep
-                        ? "bg-purple-600 border-purple-600 text-white"
-                        : index === currentStep
-                          ? "bg-white border-purple-600 text-purple-600"
-                          : "bg-white border-gray-300 text-gray-400"
+                    relative flex items-center justify-center w-8 h-8 rounded-full border-2 z-10
+                    transition-all duration-300 ease-out
+                    ${isPast
+                      ? "bg-[#8157D9] border-[#8157D9] text-white"
+                      : isCurrent
+                        ? "bg-white border-[#8157D9] text-[#8157D9] shadow-lg shadow-[#8157D9]/20"
+                        : "bg-white border-gray-200 text-gray-400"
                     }
                     ${isClickable ? "cursor-pointer hover:scale-110" : "cursor-default"}
                   `}
@@ -85,24 +86,25 @@ export function PartnerProgressBar({ currentStep, totalSteps, stepNames, onGoToS
                   aria-label={isClickable ? `Go to step ${index + 1}: ${step}` : `Step ${index + 1}: ${step}`}
                   tabIndex={isClickable ? 0 : -1}
                 >
-                  {index < currentStep ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
+                  {isPast ? (
+                    <Check className="w-4 h-4" strokeWidth={3} />
                   ) : (
-                    <span className="text-xs font-medium">{index + 1}</span>
+                    <span className="text-xs font-bold">{index + 1}</span>
+                  )}
+
+                  {/* Current step pulse animation */}
+                  {isCurrent && (
+                    <span className="absolute inset-0 rounded-full bg-[#8157D9]/20 animate-ping" />
                   )}
                 </div>
+
+                {/* Step label - only show on larger screens */}
+                <span className={`
+                  hidden md:block mt-2 text-xs font-medium text-center max-w-[80px] leading-tight
+                  ${isCurrent ? 'text-[#8157D9]' : isPast ? 'text-gray-600' : 'text-gray-400'}
+                `}>
+                  {step}
+                </span>
               </div>
             )
           })}

@@ -1,9 +1,8 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { usePartnerOnboarding } from "../../../contexts/partner-onboarding-context"
 import Image from "next/image"
-import { Building2, Globe, Users, Target } from "lucide-react"
+import { ArrowRight, Sparkles, Globe2, Users, Zap } from "lucide-react"
 
 interface PartnerWelcomeScreenProps {
   onNext: () => void
@@ -12,143 +11,268 @@ interface PartnerWelcomeScreenProps {
 }
 
 export function PartnerWelcomeScreen({ onNext }: PartnerWelcomeScreenProps) {
-  const { formData } = usePartnerOnboarding()
-
   return (
-    <div className="max-w-4xl mx-auto text-center">
-      {/* Decorative background elements */}
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#0f0a1f]">
+      {/* Animated gradient orbs */}
       <div className="absolute inset-0 overflow-hidden">
-        {Array.from({ length: 20 }).map((_, i) => (
+        <div
+          className="absolute w-[800px] h-[800px] rounded-full opacity-30 blur-[120px] animate-pulse"
+          style={{
+            background: 'radial-gradient(circle, #8157D9 0%, transparent 70%)',
+            top: '-20%',
+            right: '-10%',
+            animationDuration: '4s',
+          }}
+        />
+        <div
+          className="absolute w-[600px] h-[600px] rounded-full opacity-20 blur-[100px] animate-pulse"
+          style={{
+            background: 'radial-gradient(circle, #6366f1 0%, transparent 70%)',
+            bottom: '-10%',
+            left: '-5%',
+            animationDuration: '5s',
+            animationDelay: '1s',
+          }}
+        />
+        <div
+          className="absolute w-[400px] h-[400px] rounded-full opacity-25 blur-[80px] animate-pulse"
+          style={{
+            background: 'radial-gradient(circle, #a78bfa 0%, transparent 70%)',
+            top: '40%',
+            left: '30%',
+            animationDuration: '6s',
+            animationDelay: '2s',
+          }}
+        />
+      </div>
+
+      {/* Orbital connection lines */}
+      <svg
+        className="absolute inset-0 w-full h-full opacity-20"
+        viewBox="0 0 1000 1000"
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <defs>
+          <linearGradient id="orbitGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#8157D9" stopOpacity="0" />
+            <stop offset="50%" stopColor="#8157D9" stopOpacity="1" />
+            <stop offset="100%" stopColor="#8157D9" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {/* Orbital paths */}
+        <ellipse cx="500" cy="500" rx="400" ry="200" fill="none" stroke="url(#orbitGradient)" strokeWidth="1" className="animate-[spin_60s_linear_infinite]" style={{ transformOrigin: '500px 500px' }} />
+        <ellipse cx="500" cy="500" rx="350" ry="350" fill="none" stroke="url(#orbitGradient)" strokeWidth="0.5" className="animate-[spin_90s_linear_infinite_reverse]" style={{ transformOrigin: '500px 500px' }} />
+        <ellipse cx="500" cy="500" rx="250" ry="150" fill="none" stroke="url(#orbitGradient)" strokeWidth="1" className="animate-[spin_45s_linear_infinite]" style={{ transformOrigin: '500px 500px', transform: 'rotate(60deg)' }} />
+      </svg>
+
+      {/* Floating particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
           <div
             key={i}
-            className="absolute h-1 bg-purple-200/30 transform -rotate-45"
+            className="absolute w-1 h-1 bg-purple-400 rounded-full animate-float opacity-40"
             style={{
-              width: `${Math.random() * 60 + 20}px`,
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 2}s`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${4 + Math.random() * 4}s`,
             }}
           />
         ))}
       </div>
 
-      {/* Logo area */}
-      <div className="relative mb-8">
-        <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-purple-100/50 backdrop-blur-sm flex items-center justify-center border border-purple-200/30">
-          <Building2 className="w-16 h-16 text-purple-600" />
-        </div>
-        
-        {/* Class2Class logo */}
-        <div className="flex items-center justify-center gap-3 mb-2">
-          <Image 
-            src="/isotipo.png" 
-            alt="Class2Class Logo" 
-            width={40} 
-            height={40}
-            className="w-10 h-10"
-          />
-          <span className="text-2xl font-bold text-gray-800">Class2Class</span>
-        </div>
-      </div>
+      {/* Grid overlay */}
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(129, 87, 217, 0.5) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(129, 87, 217, 0.5) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px',
+        }}
+      />
 
-      {/* Content */}
-      <div className="relative z-10">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-          Welcome to our Partner Community!
-        </h1>
-        
-        <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-          Join our global network of educational organizations creating meaningful 
-          collaborations with schools worldwide through UN SDG-aligned projects.
-        </p>
-
-        <div className="space-y-4 mb-12">
-          <Button 
-            onClick={onNext}
-            size="lg" 
-            className="bg-purple-600 text-white hover:bg-purple-700 px-8 py-4 text-lg font-semibold rounded-xl"
-          >
-            Start Partner Registration
-          </Button>
-          
-          <div className="text-sm text-gray-500">
-            Takes about 5-7 minutes to complete
+      {/* Main content */}
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 py-12">
+        {/* Logo */}
+        <div
+          className="mb-8 animate-fade-in"
+          style={{ animationDelay: '0.2s', animationFillMode: 'backwards' }}
+        >
+          <div className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
+            <Image
+              src="/isotipo.png"
+              alt="Class2Class"
+              width={32}
+              height={32}
+              className="w-8 h-8"
+            />
+            <span className="text-white/90 font-medium tracking-wide">Class2Class</span>
           </div>
         </div>
 
-        {/* Features preview */}
-        <div className="grid md:grid-cols-3 gap-6 text-left">
-          <div className="bg-white/60 backdrop-blur-sm rounded-lg p-6 border border-purple-200/30">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-              <Target className="w-6 h-6 text-purple-600" />
-            </div>
-            <h3 className="font-semibold text-gray-800 mb-3">Create SDG Projects</h3>
-            <p className="text-sm text-gray-600">
-              Design and launch educational projects aligned with UN Sustainable Development Goals 
-              and connect with schools that share your mission.
-            </p>
+        {/* Headline section */}
+        <div
+          className="text-center max-w-4xl mx-auto mb-12 animate-fade-in"
+          style={{ animationDelay: '0.4s', animationFillMode: 'backwards' }}
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#8157D9]/20 border border-[#8157D9]/30 mb-6">
+            <Sparkles className="w-4 h-4 text-[#8157D9]" />
+            <span className="text-[#8157D9] text-sm font-medium">Partner Registration</span>
           </div>
-          
-          <div className="bg-white/60 backdrop-blur-sm rounded-lg p-6 border border-purple-200/30">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-              <Users className="w-6 h-6 text-purple-600" />
-            </div>
-            <h3 className="font-semibold text-gray-800 mb-3">Connect with Schools</h3>
-            <p className="text-sm text-gray-600">
-              Build a network of schools worldwide that align with your organizational goals 
-              and educational initiatives.
-            </p>
-          </div>
-          
-          <div className="bg-white/60 backdrop-blur-sm rounded-lg p-6 border border-purple-200/30">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-              <Globe className="w-6 h-6 text-purple-600" />
-            </div>
-            <h3 className="font-semibold text-gray-800 mb-3">Track Global Impact</h3>
-            <p className="text-sm text-gray-600">
-              Monitor engagement across countries, measure educational outcomes, 
-              and demonstrate your organization&apos;s worldwide reach.
-            </p>
-          </div>
-        </div>
 
-        {/* Trust indicators */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <p className="text-sm text-gray-500 mb-4">
-            Trusted by organizations worldwide
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-[1.1] tracking-tight">
+            Join the movement
+            <br />
+            <span className="bg-gradient-to-r from-[#8157D9] via-[#a78bfa] to-[#8157D9] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
+              connecting classrooms
+            </span>
+            <br />
+            worldwide
+          </h1>
+
+          <p className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
+            Partner with 4,500+ educators across 134 countries to create
+            meaningful, SDG-aligned learning experiences that shape the next generation.
           </p>
-          <div className="flex items-center justify-center gap-8 opacity-70">
-            <img 
-              src="https://logo.clearbit.com/unesco.org" 
-              alt="UNESCO"
-              className="h-8 w-auto grayscale hover:grayscale-0 transition-all"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTAwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iNDAiIGZpbGw9IiMwMDY5QUEiLz48dGV4dCB4PSI1MCIgeT0iMjIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiPiBVTkVTQ088L3RleHQ+PC9zdmc+';
-              }}
-            />
-            <img 
-              src="https://logo.clearbit.com/unicef.org" 
-              alt="UNICEF"
-              className="h-8 w-auto grayscale hover:grayscale-0 transition-all"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTAwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iNDAiIGZpbGw9IiMxQ0Y4RkYiLz48dGV4dCB4PSI1MCIgeT0iMjIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiPiBVTklDRUY8L3RleHQ+PC9zdmc+';
-              }}
-            />
-            <img 
-              src="https://upload.wikimedia.org/wikipedia/commons/2/24/LEGO_logo.svg" 
-              alt="LEGO Education"
-              className="h-6 w-auto grayscale hover:grayscale-0 transition-all"
-            />
-            <img 
-              src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" 
-              alt="Microsoft Education"
-              className="h-6 w-auto grayscale hover:grayscale-0 transition-all"
-            />
+        </div>
+
+        {/* CTA section */}
+        <div
+          className="flex flex-col items-center gap-4 mb-16 animate-fade-in"
+          style={{ animationDelay: '0.6s', animationFillMode: 'backwards' }}
+        >
+          <Button
+            onClick={onNext}
+            size="lg"
+            className="group relative px-8 py-6 text-lg font-semibold rounded-full bg-[#8157D9] hover:bg-[#7048C6] text-white shadow-[0_0_40px_rgba(129,87,217,0.4)] hover:shadow-[0_0_60px_rgba(129,87,217,0.6)] transition-all duration-300 hover:scale-105"
+          >
+            <span className="flex items-center gap-2">
+              Begin Your Journey
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </span>
+          </Button>
+
+          <p className="text-white/40 text-sm flex items-center gap-2">
+            <Zap className="w-4 h-4" />
+            Takes only 5 minutes to complete
+          </p>
+        </div>
+
+        {/* Feature cards */}
+        <div
+          className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto w-full animate-fade-in"
+          style={{ animationDelay: '0.8s', animationFillMode: 'backwards' }}
+        >
+          <div className="group relative p-6 rounded-2xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-[#8157D9]/30 hover:bg-white/[0.05] transition-all duration-500">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#8157D9]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative">
+              <div className="w-12 h-12 rounded-xl bg-[#8157D9]/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Globe2 className="w-6 h-6 text-[#8157D9]" />
+              </div>
+              <h3 className="font-semibold text-white mb-2">Global Network</h3>
+              <p className="text-sm text-white/50 leading-relaxed">
+                Connect with schools across 134+ countries. Your initiatives reach classrooms where they matter most.
+              </p>
+            </div>
+          </div>
+
+          <div className="group relative p-6 rounded-2xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-[#8157D9]/30 hover:bg-white/[0.05] transition-all duration-500 md:translate-y-4">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#8157D9]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative">
+              <div className="w-12 h-12 rounded-xl bg-[#8157D9]/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Users className="w-6 h-6 text-[#8157D9]" />
+              </div>
+              <h3 className="font-semibold text-white mb-2">Real Impact</h3>
+              <p className="text-sm text-white/50 leading-relaxed">
+                47,500+ students engaged. Track your contribution to global education goals in real-time.
+              </p>
+            </div>
+          </div>
+
+          <div className="group relative p-6 rounded-2xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-[#8157D9]/30 hover:bg-white/[0.05] transition-all duration-500">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#8157D9]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative">
+              <div className="w-12 h-12 rounded-xl bg-[#8157D9]/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Sparkles className="w-6 h-6 text-[#8157D9]" />
+              </div>
+              <h3 className="font-semibold text-white mb-2">SDG Aligned</h3>
+              <p className="text-sm text-white/50 leading-relaxed">
+                Every project connects to UN Sustainable Development Goals. Purpose-driven collaboration.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Trust bar */}
+        <div
+          className="mt-16 pt-8 border-t border-white/[0.06] animate-fade-in"
+          style={{ animationDelay: '1s', animationFillMode: 'backwards' }}
+        >
+          <p className="text-white/30 text-xs uppercase tracking-widest mb-4 text-center">
+            Trusted by leading organizations
+          </p>
+          <div className="flex items-center justify-center gap-10 opacity-40">
+            <div className="text-white/60 font-semibold text-sm tracking-wide">UNICEF</div>
+            <div className="w-1 h-1 rounded-full bg-white/20" />
+            <div className="text-white/60 font-semibold text-sm tracking-wide">UNESCO</div>
+            <div className="w-1 h-1 rounded-full bg-white/20" />
+            <div className="text-white/60 font-semibold text-sm tracking-wide">LEGO Education</div>
+            <div className="w-1 h-1 rounded-full bg-white/20" />
+            <div className="text-white/60 font-semibold text-sm tracking-wide">Microsoft</div>
           </div>
         </div>
       </div>
+
+      {/* Custom CSS for animations */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px) translateX(0px);
+            opacity: 0.2;
+          }
+          50% {
+            transform: translateY(-20px) translateX(10px);
+            opacity: 0.6;
+          }
+        }
+
+        @keyframes gradient {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-float {
+          animation: float 4s ease-in-out infinite;
+        }
+
+        .animate-gradient {
+          animation: gradient 6s ease infinite;
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.8s ease-out forwards;
+        }
+      `}</style>
     </div>
   )
 }
