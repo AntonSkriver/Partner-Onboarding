@@ -130,6 +130,11 @@ export default function PartnersPage() {
 
           <div className="flex items-center gap-3">
             <Link href="/partner/login">
+              <Button variant="ghost" className="text-gray-600 hover:text-[#8157D9] text-base font-medium px-4 py-5">
+                Demo
+              </Button>
+            </Link>
+            <Link href="/login">
               <Button variant="outline" className="border-[#8157D9] text-[#8157D9] hover:bg-white text-base font-medium rounded-full bg-white px-6 py-5">
                 Log in
               </Button>
@@ -214,7 +219,7 @@ export default function PartnersPage() {
                 </svg>
 
                 {/* Floating Cards */}
-                <div className="absolute top-8 left-4 bg-white rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-4 w-44 transform -rotate-6 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10">
+                <div className="absolute top-4 left-0 bg-white rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-4 w-40 transform -rotate-6 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-[#F4EBFF] rounded-xl flex items-center justify-center">
                       <Globe2 className="w-5 h-5 text-[#8B5CF6]" />
@@ -226,25 +231,37 @@ export default function PartnersPage() {
                   </div>
                 </div>
 
-                <div className="absolute top-1/3 right-0 bg-white rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-4 w-48 transform rotate-3 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10">
+                <div className="absolute top-1/4 right-0 bg-white rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-4 w-44 transform rotate-3 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#F4EBFF] rounded-xl flex items-center justify-center">
+                      <GraduationCap className="w-5 h-5 text-[#8B5CF6]" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">Global Teachers</div>
+                      <div className="font-bold text-[#1a1a2e]">4,542</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute top-1/2 left-4 bg-white rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-4 w-44 transform -rotate-2 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-[#F4EBFF] rounded-xl flex items-center justify-center">
                       <Users className="w-5 h-5 text-[#8B5CF6]" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Students Impacted</div>
+                      <div className="text-xs text-gray-500">Students</div>
                       <div className="font-bold text-[#1a1a2e]">47,500+</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="absolute bottom-16 left-8 bg-white rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-4 w-52 transform rotate-2 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10">
+                <div className="absolute bottom-12 right-8 bg-white rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-4 w-44 transform rotate-2 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-[#F4EBFF] rounded-xl flex items-center justify-center">
                       <Target className="w-5 h-5 text-[#8B5CF6]" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Class Connections</div>
+                      <div className="text-xs text-gray-500">Connections</div>
                       <div className="font-bold text-[#1a1a2e]">5,734+</div>
                     </div>
                   </div>
@@ -258,23 +275,110 @@ export default function PartnersPage() {
         </div>
       </section>
 
-      {/* Stats Bar */}
-      <section className="relative py-16 bg-[#8157D9] overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#A78BFA] rounded-full blur-3xl" />
-        </div>
+      {/* SDG & Child Rights Section */}
+      <section className="relative py-14 bg-[#F4EBFF]">
+        <div className="relative z-10 max-w-[1100px] mx-auto px-6 md:px-12">
+          {/* Header */}
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-[#1a1a2e] mb-3">
+              Supporting SDGs & Child Rights
+            </h2>
+            <p className="text-gray-600 text-sm max-w-xl mx-auto">
+              Every connection we facilitate contributes to the UN Sustainable Development Goals and upholds children's fundamental rights.
+            </p>
+          </div>
 
-        <div className="relative z-10 max-w-[1400px] mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-3 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-white mb-2">
-                  <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+          {/* Cards Grid */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Child Rights Card - Article 12 */}
+            <div className="group relative bg-white rounded-2xl p-6 border border-[#8157D9]/10 shadow-sm hover:shadow-lg hover:border-[#8157D9]/20 transition-all duration-500 hover:-translate-y-1">
+              <div className="flex items-start gap-5">
+                <div className="flex-shrink-0">
+                  <div className="w-24 rounded-xl overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                    <Image
+                      src="/crc/icons/article-12.png"
+                      alt="Child Rights Article 12"
+                      width={96}
+                      height={120}
+                      className="w-full h-auto"
+                    />
+                  </div>
                 </div>
-                <div className="text-white/80 text-sm md:text-base font-medium">{stat.label}</div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="px-2 py-0.5 bg-[#00A3E0]/10 text-[#00A3E0] text-xs font-bold rounded-full">
+                      CHILD RIGHTS
+                    </span>
+                    <span className="text-gray-400 text-xs">Article 12</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-[#1a1a2e] mb-1">
+                    Right to Be Heard
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed mb-3">
+                    Every child has the right to express their views freely in all matters affecting them.
+                  </p>
+                  <div className="flex items-center gap-1.5 text-[#8157D9] text-xs font-medium">
+                    <span>UN Convention on the Rights of the Child</span>
+                    <ArrowUpRight className="w-3 h-3" />
+                  </div>
+                </div>
               </div>
-            ))}
+            </div>
+
+            {/* SDG 17 Card */}
+            <div className="group relative bg-white rounded-2xl p-6 border border-[#8157D9]/10 shadow-sm hover:shadow-lg hover:border-[#8157D9]/20 transition-all duration-500 hover:-translate-y-1">
+              <div className="flex items-start gap-5">
+                <div className="flex-shrink-0">
+                  <div className="w-28 h-28 rounded-xl overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                    <Image
+                      src="/sdg/sdg-17.webp"
+                      alt="SDG Goal 17"
+                      width={112}
+                      height={112}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="px-2 py-0.5 bg-[#19486A]/10 text-[#19486A] text-xs font-bold rounded-full">
+                      SDG GOAL
+                    </span>
+                    <span className="text-gray-400 text-xs">Global Partnership</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-[#1a1a2e] mb-1">
+                    Partnerships for the Goals
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed mb-3">
+                    Revitalize global partnerships for sustainable development through education.
+                  </p>
+                  <div className="flex items-center gap-1.5 text-[#8157D9] text-xs font-medium">
+                    <span>UN Sustainable Development Goals</span>
+                    <ArrowUpRight className="w-3 h-3" />
+                  </div>
+                </div>
+              </div>
+              {/* SDG Colors Bar */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl overflow-hidden flex">
+                <div className="flex-1 bg-[#E5243B]" />
+                <div className="flex-1 bg-[#DDA63A]" />
+                <div className="flex-1 bg-[#4C9F38]" />
+                <div className="flex-1 bg-[#C5192D]" />
+                <div className="flex-1 bg-[#FF3A21]" />
+                <div className="flex-1 bg-[#26BDE2]" />
+                <div className="flex-1 bg-[#FCC30B]" />
+                <div className="flex-1 bg-[#A21942]" />
+                <div className="flex-1 bg-[#FD6925]" />
+                <div className="flex-1 bg-[#DD1367]" />
+                <div className="flex-1 bg-[#FD9D24]" />
+                <div className="flex-1 bg-[#BF8B2E]" />
+                <div className="flex-1 bg-[#3F7E44]" />
+                <div className="flex-1 bg-[#0A97D9]" />
+                <div className="flex-1 bg-[#56C02B]" />
+                <div className="flex-1 bg-[#00689D]" />
+                <div className="flex-1 bg-[#19486A]" />
+              </div>
+            </div>
           </div>
         </div>
       </section>
