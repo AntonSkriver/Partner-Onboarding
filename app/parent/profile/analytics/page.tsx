@@ -36,9 +36,11 @@ import {
   Search,
   MapPin,
 } from 'lucide-react'
+import Image from 'next/image'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
+import { SDGIcon, SDG_DATA } from '@/components/sdg-icons'
 import {
   buildProgramSummary,
   aggregateProgramMetrics,
@@ -93,6 +95,22 @@ const EDUCATOR_AVATARS: Record<string, string> = {
   'Peter Andersen': '/images/avatars/peter-andersen.png',
   'Karin Albrectsen': '/images/avatars/karin-new.jpg',
   'Ulla Jensen': '/images/avatars/ulla-new.jpg',
+}
+
+// CRC Article titles
+const CRC_TITLES: Record<string, string> = {
+  '2': 'Non-discrimination',
+  '3': 'Best interests of child',
+  '4': 'Implementation of rights',
+  '6': 'Life, survival & development',
+  '12': 'Respect for views of child',
+  '13': 'Freedom of expression',
+  '17': 'Access to information',
+  '19': 'Protection from violence',
+  '24': 'Health services',
+  '28': 'Right to education',
+  '29': 'Goals of education',
+  '31': 'Leisure & play',
 }
 
 function getEducatorAvatar(name: string): string | null {
@@ -1543,18 +1561,52 @@ export default function ParentAnalyticsPage() {
               </div>
             </div>
 
-            {/* SDG Focus Distribution */}
+            {/* SDG Focus Areas */}
             <div className="rounded-xl border border-gray-100 bg-gray-50/30 p-6">
-              <h4 className="mb-4 text-base font-semibold text-gray-900">SDG Focus Areas</h4>
-              <div className="flex flex-wrap gap-3">
+              <h4 className="mb-6 text-base font-semibold text-gray-900">SDG Focus Areas</h4>
+              <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-5">
                 {[4, 10, 13, 16, 17].map((sdg) => (
-                  <div key={sdg} className="flex items-center gap-2 bg-white rounded-lg px-4 py-2 shadow-sm border border-gray-100">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100">
-                      <span className="text-sm font-bold text-indigo-600">{sdg}</span>
-                    </div>
-                    <span className="text-sm font-medium text-gray-700">SDG {sdg}</span>
-                  </div>
+                  <SDGIcon
+                    key={sdg}
+                    number={sdg}
+                    size="lg"
+                    showTitle={true}
+                  />
                 ))}
+              </div>
+            </div>
+
+            {/* CRC Focus Areas */}
+            <div className="rounded-xl border border-gray-100 bg-gray-50/30 p-6">
+              <h4 className="mb-6 text-base font-semibold text-gray-900">CRC Focus Areas</h4>
+              <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
+                {[12, 13, 28, 29].map((article) => {
+                  const paddedNum = article.toString().padStart(2, '0')
+                  const imageUrl = `/crc/icons/article-${paddedNum}.png`
+                  const articleTitle = CRC_TITLES[article.toString()] ?? `Article ${article}`
+
+                  return (
+                    <div key={article} className="flex flex-col items-center gap-2 text-center">
+                      <div className="relative w-20 h-20">
+                        <Image
+                          src={imageUrl}
+                          alt={`CRC Article ${article}: ${articleTitle}`}
+                          fill
+                          sizes="80px"
+                          className="rounded object-contain"
+                        />
+                      </div>
+                      <div className="max-w-[100px]">
+                        <p className="text-sm font-medium text-gray-900 leading-tight">
+                          Article {article}
+                        </p>
+                        <p className="text-xs text-gray-600 leading-tight mt-0.5">
+                          {articleTitle}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
