@@ -36,7 +36,10 @@ export interface CountryData {
     name: string
     city: string
     students: number
+    activeStudents?: number // Students currently engaged in projects
+    studentAgeRange?: string // e.g., "12-18"
     educators: number
+    projects?: string[] // Project names this school is involved in
     coordinates?: [number, number]
   }[]
 }
@@ -109,7 +112,6 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
 
   // Initialize Leaflet map imperatively to avoid react-leaflet double-init issues
   useEffect(() => {
-    console.log('[InteractiveMap] Map init effect - mounted:', mounted, 'mapRef.current:', !!mapRef.current, 'container:', !!mapContainerRef.current)
     if (!mounted || mapRef.current || !mapContainerRef.current) return
 
     // If the container is already stamped, clear it so we can re-init safely
@@ -139,7 +141,6 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
     }).addTo(map)
 
     // Set controls for external buttons
-    console.log('[InteractiveMap] Map created successfully, setting controls')
     setMapControls({
       zoomIn: () => map.zoomIn(),
       zoomOut: () => map.zoomOut(),
@@ -185,21 +186,14 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
   // Note: mapControls is included as a dependency because it's set after map initialization,
   // ensuring this effect re-runs once the map is ready
   useEffect(() => {
-    console.log('[InteractiveMap] Marker effect running, mapControls:', !!mapControls, 'countries:', countries.length)
     const map = mapRef.current
-    if (!map || !mapControls) {
-      console.log('[InteractiveMap] Early return - map:', !!map, 'mapControls:', !!mapControls)
-      return
-    }
-
-    console.log('[InteractiveMap] Creating markers for', countries.length, 'countries')
+    if (!map || !mapControls) return
 
     // Clear old markers
     markerLayerRef.current?.remove()
     const layer = L.layerGroup()
 
     countries.forEach((country) => {
-      console.log('[InteractiveMap] Adding marker for', country.name, 'at', country.coordinates)
       const marker = L.marker(country.coordinates, {
         icon: createCustomIcon(
           (function scoreToColor(score: number) {
@@ -230,7 +224,6 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
 
     layer.addTo(map)
     markerLayerRef.current = layer
-    console.log('[InteractiveMap] Markers added to map, layer has', layer.getLayers().length, 'markers')
   }, [countries, onCountrySelect, mapControls])
 
   // Fly map when selection changes and render school markers
@@ -248,7 +241,7 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
     schoolLayerRef.current?.remove()
     const schoolLayer = L.layerGroup()
     if (selectedCountry) {
-      selectedCountry.schools.forEach((school, idx) => {
+      selectedCountry.schools.forEach((school) => {
         if (!school.coordinates) return
         const marker = L.marker(school.coordinates, {
           icon: L.divIcon({
@@ -271,7 +264,9 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
           `<div style="font-size:12px;">
             <div style="font-weight:600;">${school.name}</div>
             <div style="color:#6b7280;">${school.city}</div>
-            <div style="margin-top:4px;color:#374151;">${school.students} students · ${school.educators} educators</div>
+            <div style="margin-top:4px;color:#374151;">${school.students} students${school.activeStudents ? ` (${school.activeStudents} active)` : ''} · ${school.educators} educators</div>
+            ${school.studentAgeRange ? `<div style="color:#6b7280;margin-top:2px;">Ages: ${school.studentAgeRange}</div>` : ''}
+            ${school.projects && school.projects.length > 0 ? `<div style="margin-top:4px;color:#8b5cf6;font-size:11px;">Projects: ${school.projects.join(', ')}</div>` : ''}
           </div>`
         )
         schoolLayer.addLayer(marker)
@@ -281,28 +276,9 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
     schoolLayerRef.current = schoolLayer
   }, [selectedCountry])
 
-  const handleCountryClick = (country: CountryData) => {
-    setSelectedCountry(country)
-    onCountrySelect?.(country)
-  }
-
   const handleClosePanel = () => {
     setSelectedCountry(null)
     onCountrySelect?.(null)
-  }
-
-  // Get marker color based on engagement
-  const getMarkerColor = (score: number) => {
-    if (score >= 4) return 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-    if (score >= 3) return 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
-    return 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
-  }
-
-  // Get marker size based on student count
-  const getMarkerSize = (students: number): 'sm' | 'md' | 'lg' => {
-    if (students >= 3000) return 'lg'
-    if (students >= 1000) return 'md'
-    return 'sm'
   }
 
   return (
@@ -425,22 +401,39 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                      className="p-2.5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
                     >
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 flex-shrink-0">
-                        <School className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{school.name}</p>
-                        <div className="flex items-center gap-1 text-xs text-gray-500">
-                          <MapPin className="h-3 w-3 flex-shrink-0" />
-                          <span className="truncate">{school.city}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 flex-shrink-0">
+                          <School className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{school.name}</p>
+                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <MapPin className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{school.city}</span>
+                            {school.studentAgeRange && (
+                              <span className="ml-1 text-purple-500">· Ages {school.studentAgeRange}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-sm font-semibold text-blue-600">{school.students.toLocaleString()}</p>
+                          {school.activeStudents && (
+                            <p className="text-xs text-emerald-600">{school.activeStudents} active</p>
+                          )}
+                          <p className="text-xs text-gray-400">{school.educators} educators</p>
                         </div>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-sm font-semibold text-blue-600">{school.students.toLocaleString()}</p>
-                        <p className="text-xs text-gray-400">{school.educators} educators</p>
-                      </div>
+                      {school.projects && school.projects.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {school.projects.map((project, pIdx) => (
+                            <span key={pIdx} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-700">
+                              {project}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </motion.div>
                   ))}
                 </div>

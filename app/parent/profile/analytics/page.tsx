@@ -32,6 +32,9 @@ import {
   BookOpen,
   ChevronRight,
   TrendingUp,
+  ArrowLeftRight,
+  Search,
+  MapPin,
 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
@@ -122,15 +125,25 @@ interface SchoolDetail {
   projectCount?: number
 }
 
+interface PartnerSchoolInfo {
+  name: string
+  city: string
+  country: string
+  flag: string
+  students: number
+  educators: number
+}
+
 interface ProjectDetail {
   name: string
+  description?: string
   studentsReached: number
   educatorsEngaged: number
-  status: 'active' | 'completed'
-  partnerSchool?: string
-  country?: string
-  flag?: string
-  ageGroupBreakdown?: { ageGroup: string; students: number }[]
+  status: 'active' | 'completed' | 'looking-for-partner'
+  school1: PartnerSchoolInfo
+  school2?: PartnerSchoolInfo // Optional - if missing, school is looking for partner
+  ageGroup: string
+  subject?: string
 }
 
 export default function ParentAnalyticsPage() {
@@ -160,14 +173,14 @@ export default function ParentAnalyticsPage() {
         activePrograms: 2,
         coPartners: 2,
         coordinators: 4,
-        institutions: 7,
-        teachers: 24,
-        students: 5600,
-        projects: 6,
-        activeProjects: 4,
-        completedProjects: 2,
+        institutions: 5, // 5 schools involved in projects
+        teachers: 10,
+        students: 128, // Total from projectDetails
+        projects: 3,
+        activeProjects: 2, // 2 active partner projects
+        completedProjects: 0,
         templates: 3,
-        pendingInvitations: 0,
+        pendingInvitations: 1, // Ørestad looking for partner
         countryCount: 2,
       }
     }
@@ -179,12 +192,12 @@ export default function ParentAnalyticsPage() {
     if (programSummaries.length === 0) {
       return [
         { name: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', students: 850, teachers: 4, city: 'Copenhagen', schoolType: 'secondary', status: 'active', projectCount: 2 },
-        { name: 'Christianshavn Gymnasium', country: 'Denmark', flag: '🇩🇰', students: 720, teachers: 3, city: 'Copenhagen', schoolType: 'secondary', status: 'active', projectCount: 2 },
-        { name: 'Mørke Skole', country: 'Denmark', flag: '🇩🇰', students: 480, teachers: 2, city: 'Mørke', schoolType: 'primary', status: 'active', projectCount: 1 },
-        { name: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 650, teachers: 3, city: 'Aalborg', schoolType: 'primary', status: 'onboarding', projectCount: 0 },
-        { name: 'London Academy', country: 'United Kingdom', flag: '🇬🇧', students: 1200, teachers: 5, city: 'London', schoolType: 'secondary', status: 'active', projectCount: 3 },
-        { name: 'Manchester International', country: 'United Kingdom', flag: '🇬🇧', students: 980, teachers: 4, city: 'Manchester', schoolType: 'secondary', status: 'partial', projectCount: 1 },
-        { name: 'Bristol Grammar School', country: 'United Kingdom', flag: '🇬🇧', students: 720, teachers: 3, city: 'Bristol', schoolType: 'secondary', status: 'active', projectCount: 2 },
+        { name: 'Christianhavns rettighedskole', country: 'Denmark', flag: '🇩🇰', students: 540, teachers: 3, city: 'Copenhagen', schoolType: 'secondary', status: 'active', projectCount: 2 },
+        { name: 'Mørke Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 380, teachers: 2, city: 'Mørke', schoolType: 'secondary', status: 'active', projectCount: 1 },
+        { name: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 420, teachers: 3, city: 'Aalborg', schoolType: 'secondary', status: 'active', projectCount: 1 },
+        { name: 'London Climate Academy', country: 'United Kingdom', flag: '🇬🇧', students: 620, teachers: 5, city: 'London', schoolType: 'secondary', status: 'active', projectCount: 3 },
+        { name: 'Manchester Rights School', country: 'United Kingdom', flag: '🇬🇧', students: 460, teachers: 4, city: 'Manchester', schoolType: 'secondary', status: 'active', projectCount: 1 },
+        { name: 'Bristol Green School', country: 'United Kingdom', flag: '🇬🇧', students: 540, teachers: 3, city: 'Bristol', schoolType: 'secondary', status: 'onboarding', projectCount: 0 },
       ]
     }
 
@@ -241,96 +254,80 @@ export default function ParentAnalyticsPage() {
   }, [programSummaries])
 
   // Build detailed project data
+  // Build detailed project data with partner school pairings
   const projectDetails = useMemo<ProjectDetail[]>(() => {
-    if (programSummaries.length === 0) {
-      return [
-        {
-          name: 'Climate Action 2025',
-          studentsReached: 52,
-          educatorsEngaged: 2,
-          status: 'active',
-          partnerSchool: 'London Academy',
-          country: 'United Kingdom',
-          flag: '🇬🇧',
-          ageGroupBreakdown: [
-            { ageGroup: getProjectAgeGroup('Climate Action 2025'), students: 52 },
-          ]
-        },
-        {
-          name: 'Digital Rights',
-          studentsReached: 48,
-          educatorsEngaged: 2,
-          status: 'active',
-          partnerSchool: 'Ørestad Gymnasium',
+    // Partner school pairings for Class2Class projects
+    return [
+      {
+        name: 'Communities in Focus',
+        description: 'Students explore local communities and share cultural perspectives through collaborative storytelling and digital media.',
+        studentsReached: 48,
+        educatorsEngaged: 4,
+        status: 'active',
+        school1: {
+          name: 'Vesterbjerg Rettighedsskole',
+          city: 'Aalborg',
           country: 'Denmark',
           flag: '🇩🇰',
-          ageGroupBreakdown: [
-            { ageGroup: getProjectAgeGroup('Digital Rights'), students: 48 },
-          ]
+          students: 24,
+          educators: 2,
         },
-        {
-          name: 'Community Voices',
-          studentsReached: 55,
-          educatorsEngaged: 2,
-          status: 'active',
-          partnerSchool: 'Manchester International',
-          country: 'United Kingdom',
-          flag: '🇬🇧',
-          ageGroupBreakdown: [
-            { ageGroup: getProjectAgeGroup('Community Voices'), students: 55 },
-          ]
-        },
-        {
-          name: 'Youth Leadership',
-          studentsReached: 45,
-          educatorsEngaged: 1,
-          status: 'completed',
-          partnerSchool: 'Vesterbjerg Rettighedsskole',
+        school2: {
+          name: 'Mørke Skole',
+          city: 'Mørke',
           country: 'Denmark',
           flag: '🇩🇰',
-          ageGroupBreakdown: [
-            { ageGroup: getProjectAgeGroup('Youth Leadership'), students: 45 },
-          ]
+          students: 24,
+          educators: 2,
         },
-      ]
-    }
-
-    const projects: ProjectDetail[] = []
-    programSummaries.forEach(summary => {
-      summary.projects.forEach(project => {
-        const creator = summary.teachers.find(t => t.id === project.createdById)
-        const institution = creator
-          ? summary.institutions.find(i => i.id === creator.institutionId)
-          : null
-        const { flag, name: countryName } = institution?.country
-          ? getCountryDisplay(institution.country)
-          : { flag: '', name: '' }
-
-        // Realistic project size: typically 30-60 students per project
-        const projectName = project.projectId.replaceAll('-', ' ')
-        const hash = projectName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-        const studentsReached = 30 + (hash % 30) // 30-59 students
-        const educatorsEngaged = 1 + (hash % 2) // 1-2 educators per project
-
-        const ageGroupBreakdown = [
-          { ageGroup: getProjectAgeGroup(projectName), students: studentsReached },
-        ]
-
-        projects.push({
-          name: projectName,
-          studentsReached,
-          educatorsEngaged,
-          status: project.status === 'completed' ? 'completed' : 'active',
-          partnerSchool: institution?.name,
-          country: countryName,
-          flag,
-          ageGroupBreakdown,
-        })
-      })
-    })
-
-    return projects.sort((a, b) => b.studentsReached - a.studentsReached)
-  }, [programSummaries])
+        ageGroup: '12-14',
+        subject: 'Social Studies',
+      },
+      {
+        name: 'Child in the World',
+        description: 'An intercultural exchange where students discover similarities and differences in daily life, traditions, and aspirations.',
+        studentsReached: 52,
+        educatorsEngaged: 4,
+        status: 'active',
+        school1: {
+          name: 'Christianshavn Gymnasium',
+          city: 'Copenhagen',
+          country: 'Denmark',
+          flag: '🇩🇰',
+          students: 26,
+          educators: 2,
+        },
+        school2: {
+          name: 'Manchester International',
+          city: 'Manchester',
+          country: 'United Kingdom',
+          flag: '🇬🇧',
+          students: 26,
+          educators: 2,
+        },
+        ageGroup: '14-16',
+        subject: 'Global Citizenship',
+      },
+      {
+        name: 'Climate Action Exchange',
+        description: 'Ørestad Gymnasium is seeking a partner school to collaborate on climate awareness and sustainability projects.',
+        studentsReached: 28,
+        educatorsEngaged: 2,
+        status: 'looking-for-partner',
+        school1: {
+          name: 'Ørestad Gymnasium',
+          city: 'Copenhagen',
+          country: 'Denmark',
+          flag: '🇩🇰',
+          students: 28,
+          educators: 2,
+        },
+        // No school2 - looking for partner
+        ageGroup: '16-18',
+        subject: 'Environmental Science',
+      },
+    ]
+  }, [])
 
   // Build educator details
   const educatorDetails = useMemo(() => {
@@ -553,6 +550,15 @@ export default function ParentAnalyticsPage() {
       textColor: 'text-purple-700',
     },
     {
+      id: 'educators',
+      label: 'Educators engaged',
+      value: programMetrics.teachers.toString(),
+      caption: 'Teachers collaborating with peers',
+      icon: Users,
+      bgColor: 'bg-amber-50',
+      textColor: 'text-amber-700',
+    },
+    {
       id: 'schools',
       label: 'Schools & institutions',
       value: programMetrics.institutions.toString(),
@@ -562,6 +568,15 @@ export default function ParentAnalyticsPage() {
       textColor: 'text-blue-700',
     },
     {
+      id: 'programs',
+      label: 'Programs',
+      value: programMetrics.totalPrograms.toString(),
+      caption: 'Educational programs running',
+      icon: BookOpen,
+      bgColor: 'bg-indigo-50',
+      textColor: 'text-indigo-700',
+    },
+    {
       id: 'projects',
       label: 'Active projects',
       value: programMetrics.activeProjects.toString(),
@@ -569,15 +584,6 @@ export default function ParentAnalyticsPage() {
       icon: Target,
       bgColor: 'bg-emerald-50',
       textColor: 'text-emerald-700',
-    },
-    {
-      id: 'educators',
-      label: 'Educators engaged',
-      value: programMetrics.teachers.toString(),
-      caption: 'Teachers collaborating with peers',
-      icon: Users,
-      bgColor: 'bg-amber-50',
-      textColor: 'text-amber-700',
     },
   ] as const
 
@@ -632,10 +638,10 @@ export default function ParentAnalyticsPage() {
         engagementScore: 4.2,
         growthRate: 0.15,
         schools: [
-          { name: 'Ørestad Gymnasium', city: 'Copenhagen', students: 850, educators: 4, coordinates: [55.6295, 12.6144] as [number, number] },
-          { name: 'Christianshavn Gymnasium', city: 'Copenhagen', students: 720, educators: 3, coordinates: [55.6736, 12.5944] as [number, number] },
-          { name: 'Mørke Skole', city: 'Mørke', students: 480, educators: 2, coordinates: [56.3333, 10.4500] as [number, number] },
-          { name: 'Vesterbjerg Rettighedsskole', city: 'Aalborg', students: 650, educators: 3, coordinates: [57.0488, 9.9217] as [number, number] },
+          { name: 'Ørestad Gymnasium', city: 'Copenhagen', students: 850, activeStudents: 156, studentAgeRange: '16-19', educators: 4, projects: ['Communities in Focus', 'Child in the World'], coordinates: [55.6295, 12.6144] as [number, number] },
+          { name: 'Christianhavns rettighedskole', city: 'Copenhagen', students: 540, activeStudents: 48, studentAgeRange: '12-16', educators: 3, projects: ['Child in the World'], coordinates: [55.6736, 12.5944] as [number, number] },
+          { name: 'Mørke Rettighedsskole', city: 'Mørke', students: 380, activeStudents: 24, studentAgeRange: '12-16', educators: 2, projects: ['Communities in Focus'], coordinates: [56.3333, 10.4500] as [number, number] },
+          { name: 'Vesterbjerg Rettighedsskole', city: 'Aalborg', students: 420, activeStudents: 24, studentAgeRange: '12-16', educators: 3, projects: ['Communities in Focus'], coordinates: [57.0488, 9.9217] as [number, number] },
         ],
       },
       {
@@ -648,9 +654,9 @@ export default function ParentAnalyticsPage() {
         engagementScore: 3.8,
         growthRate: 0.12,
         schools: [
-          { name: 'London Academy', city: 'London', students: 1200, educators: 5, coordinates: [51.5074, -0.1278] as [number, number] },
-          { name: 'Manchester International', city: 'Manchester', students: 980, educators: 4, coordinates: [53.4808, -2.2426] as [number, number] },
-          { name: 'Bristol Grammar School', city: 'Bristol', students: 720, educators: 3, coordinates: [51.4545, -2.5879] as [number, number] },
+          { name: 'London Climate Academy', city: 'London', students: 620, activeStudents: 145, studentAgeRange: '12-18', educators: 5, projects: ['Climate Action'], coordinates: [51.5074, -0.1278] as [number, number] },
+          { name: 'Manchester Rights School', city: 'Manchester', students: 460, activeStudents: 26, studentAgeRange: '11-16', educators: 4, projects: ['Child in the World'], coordinates: [53.4808, -2.2426] as [number, number] },
+          { name: 'Bristol Green School', city: 'Bristol', students: 540, activeStudents: 0, studentAgeRange: '11-16', educators: 3, projects: [], coordinates: [51.4545, -2.5879] as [number, number] },
         ],
       },
     ]
@@ -1020,150 +1026,202 @@ export default function ParentAnalyticsPage() {
       }
       case 'projects': {
         const activeProjectCount = projectDetails.filter((p) => p.status === 'active').length
+        const lookingForPartnerCount = projectDetails.filter((p) => p.status === 'looking-for-partner').length
         const totalProjectStudents = projectDetails.reduce((sum, p) => sum + p.studentsReached, 0)
-
-        // Bar chart data for project comparison - use full names, truncate only if very long
-        const barChartData = projectDetails.map((p, idx) => ({
-          name: p.name.length > 20 ? p.name.substring(0, 18) + '...' : p.name,
-          fullName: p.name,
-          students: p.studentsReached,
-          fill: p.status === 'active' ? CHART_COLORS.emerald[idx % 2] : '#9ca3af',
-        }))
 
         return (
           <div className="space-y-10">
             {/* Hero stat with animated counter */}
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-8 text-white">
               <div className="relative z-10">
-                <p className="text-sm font-medium text-emerald-100">Active Projects</p>
+                <p className="text-sm font-medium text-emerald-100">Class2Class Projects</p>
                 <p className="mt-2 text-5xl font-bold">
-                  <AnimatedCounter value={activeProjectCount} />
+                  <AnimatedCounter value={activeProjectCount + lookingForPartnerCount} />
                 </p>
-                <div className="mt-4 flex items-center gap-2 text-emerald-100">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="text-sm">{totalProjectStudents.toLocaleString()} students engaged</span>
+                <div className="mt-4 flex items-center gap-4 text-emerald-100">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    <span className="text-sm">{totalProjectStudents.toLocaleString()} students</span>
+                  </div>
+                  {lookingForPartnerCount > 0 && (
+                    <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1">
+                      <Search className="h-3.5 w-3.5" />
+                      <span className="text-sm">{lookingForPartnerCount} seeking partner</span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white/10" />
               <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-white/5" />
             </div>
 
-            {/* Bar chart - full width */}
-            <motion.div
-              className="rounded-xl border border-gray-100 bg-gray-50/30 p-6"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <h4 className="mb-2 text-base font-semibold text-gray-900">Student Reach by Project</h4>
-              <p className="mb-6 text-sm text-gray-500">Comparing impact across projects</p>
-              <div className="h-56">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={barChartData} layout="vertical" margin={{ left: 0, right: 50 }}>
-                    <XAxis type="number" hide />
-                    <YAxis
-                      type="category"
-                      dataKey="name"
-                      width={130}
-                      tick={{ fontSize: 12, fill: '#374151' }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0].payload
-                          return (
-                            <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-lg">
-                              <p className="text-sm font-medium text-gray-900">{data.fullName}</p>
-                              <p className="text-sm text-gray-600">{data.students.toLocaleString()} students</p>
-                            </div>
-                          )
-                        }
-                        return null
-                      }}
-                    />
-                    <Bar
-                      dataKey="students"
-                      radius={[0, 6, 6, 0]}
-                      animationBegin={200}
-                      animationDuration={800}
-                    >
-                      {barChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                      <LabelList
-                        dataKey="students"
-                        position="right"
-                        formatter={(value: number) => value.toLocaleString()}
-                        style={{ fontSize: 12, fill: '#374151', fontWeight: 500 }}
-                      />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </motion.div>
-
-            {/* Projects list */}
+            {/* Project Cards */}
             <div>
-              <h4 className="mb-6 text-base font-semibold text-gray-900">Project Details</h4>
-              <div className="space-y-5">
-                {projectDetails.map((project, idx) => (
-                  <motion.div
-                    key={project.name}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 + idx * 0.05 }}
-                    className="group rounded-xl bg-emerald-50/50 border-l-4 border-emerald-500 p-6 transition-all hover:bg-emerald-50/80 hover:shadow-md hover:-translate-y-0.5"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-4">
-                        <div
-                          className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm"
-                          style={{
-                            backgroundColor: project.status === 'active'
-                              ? `${CHART_COLORS.emerald[idx % CHART_COLORS.emerald.length]}15`
-                              : '#f3f4f6'
-                          }}
-                        >
-                          <Target
-                            className="h-6 w-6"
-                            style={{
-                              color: project.status === 'active'
-                                ? CHART_COLORS.emerald[idx % CHART_COLORS.emerald.length]
-                                : '#9ca3af'
-                            }}
-                          />
+              <h4 className="mb-6 text-base font-semibold text-gray-900">Partner Class Projects</h4>
+              <div className="space-y-6">
+                {projectDetails.map((project, idx) => {
+                  const isLookingForPartner = project.status === 'looking-for-partner'
+
+                  return (
+                    <motion.div
+                      key={project.name}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 + idx * 0.08 }}
+                      className={`group rounded-2xl border-2 overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 ${
+                        isLookingForPartner
+                          ? 'border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50'
+                          : 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50'
+                      }`}
+                    >
+                      {/* Project Header */}
+                      <div className={`px-6 py-4 ${isLookingForPartner ? 'bg-amber-100/50' : 'bg-emerald-100/50'}`}>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3">
+                              <h3 className="text-lg font-bold text-gray-900">{project.name}</h3>
+                              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                                isLookingForPartner
+                                  ? 'bg-amber-500 text-white'
+                                  : project.status === 'active'
+                                    ? 'bg-emerald-500 text-white'
+                                    : 'bg-gray-400 text-white'
+                              }`}>
+                                {isLookingForPartner ? (
+                                  <>
+                                    <Search className="h-3 w-3" />
+                                    Looking for Partner
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                                    Active
+                                  </>
+                                )}
+                              </span>
+                            </div>
+                            {project.description && (
+                              <p className="mt-2 text-sm text-gray-600 leading-relaxed">{project.description}</p>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold text-gray-900">{project.name}</p>
-                            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
-                              project.status === 'active'
-                                ? 'bg-emerald-500 text-white shadow-sm'
-                                : 'bg-gray-200 text-gray-600'
-                            }`}>
-                              <span className={`h-1.5 w-1.5 rounded-full ${
-                                project.status === 'active' ? 'bg-white' : 'bg-gray-400'
-                              }`} />
-                              {project.status}
+
+                        {/* Quick Stats */}
+                        <div className="flex items-center gap-6 mt-4">
+                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${isLookingForPartner ? 'bg-amber-200/50' : 'bg-emerald-200/50'}`}>
+                            <GraduationCap className={`h-4 w-4 ${isLookingForPartner ? 'text-amber-700' : 'text-emerald-700'}`} />
+                            <span className={`text-sm font-semibold ${isLookingForPartner ? 'text-amber-800' : 'text-emerald-800'}`}>
+                              {project.studentsReached} students
                             </span>
                           </div>
-                          <p className="mt-1.5 text-sm text-gray-500">
-                            {project.flag} {project.partnerSchool || project.country}
-                            {project.ageGroupBreakdown && project.ageGroupBreakdown.length > 0 && (
-                              <span className="ml-2 text-xs text-gray-400">· Ages {project.ageGroupBreakdown[0].ageGroup}</span>
-                            )}
-                          </p>
+                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${isLookingForPartner ? 'bg-amber-200/50' : 'bg-emerald-200/50'}`}>
+                            <Users className={`h-4 w-4 ${isLookingForPartner ? 'text-amber-700' : 'text-emerald-700'}`} />
+                            <span className={`text-sm font-semibold ${isLookingForPartner ? 'text-amber-800' : 'text-emerald-800'}`}>
+                              {project.educatorsEngaged} educators
+                            </span>
+                          </div>
+                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${isLookingForPartner ? 'bg-amber-200/50' : 'bg-emerald-200/50'}`}>
+                            <BookOpen className={`h-4 w-4 ${isLookingForPartner ? 'text-amber-700' : 'text-emerald-700'}`} />
+                            <span className={`text-sm font-semibold ${isLookingForPartner ? 'text-amber-800' : 'text-emerald-800'}`}>
+                              Ages {project.ageGroup}
+                            </span>
+                          </div>
+                          {project.subject && (
+                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${isLookingForPartner ? 'bg-amber-200/50' : 'bg-emerald-200/50'}`}>
+                              <Target className={`h-4 w-4 ${isLookingForPartner ? 'text-amber-700' : 'text-emerald-700'}`} />
+                              <span className={`text-sm font-semibold ${isLookingForPartner ? 'text-amber-800' : 'text-emerald-800'}`}>
+                                {project.subject}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">{project.studentsReached.toLocaleString()}</p>
-                        <p className="mt-1 text-sm text-gray-500">{project.educatorsEngaged} educators</p>
+
+                      {/* Partner Schools Section */}
+                      <div className="px-6 py-5">
+                        <div className="flex items-center gap-3 mb-4">
+                          <ArrowLeftRight className={`h-4 w-4 ${isLookingForPartner ? 'text-amber-500' : 'text-emerald-500'}`} />
+                          <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Partner Classes</span>
+                        </div>
+
+                        <div className="flex items-stretch gap-4">
+                          {/* School 1 */}
+                          <div className="flex-1 bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                            <div className="flex items-start gap-3">
+                              <div className={`flex h-10 w-10 items-center justify-center rounded-lg flex-shrink-0 ${isLookingForPartner ? 'bg-amber-100' : 'bg-emerald-100'}`}>
+                                <School className={`h-5 w-5 ${isLookingForPartner ? 'text-amber-600' : 'text-emerald-600'}`} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-gray-900 truncate">{project.school1.name}</p>
+                                <div className="flex items-center gap-1.5 mt-1 text-sm text-gray-500">
+                                  <span>{project.school1.flag}</span>
+                                  <MapPin className="h-3 w-3" />
+                                  <span>{project.school1.city}, {project.school1.country}</span>
+                                </div>
+                                <div className="flex items-center gap-4 mt-2">
+                                  <span className="text-xs text-gray-500">
+                                    <span className="font-semibold text-gray-700">{project.school1.students}</span> students
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    <span className="font-semibold text-gray-700">{project.school1.educators}</span> educators
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Connection Arrow */}
+                          <div className="flex items-center justify-center">
+                            <div className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                              isLookingForPartner ? 'bg-amber-100' : 'bg-emerald-100'
+                            }`}>
+                              <ArrowLeftRight className={`h-5 w-5 ${isLookingForPartner ? 'text-amber-500' : 'text-emerald-500'}`} />
+                            </div>
+                          </div>
+
+                          {/* School 2 or Looking for Partner */}
+                          {project.school2 ? (
+                            <div className="flex-1 bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                              <div className="flex items-start gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 flex-shrink-0">
+                                  <School className="h-5 w-5 text-emerald-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-gray-900 truncate">{project.school2.name}</p>
+                                  <div className="flex items-center gap-1.5 mt-1 text-sm text-gray-500">
+                                    <span>{project.school2.flag}</span>
+                                    <MapPin className="h-3 w-3" />
+                                    <span>{project.school2.city}, {project.school2.country}</span>
+                                  </div>
+                                  <div className="flex items-center gap-4 mt-2">
+                                    <span className="text-xs text-gray-500">
+                                      <span className="font-semibold text-gray-700">{project.school2.students}</span> students
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      <span className="font-semibold text-gray-700">{project.school2.educators}</span> educators
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex-1 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-dashed border-amber-300 p-4">
+                              <div className="flex items-center gap-3 h-full">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 flex-shrink-0">
+                                  <Search className="h-5 w-5 text-amber-600" />
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-amber-800">Looking for Partner School</p>
+                                  <p className="text-sm text-amber-600 mt-0.5">Connect a school to start collaborating</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -1408,6 +1466,100 @@ export default function ParentAnalyticsPage() {
           </div>
         )
       }
+      case 'programs': {
+        const totalStudents = studentBreakdown.reduce((sum, p) => sum + p.students, 0)
+        const totalSchools = studentBreakdown.reduce((sum, p) => sum + p.schools, 0)
+        const uniqueCountries = new Set(studentBreakdown.flatMap(p => {
+          // Approximation based on countries field
+          return Array(p.countries).fill(0).map((_, i) => i)
+        })).size || programMetrics.countryCount
+
+        return (
+          <div className="space-y-10">
+            {/* Hero stat with animated counter */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 p-8 text-white">
+              <div className="relative z-10">
+                <p className="text-sm font-medium text-indigo-100">Active Programs</p>
+                <p className="mt-2 text-5xl font-bold">
+                  <AnimatedCounter value={programMetrics.totalPrograms} />
+                </p>
+                <div className="mt-4 flex items-center gap-2 text-indigo-100">
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="text-sm">{totalStudents.toLocaleString()} students · {totalSchools} schools · {programMetrics.countryCount} countries</span>
+                </div>
+              </div>
+              <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white/10" />
+              <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-white/5" />
+            </div>
+
+            {/* Programs List */}
+            <div>
+              <h4 className="mb-6 text-base font-semibold text-gray-900">Program Overview</h4>
+              <div className="space-y-5">
+                {studentBreakdown.map((program, idx) => {
+                  const percent = totalStudents > 0 ? Math.round((program.students / totalStudents) * 100) : 0
+                  return (
+                    <motion.div
+                      key={program.program}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 + idx * 0.05 }}
+                      className="group rounded-xl bg-indigo-50/50 border-l-4 border-indigo-500 p-6 transition-all hover:bg-indigo-50/80 hover:shadow-md hover:-translate-y-0.5"
+                    >
+                      <div className="mb-5 flex items-start justify-between">
+                        <div className="flex items-center gap-4">
+                          <div
+                            className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm"
+                            style={{ backgroundColor: `${CHART_COLORS.purple[idx % CHART_COLORS.purple.length]}15` }}
+                          >
+                            <BookOpen
+                              className="h-6 w-6"
+                              style={{ color: CHART_COLORS.purple[idx % CHART_COLORS.purple.length] }}
+                            />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">{program.program}</p>
+                            <p className="mt-1.5 text-sm text-gray-500">
+                              {program.schools} schools · {program.countries} {program.countries === 1 ? 'country' : 'countries'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-500 bg-clip-text text-transparent">{program.students.toLocaleString()}</p>
+                          <p className="mt-1 text-sm text-gray-500">students</p>
+                        </div>
+                      </div>
+                      <div className="h-2 rounded-full bg-indigo-100 overflow-hidden">
+                        <motion.div
+                          className="h-2 rounded-full bg-gradient-to-r from-indigo-600 to-indigo-400"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${percent}%` }}
+                          transition={{ duration: 0.8, delay: 0.4 + idx * 0.1, ease: "easeOut" }}
+                        />
+                      </div>
+                    </motion.div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* SDG Focus Distribution */}
+            <div className="rounded-xl border border-gray-100 bg-gray-50/30 p-6">
+              <h4 className="mb-4 text-base font-semibold text-gray-900">SDG Focus Areas</h4>
+              <div className="flex flex-wrap gap-3">
+                {[4, 10, 13, 16, 17].map((sdg) => (
+                  <div key={sdg} className="flex items-center gap-2 bg-white rounded-lg px-4 py-2 shadow-sm border border-gray-100">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100">
+                      <span className="text-sm font-bold text-indigo-600">{sdg}</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">SDG {sdg}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )
+      }
       default:
         return null
     }
@@ -1417,7 +1569,8 @@ export default function ParentAnalyticsPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-20 w-full rounded-2xl" />
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-5">
+          <Skeleton className="h-32 rounded-2xl" />
           <Skeleton className="h-32 rounded-2xl" />
           <Skeleton className="h-32 rounded-2xl" />
           <Skeleton className="h-32 rounded-2xl" />
@@ -1450,7 +1603,7 @@ export default function ParentAnalyticsPage() {
       </header>
 
       {/* Headline Metrics - Clickable Cards */}
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {headlineMetrics.map(({ id, label, value, caption, icon: Icon, bgColor, textColor }) => (
           <motion.div
             key={id}

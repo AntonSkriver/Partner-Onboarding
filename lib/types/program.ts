@@ -157,6 +157,8 @@ export interface EducationalInstitution {
 
   // Institution Profile
   studentCount: number;
+  activeStudentCount?: number; // Students currently engaged in active projects
+  studentAgeRange?: string; // e.g., "12-18" or "6-14"
   teacherCount?: number;
   educationLevels: EducationLevel[];
   languages: string[]; // ISO language codes
