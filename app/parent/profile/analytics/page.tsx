@@ -490,7 +490,7 @@ export default function ParentAnalyticsPage() {
 
       const sampleOrg: Organization = {
         id: 'demo-org-id',
-        name: 'UNICEF World Organization',
+        name: 'UNICEF Denmark',
         organization_type: 'ngo',
         website: 'https://www.unicef.org',
         logo: null,
