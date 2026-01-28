@@ -206,14 +206,15 @@ export default function ParentAnalyticsPage() {
   }, [])
 
   // Build detailed school data - always use hardcoded data for consistency
+  // Active students must match projectDetails: Communities (48) + Child in World (52) + Climate Action (28) = 128 total
   const schoolDetails = useMemo<SchoolDetail[]>(() => {
     return [
-      { name: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', students: 850, activeStudents: 156, ageRange: '16-19', teachers: 4, city: 'Copenhagen', schoolType: 'secondary', status: 'active', projectCount: 2 },
-      { name: 'Christianhavns rettighedskole', country: 'Denmark', flag: '🇩🇰', students: 540, activeStudents: 48, ageRange: '12-16', teachers: 3, city: 'Copenhagen', schoolType: 'secondary', status: 'active', projectCount: 1 },
-      { name: 'Mørke Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 380, activeStudents: 24, ageRange: '12-16', teachers: 2, city: 'Mørke', schoolType: 'secondary', status: 'active', projectCount: 1 },
-      { name: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 420, activeStudents: 24, ageRange: '12-16', teachers: 3, city: 'Aalborg', schoolType: 'secondary', status: 'active', projectCount: 1 },
-      { name: 'London Climate Academy', country: 'United Kingdom', flag: '🇬🇧', students: 620, activeStudents: 145, ageRange: '12-18', teachers: 5, city: 'London', schoolType: 'secondary', status: 'active', projectCount: 1 },
-      { name: 'Manchester Rights School', country: 'United Kingdom', flag: '🇬🇧', students: 460, activeStudents: 26, ageRange: '11-16', teachers: 4, city: 'Manchester', schoolType: 'secondary', status: 'active', projectCount: 1 },
+      { name: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', students: 850, activeStudents: 28, ageRange: '16-19', teachers: 4, city: 'Copenhagen', schoolType: 'secondary', status: 'active', projectCount: 1 }, // Climate Action Exchange
+      { name: 'Christianhavns rettighedskole', country: 'Denmark', flag: '🇩🇰', students: 540, activeStudents: 26, ageRange: '12-16', teachers: 3, city: 'Copenhagen', schoolType: 'secondary', status: 'active', projectCount: 1 }, // Child in the World
+      { name: 'Mørke Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 380, activeStudents: 24, ageRange: '12-16', teachers: 2, city: 'Mørke', schoolType: 'secondary', status: 'active', projectCount: 1 }, // Communities in Focus
+      { name: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 420, activeStudents: 24, ageRange: '12-16', teachers: 3, city: 'Aalborg', schoolType: 'secondary', status: 'active', projectCount: 1 }, // Communities in Focus
+      { name: 'London Climate Academy', country: 'United Kingdom', flag: '🇬🇧', students: 620, activeStudents: 0, ageRange: '12-18', teachers: 5, city: 'London', schoolType: 'secondary', status: 'onboarding', projectCount: 0 }, // No active project yet
+      { name: 'Manchester Rights School', country: 'United Kingdom', flag: '🇬🇧', students: 460, activeStudents: 26, ageRange: '11-16', teachers: 4, city: 'Manchester', schoolType: 'secondary', status: 'active', projectCount: 1 }, // Child in the World
       { name: 'Bristol Green School', country: 'United Kingdom', flag: '🇬🇧', students: 540, activeStudents: 0, ageRange: '11-16', teachers: 3, city: 'Bristol', schoolType: 'secondary', status: 'onboarding', projectCount: 0 },
     ]
   }, [])
@@ -238,7 +239,7 @@ export default function ParentAnalyticsPage() {
           educators: 2,
         },
         school2: {
-          name: 'Mørke Skole',
+          name: 'Mørke Rettighedsskole',
           city: 'Mørke',
           country: 'Denmark',
           flag: '🇩🇰',
@@ -255,7 +256,7 @@ export default function ParentAnalyticsPage() {
         educatorsEngaged: 4,
         status: 'active',
         school1: {
-          name: 'Christianshavn Gymnasium',
+          name: 'Christianhavns rettighedskole',
           city: 'Copenhagen',
           country: 'Denmark',
           flag: '🇩🇰',
@@ -263,7 +264,7 @@ export default function ParentAnalyticsPage() {
           educators: 2,
         },
         school2: {
-          name: 'Manchester International',
+          name: 'Manchester Rights School',
           city: 'Manchester',
           country: 'United Kingdom',
           flag: '🇬🇧',
@@ -442,6 +443,7 @@ export default function ParentAnalyticsPage() {
         ]
 
   // Transform data for interactive map - use hardcoded data with reliable coordinates
+  // Active students: DK (28+26+24+24=102), UK (0+26+0=26) = 128 total matching projectDetails
   const mapCountryData = useMemo<CountryData[]>(() => {
     return [
       {
@@ -449,15 +451,15 @@ export default function ParentAnalyticsPage() {
         name: 'Denmark',
         flag: '🇩🇰',
         coordinates: [55.6761, 12.5683],
-        metrics: { students: 2700, schools: 4, educators: 12, projects: 2, completedProjects: 0 },
+        metrics: { students: 2190, schools: 4, educators: 8, projects: 3, completedProjects: 0 },
         regions: ['Capital Region', 'Central Denmark', 'North Denmark'],
         engagementScore: 4.2,
         growthRate: 0.15,
         schools: [
-          { name: 'Ørestad Gymnasium', city: 'Copenhagen', students: 850, activeStudents: 156, studentAgeRange: '16-19', educators: 4, projects: ['Communities in Focus', 'Child in the World'], coordinates: [55.6295, 12.6144] as [number, number] },
-          { name: 'Christianhavns rettighedskole', city: 'Copenhagen', students: 540, activeStudents: 48, studentAgeRange: '12-16', educators: 3, projects: ['Child in the World'], coordinates: [55.6736, 12.5944] as [number, number] },
+          { name: 'Ørestad Gymnasium', city: 'Copenhagen', students: 850, activeStudents: 28, studentAgeRange: '16-19', educators: 2, projects: ['Climate Action Exchange'], coordinates: [55.6295, 12.6144] as [number, number] },
+          { name: 'Christianhavns rettighedskole', city: 'Copenhagen', students: 540, activeStudents: 26, studentAgeRange: '12-16', educators: 2, projects: ['Child in the World'], coordinates: [55.6736, 12.5944] as [number, number] },
           { name: 'Mørke Rettighedsskole', city: 'Mørke', students: 380, activeStudents: 24, studentAgeRange: '12-16', educators: 2, projects: ['Communities in Focus'], coordinates: [56.3333, 10.4500] as [number, number] },
-          { name: 'Vesterbjerg Rettighedsskole', city: 'Aalborg', students: 420, activeStudents: 24, studentAgeRange: '12-16', educators: 3, projects: ['Communities in Focus'], coordinates: [57.0488, 9.9217] as [number, number] },
+          { name: 'Vesterbjerg Rettighedsskole', city: 'Aalborg', students: 420, activeStudents: 24, studentAgeRange: '12-16', educators: 2, projects: ['Communities in Focus'], coordinates: [57.0488, 9.9217] as [number, number] },
         ],
       },
       {
@@ -465,14 +467,14 @@ export default function ParentAnalyticsPage() {
         name: 'United Kingdom',
         flag: '🇬🇧',
         coordinates: [51.5074, -0.1278],
-        metrics: { students: 2900, schools: 3, educators: 12, projects: 1, completedProjects: 0 },
+        metrics: { students: 1620, schools: 3, educators: 4, projects: 1, completedProjects: 0 },
         regions: ['London', 'Manchester', 'Bristol'],
         engagementScore: 3.8,
         growthRate: 0.12,
         schools: [
-          { name: 'London Climate Academy', city: 'London', students: 620, activeStudents: 145, studentAgeRange: '12-18', educators: 5, projects: ['Climate Action'], coordinates: [51.5074, -0.1278] as [number, number] },
-          { name: 'Manchester Rights School', city: 'Manchester', students: 460, activeStudents: 26, studentAgeRange: '11-16', educators: 4, projects: ['Child in the World'], coordinates: [53.4808, -2.2426] as [number, number] },
-          { name: 'Bristol Green School', city: 'Bristol', students: 540, activeStudents: 0, studentAgeRange: '11-16', educators: 3, projects: [], coordinates: [51.4545, -2.5879] as [number, number] },
+          { name: 'London Climate Academy', city: 'London', students: 620, activeStudents: 0, studentAgeRange: '12-18', educators: 2, projects: [], coordinates: [51.5074, -0.1278] as [number, number] },
+          { name: 'Manchester Rights School', city: 'Manchester', students: 460, activeStudents: 26, studentAgeRange: '11-16', educators: 2, projects: ['Child in the World'], coordinates: [53.4808, -2.2426] as [number, number] },
+          { name: 'Bristol Green School', city: 'Bristol', students: 540, activeStudents: 0, studentAgeRange: '11-16', educators: 0, projects: [], coordinates: [51.4545, -2.5879] as [number, number] },
         ],
       },
     ]
