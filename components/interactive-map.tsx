@@ -109,6 +109,7 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
 
   // Initialize Leaflet map imperatively to avoid react-leaflet double-init issues
   useEffect(() => {
+    console.log('[InteractiveMap] Map init effect - mounted:', mounted, 'mapRef.current:', !!mapRef.current, 'container:', !!mapContainerRef.current)
     if (!mounted || mapRef.current || !mapContainerRef.current) return
 
     // If the container is already stamped, clear it so we can re-init safely
@@ -138,6 +139,7 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
     }).addTo(map)
 
     // Set controls for external buttons
+    console.log('[InteractiveMap] Map created successfully, setting controls')
     setMapControls({
       zoomIn: () => map.zoomIn(),
       zoomOut: () => map.zoomOut(),
@@ -180,15 +182,24 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
   }, [mounted])
 
   // Update country markers when data changes
+  // Note: mapControls is included as a dependency because it's set after map initialization,
+  // ensuring this effect re-runs once the map is ready
   useEffect(() => {
+    console.log('[InteractiveMap] Marker effect running, mapControls:', !!mapControls, 'countries:', countries.length)
     const map = mapRef.current
-    if (!map) return
+    if (!map || !mapControls) {
+      console.log('[InteractiveMap] Early return - map:', !!map, 'mapControls:', !!mapControls)
+      return
+    }
+
+    console.log('[InteractiveMap] Creating markers for', countries.length, 'countries')
 
     // Clear old markers
     markerLayerRef.current?.remove()
     const layer = L.layerGroup()
 
     countries.forEach((country) => {
+      console.log('[InteractiveMap] Adding marker for', country.name, 'at', country.coordinates)
       const marker = L.marker(country.coordinates, {
         icon: createCustomIcon(
           (function scoreToColor(score: number) {
@@ -219,7 +230,8 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
 
     layer.addTo(map)
     markerLayerRef.current = layer
-  }, [countries, onCountrySelect])
+    console.log('[InteractiveMap] Markers added to map, layer has', layer.getLayers().length, 'markers')
+  }, [countries, onCountrySelect, mapControls])
 
   // Fly map when selection changes and render school markers
   useEffect(() => {
