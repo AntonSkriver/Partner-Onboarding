@@ -319,9 +319,9 @@ export default function ParentAnalyticsPage() {
   // Student breakdown by program - always use hardcoded data for consistency
   const studentBreakdown = useMemo(() => {
     return [
-      { program: 'Communities in Focus', students: 48, schools: 2, countries: 1 },
-      { program: 'Child in the World', students: 52, schools: 2, countries: 2 },
-      { program: 'Climate Action Exchange', students: 28, schools: 1, countries: 1 },
+      { program: 'Communities in Focus', students: 48, schools: 2, countries: 1, ageGroup: '12-14', partners: 'UNICEF Denmark 🇩🇰' },
+      { program: 'Child in the World', students: 52, schools: 2, countries: 2, ageGroup: '14-16', partners: 'UNICEF Denmark 🇩🇰 · UNICEF UK 🇬🇧' },
+      { program: 'Climate Action Exchange', students: 28, schools: 1, countries: 1, ageGroup: '16-18', partners: 'UNICEF Denmark 🇩🇰', status: 'seeking partner' },
     ]
   }, [])
 
@@ -667,44 +667,53 @@ export default function ParentAnalyticsPage() {
 
             {/* Pie chart and breakdown */}
             <div className="grid gap-10 lg:grid-cols-2">
-              {/* Pie chart */}
+              {/* Students by Country */}
               <motion.div
                 className="rounded-xl border border-gray-100 bg-gray-50/30 p-6"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <h4 className="mb-6 text-base font-semibold text-gray-900">Distribution by Program</h4>
-                <div className="h-52">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={55}
-                        outerRadius={90}
-                        paddingAngle={3}
-                        dataKey="value"
-                        animationBegin={200}
-                        animationDuration={800}
-                      >
-                        {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                {/* Simplified color legend */}
-                <div className="mt-6 flex flex-wrap gap-4">
-                  {pieData.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.fill }} />
-                      <span className="text-sm font-medium text-gray-600">{item.name}</span>
+                <h4 className="mb-6 text-base font-semibold text-gray-900">Students by Country</h4>
+                <div className="space-y-6">
+                  {/* Denmark */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">🇩🇰</span>
+                        <span className="font-semibold text-gray-900">Denmark</span>
+                      </div>
+                      <span className="text-2xl font-bold text-purple-600">102</span>
                     </div>
-                  ))}
+                    <div className="h-3 rounded-full bg-purple-100 overflow-hidden">
+                      <motion.div
+                        className="h-3 rounded-full bg-gradient-to-r from-purple-600 to-purple-400"
+                        initial={{ width: 0 }}
+                        animate={{ width: '80%' }}
+                        transition={{ duration: 0.8, delay: 0.3 }}
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500">4 schools · 80% of students</p>
+                  </div>
+                  {/* UK */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">🇬🇧</span>
+                        <span className="font-semibold text-gray-900">United Kingdom</span>
+                      </div>
+                      <span className="text-2xl font-bold text-blue-600">26</span>
+                    </div>
+                    <div className="h-3 rounded-full bg-blue-100 overflow-hidden">
+                      <motion.div
+                        className="h-3 rounded-full bg-gradient-to-r from-blue-600 to-blue-400"
+                        initial={{ width: 0 }}
+                        animate={{ width: '20%' }}
+                        transition={{ duration: 0.8, delay: 0.4 }}
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500">1 school active · 20% of students</p>
+                  </div>
                 </div>
               </motion.div>
 
@@ -742,8 +751,16 @@ export default function ParentAnalyticsPage() {
                             <div>
                               <p className="font-semibold text-gray-900">{item.program}</p>
                               <p className="mt-1.5 text-sm text-gray-500">
-                                {item.schools} schools · {item.countries} {item.countries === 1 ? 'country' : 'countries'}
+                                {item.schools} schools · Ages {item.ageGroup}
                               </p>
+                              <div className="mt-2 flex flex-wrap items-center gap-2">
+                                <span className="text-sm text-gray-600">{item.partners}</span>
+                                {item.status && (
+                                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                                    {item.status}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                           <div className="text-right">
