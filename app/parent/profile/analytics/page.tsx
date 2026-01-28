@@ -193,7 +193,7 @@ export default function ParentAnalyticsPage() {
       activePrograms: 3,
       coPartners: 2,
       coordinators: 4,
-      institutions: 7, // 7 schools shown in schoolDetails
+      institutions: 6, // 6 schools shown in schoolDetails
       teachers: 12, // 12 educators in educatorDetails
       students: 128, // Total from projectDetails
       projects: 3,
@@ -213,9 +213,8 @@ export default function ParentAnalyticsPage() {
       { name: 'Christianhavns rettighedskole', country: 'Denmark', flag: '🇩🇰', students: 540, activeStudents: 26, ageRange: '12-16', teachers: 3, city: 'Copenhagen', schoolType: 'secondary', status: 'active', projectCount: 1 }, // Child in the World
       { name: 'Mørke Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 380, activeStudents: 24, ageRange: '12-16', teachers: 2, city: 'Mørke', schoolType: 'secondary', status: 'active', projectCount: 1 }, // Communities in Focus
       { name: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 420, activeStudents: 24, ageRange: '12-16', teachers: 3, city: 'Aalborg', schoolType: 'secondary', status: 'active', projectCount: 1 }, // Communities in Focus
-      { name: 'London Climate Academy', country: 'United Kingdom', flag: '🇬🇧', students: 620, activeStudents: 0, ageRange: '12-18', teachers: 5, city: 'London', schoolType: 'secondary', status: 'onboarding', projectCount: 0 }, // No active project yet
+      { name: 'London Rights School', country: 'United Kingdom', flag: '🇬🇧', students: 620, activeStudents: 0, ageRange: '12-18', teachers: 5, city: 'London', schoolType: 'secondary', status: 'onboarding', projectCount: 0 }, // No active project yet
       { name: 'Manchester Rights School', country: 'United Kingdom', flag: '🇬🇧', students: 460, activeStudents: 26, ageRange: '11-16', teachers: 4, city: 'Manchester', schoolType: 'secondary', status: 'active', projectCount: 1 }, // Child in the World
-      { name: 'Bristol Green School', country: 'United Kingdom', flag: '🇬🇧', students: 540, activeStudents: 0, ageRange: '11-16', teachers: 3, city: 'Bristol', schoolType: 'secondary', status: 'onboarding', projectCount: 0 },
     ]
   }, [])
 
@@ -298,24 +297,22 @@ export default function ParentAnalyticsPage() {
   // Build educator details - always use hardcoded data for consistency
   const educatorDetails = useMemo(() => {
     return [
-      // Denmark - Ørestad Gymnasium
-      { name: 'Anne Holm', subject: 'Social Studies', school: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', projectCount: 2, ageGroup: '16-18' },
-      { name: 'Jonas Madsen', subject: 'Art & Design', school: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '16-18' },
-      // Denmark - Christianhavns rettighedskole
-      { name: 'Sofie Larsen', subject: 'History', school: 'Christianhavns rettighedskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16' },
-      { name: 'Peter Andersen', subject: 'Geography', school: 'Christianhavns rettighedskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16' },
-      // Denmark - Mørke Rettighedsskole
-      { name: 'Ulla Jensen', subject: 'Global Citizenship', school: 'Mørke Rettighedsskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16' },
-      { name: 'Mette Nielsen', subject: 'Danish', school: 'Mørke Rettighedsskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16' },
-      // Denmark - Vesterbjerg Rettighedsskole
-      { name: 'Karin Albrectsen', subject: 'Environmental Science', school: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16' },
-      { name: 'Henrik Møller', subject: 'Civics', school: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16' },
-      // UK - London Climate Academy
-      { name: 'Sarah Johnson', subject: 'Science', school: 'London Climate Academy', country: 'United Kingdom', flag: '🇬🇧', projectCount: 1, ageGroup: '14-16' },
-      { name: 'Michael Thompson', subject: 'Environmental Studies', school: 'London Climate Academy', country: 'United Kingdom', flag: '🇬🇧', projectCount: 1, ageGroup: '14-18' },
-      // UK - Manchester Rights School
-      { name: 'James Wilson', subject: 'English', school: 'Manchester Rights School', country: 'United Kingdom', flag: '🇬🇧', projectCount: 1, ageGroup: '12-14' },
-      { name: 'Emma Roberts', subject: 'PSHE', school: 'Manchester Rights School', country: 'United Kingdom', flag: '🇬🇧', projectCount: 1, ageGroup: '11-16' },
+      // Climate Action Exchange - Ørestad Gymnasium (looking for partner)
+      { name: 'Anne Holm', subject: 'Social Studies', school: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '16-18', project: 'Climate Action Exchange' },
+      { name: 'Jonas Madsen', subject: 'Art & Design', school: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '16-18', project: 'Climate Action Exchange' },
+      // Child in the World - Christianhavns + Manchester
+      { name: 'Sofie Larsen', subject: 'History', school: 'Christianhavns rettighedskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16', project: 'Child in the World' },
+      { name: 'Peter Andersen', subject: 'Geography', school: 'Christianhavns rettighedskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16', project: 'Child in the World' },
+      { name: 'James Wilson', subject: 'English', school: 'Manchester Rights School', country: 'United Kingdom', flag: '🇬🇧', projectCount: 1, ageGroup: '12-14', project: 'Child in the World' },
+      { name: 'Emma Roberts', subject: 'PSHE', school: 'Manchester Rights School', country: 'United Kingdom', flag: '🇬🇧', projectCount: 1, ageGroup: '11-16', project: 'Child in the World' },
+      // Communities in Focus - Vesterbjerg + Mørke
+      { name: 'Karin Albrectsen', subject: 'Environmental Science', school: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16', project: 'Communities in Focus' },
+      { name: 'Henrik Møller', subject: 'Civics', school: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16', project: 'Communities in Focus' },
+      { name: 'Ulla Jensen', subject: 'Global Citizenship', school: 'Mørke Rettighedsskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16', project: 'Communities in Focus' },
+      { name: 'Mette Nielsen', subject: 'Danish', school: 'Mørke Rettighedsskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16', project: 'Communities in Focus' },
+      // London Rights School - onboarding (no active project yet)
+      { name: 'Sarah Johnson', subject: 'Science', school: 'London Rights School', country: 'United Kingdom', flag: '🇬🇧', projectCount: 0, ageGroup: '14-16', project: null },
+      { name: 'Michael Thompson', subject: 'Environmental Studies', school: 'London Rights School', country: 'United Kingdom', flag: '🇬🇧', projectCount: 0, ageGroup: '14-18', project: null },
     ]
   }, [])
 
@@ -346,12 +343,12 @@ export default function ParentAnalyticsPage() {
         country: 'UK',
         countryLabel: 'United Kingdom',
         flag: '🇬🇧',
-        institutions: 3,
-        teachers: 4, // 2 London Climate Academy + 2 Manchester Rights School (Bristol onboarding)
-        students: 1620,
+        institutions: 2,
+        teachers: 4, // 2 London Rights School + 2 Manchester Rights School
+        students: 1080,
         projects: 1,
         completedProjects: 0,
-        regions: ['London', 'Manchester', 'Bristol'],
+        regions: ['London', 'Manchester'],
       },
     ]
   }, [])
@@ -467,14 +464,13 @@ export default function ParentAnalyticsPage() {
         name: 'United Kingdom',
         flag: '🇬🇧',
         coordinates: [51.5074, -0.1278],
-        metrics: { students: 1620, schools: 3, educators: 4, projects: 1, completedProjects: 0 },
-        regions: ['London', 'Manchester', 'Bristol'],
+        metrics: { students: 1080, schools: 2, educators: 4, projects: 1, completedProjects: 0 },
+        regions: ['London', 'Manchester'],
         engagementScore: 3.8,
         growthRate: 0.12,
         schools: [
-          { name: 'London Climate Academy', city: 'London', students: 620, activeStudents: 0, studentAgeRange: '12-18', educators: 2, projects: [], coordinates: [51.5074, -0.1278] as [number, number] },
+          { name: 'London Rights School', city: 'London', students: 620, activeStudents: 0, studentAgeRange: '12-18', educators: 2, projects: [], coordinates: [51.5074, -0.1278] as [number, number] },
           { name: 'Manchester Rights School', city: 'Manchester', students: 460, activeStudents: 26, studentAgeRange: '11-16', educators: 2, projects: ['Child in the World'], coordinates: [53.4808, -2.2426] as [number, number] },
-          { name: 'Bristol Green School', city: 'Bristol', students: 540, activeStudents: 0, studentAgeRange: '11-16', educators: 0, projects: [], coordinates: [51.4545, -2.5879] as [number, number] },
         ],
       },
     ]
@@ -1068,39 +1064,25 @@ export default function ParentAnalyticsPage() {
       case 'educators': {
         const uniqueSchools = new Set(educatorDetails.map(e => e.school)).size
         const uniqueCountries = new Set(educatorDetails.map(e => e.country)).size
-        const totalProjects = educatorDetails.reduce((sum, e) => sum + e.projectCount, 0)
+        const activeEducators = educatorDetails.filter(e => e.project).length
 
-        // Group educators by school for cleaner display
-        const educatorsBySchool = educatorDetails.reduce((acc, educator) => {
-          if (!acc[educator.school]) {
-            acc[educator.school] = { country: educator.country, flag: educator.flag, educators: [] }
+        // Group educators by project
+        const educatorsByProject = educatorDetails.reduce((acc, educator) => {
+          const projectKey = educator.project || 'Onboarding'
+          if (!acc[projectKey]) {
+            acc[projectKey] = []
           }
-          acc[educator.school].educators.push(educator)
+          acc[projectKey].push(educator)
           return acc
-        }, {} as Record<string, { country: string; flag: string; educators: typeof educatorDetails }>)
+        }, {} as Record<string, typeof educatorDetails>)
 
-        // Bar chart data for educators by school - less aggressive truncation
-        const schoolBarData = Object.entries(educatorsBySchool)
-          .map(([school, data], idx) => ({
-            name: school.length > 22 ? school.substring(0, 20) + '...' : school,
-            fullName: school,
-            educators: data.educators.length,
-            fill: CHART_COLORS.amber[idx % CHART_COLORS.amber.length],
-          }))
-          .sort((a, b) => b.educators - a.educators)
-
-        // Subject distribution
-        const subjectCounts = educatorDetails.reduce((acc, e) => {
-          acc[e.subject] = (acc[e.subject] || 0) + 1
-          return acc
-        }, {} as Record<string, number>)
-        const subjectData = Object.entries(subjectCounts)
-          .map(([subject, count], idx) => ({
-            name: subject,
-            value: count,
-            fill: CHART_COLORS.amber[idx % CHART_COLORS.amber.length],
-          }))
-          .sort((a, b) => b.value - a.value)
+        // Project colors and status
+        const projectInfo: Record<string, { color: string; status: string; description: string }> = {
+          'Communities in Focus': { color: '#10b981', status: 'active', description: 'Vesterbjerg + Mørke collaboration' },
+          'Child in the World': { color: '#3b82f6', status: 'active', description: 'Christianhavns + Manchester exchange' },
+          'Climate Action Exchange': { color: '#f59e0b', status: 'seeking partner', description: 'Ørestad seeking international partner' },
+          'Onboarding': { color: '#9ca3af', status: 'onboarding', description: 'Preparing for project participation' },
+        }
 
         return (
           <div className="space-y-10">
@@ -1111,194 +1093,103 @@ export default function ParentAnalyticsPage() {
                 <p className="mt-2 text-5xl font-bold">
                   <AnimatedCounter value={educatorDetails.length} />
                 </p>
-                <div className="mt-4 flex items-center gap-2 text-amber-100">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="text-sm">{totalProjects} projects · {uniqueSchools} schools · {uniqueCountries} countries</span>
+                <div className="mt-4 flex flex-wrap items-center gap-4 text-amber-100">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    <span className="text-sm">{activeEducators} in active projects</span>
+                  </div>
+                  <span className="text-sm">{uniqueSchools} schools · {uniqueCountries} countries</span>
                 </div>
               </div>
               <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white/10" />
               <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-white/5" />
             </div>
 
-            {/* Charts row */}
-            <div className="grid gap-10 lg:grid-cols-2">
-              {/* Bar chart - educators by school */}
-              <motion.div
-                className="rounded-xl border border-gray-100 bg-gray-50/30 p-6"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <h4 className="mb-2 text-base font-semibold text-gray-900">Educators by School</h4>
-                <p className="mb-6 text-sm text-gray-500">Distribution across partner institutions</p>
-                <div className="h-48">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={schoolBarData} layout="vertical" margin={{ left: 0, right: 40 }}>
-                      <XAxis type="number" hide />
-                      <YAxis
-                        type="category"
-                        dataKey="name"
-                        width={140}
-                        tick={{ fontSize: 12, fill: '#374151' }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <Tooltip
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0].payload
-                            return (
-                              <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-lg">
-                                <p className="text-sm font-medium text-gray-900">{data.fullName}</p>
-                                <p className="text-sm text-gray-600">{data.educators} educators</p>
-                              </div>
-                            )
-                          }
-                          return null
-                        }}
-                      />
-                      <Bar
-                        dataKey="educators"
-                        radius={[0, 6, 6, 0]}
-                        animationBegin={200}
-                        animationDuration={800}
-                      >
-                        {schoolBarData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                        <LabelList
-                          dataKey="educators"
-                          position="right"
-                          style={{ fontSize: 12, fill: '#374151', fontWeight: 500 }}
-                        />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </motion.div>
-
-              {/* Subject distribution with pie */}
-              <motion.div
-                className="rounded-xl border border-gray-100 bg-gray-50/30 p-6"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.15 }}
-              >
-                <h4 className="mb-2 text-base font-semibold text-gray-900">Subject Areas</h4>
-                <p className="mb-6 text-sm text-gray-500">Expertise across the network</p>
-                <div className="flex items-center gap-6">
-                  <div className="h-36 w-36 flex-shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={subjectData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={40}
-                          outerRadius={65}
-                          paddingAngle={3}
-                          dataKey="value"
-                          animationBegin={100}
-                          animationDuration={600}
-                        >
-                          {subjectData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="flex-1 space-y-3">
-                    {subjectData.slice(0, 4).map((item) => (
-                      <div key={item.name} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.fill }} />
-                          <span className="text-sm font-medium text-gray-700">{item.name}</span>
-                        </div>
-                        <span className="text-sm font-semibold text-gray-900">{item.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Educators grouped by school - enhanced list view */}
+            {/* Educators grouped by project */}
             <div>
-              <h4 className="mb-6 text-base font-semibold text-gray-900">Educator Details</h4>
-              <div className="space-y-5">
-                {Object.entries(educatorsBySchool).map(([school, data], idx) => (
-                  <motion.div
-                    key={school}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25 + idx * 0.05 }}
-                    className="group rounded-xl bg-amber-50/50 border-l-4 border-amber-500 p-6 transition-all hover:bg-amber-50/80 hover:shadow-md hover:-translate-y-0.5"
-                  >
-                    <div className="mb-5 flex items-start justify-between">
-                      <div className="flex items-center gap-4">
-                        <div
-                          className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm"
-                          style={{ backgroundColor: `${CHART_COLORS.amber[idx % CHART_COLORS.amber.length]}15` }}
-                        >
-                          <School
-                            className="h-6 w-6"
-                            style={{ color: CHART_COLORS.amber[idx % CHART_COLORS.amber.length] }}
-                          />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{school}</p>
-                          <p className="mt-1.5 text-sm text-gray-500">{data.flag} {data.country}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-amber-500 bg-clip-text text-transparent">{data.educators.length}</p>
-                        <p className="mt-1 text-sm text-gray-500">educators</p>
-                      </div>
-                    </div>
-
-                    {/* Educator cards with enhanced avatar and hover effect */}
-                    <div className="flex flex-wrap gap-3">
-                      {data.educators.map((educator, educatorIdx) => (
-                        <motion.div
-                          key={educator.name}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.3 + idx * 0.05 + educatorIdx * 0.02 }}
-                          className="flex items-center gap-3 rounded-lg bg-white/80 border border-amber-100 border-l-2 border-l-amber-400 px-3 py-2.5 shadow-sm transition-all hover:bg-amber-50 hover:border-amber-200 hover:border-l-amber-500 hover:shadow-md"
-                        >
-                          {getEducatorAvatar(educator.name) ? (
-                            <img
-                              src={getEducatorAvatar(educator.name)!}
-                              alt={educator.name}
-                              className="h-9 w-9 rounded-full object-cover shadow-sm ring-2 ring-amber-200"
-                            />
-                          ) : (
-                            <div
-                              className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold shadow-sm"
-                              style={{
-                                background: `linear-gradient(135deg, ${CHART_COLORS.amber[educatorIdx % CHART_COLORS.amber.length]}30, ${CHART_COLORS.amber[educatorIdx % CHART_COLORS.amber.length]}50)`,
-                                color: CHART_COLORS.amber[educatorIdx % CHART_COLORS.amber.length],
-                              }}
-                            >
-                              {educator.name.split(' ').map(n => n[0]).join('')}
+              <h4 className="mb-6 text-base font-semibold text-gray-900">Educators by Project</h4>
+              <div className="space-y-6">
+                {Object.entries(educatorsByProject).map(([project, educators], idx) => {
+                  const info = projectInfo[project] || { color: '#9ca3af', status: 'unknown', description: '' }
+                  return (
+                    <motion.div
+                      key={project}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 + idx * 0.08 }}
+                      className="rounded-xl border-2 overflow-hidden transition-all hover:shadow-lg"
+                      style={{ borderColor: `${info.color}40` }}
+                    >
+                      {/* Project header */}
+                      <div
+                        className="px-6 py-4"
+                        style={{ backgroundColor: `${info.color}10` }}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="flex items-center gap-3">
+                              <h3 className="text-lg font-bold text-gray-900">{project}</h3>
+                              <span
+                                className="rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                style={{
+                                  backgroundColor: info.status === 'active' ? '#dcfce7' : info.status === 'seeking partner' ? '#fef3c7' : '#f3f4f6',
+                                  color: info.status === 'active' ? '#166534' : info.status === 'seeking partner' ? '#92400e' : '#4b5563',
+                                }}
+                              >
+                                {info.status}
+                              </span>
                             </div>
-                          )}
-                          <div className="flex flex-col">
-                            <span className="text-sm font-semibold text-gray-800">{educator.name}</span>
-                            <span className="text-xs text-gray-500">{educator.subject} · Ages {educator.ageGroup}</span>
+                            <p className="mt-1 text-sm text-gray-600">{info.description}</p>
                           </div>
-                          {educator.projectCount > 0 && (
-                            <span className="ml-1 rounded-full bg-amber-500 text-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide shadow-sm">
-                              {educator.projectCount} {educator.projectCount === 1 ? 'project' : 'projects'}
-                            </span>
-                          )}
-                        </motion.div>
-                      ))}
-                    </div>
-                  </motion.div>
-                ))}
+                          <div className="text-right">
+                            <p className="text-2xl font-bold" style={{ color: info.color }}>{educators.length}</p>
+                            <p className="text-xs text-gray-500">educators</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Educator cards */}
+                      <div className="p-6 bg-white">
+                        <div className="flex flex-wrap gap-3">
+                          {educators.map((educator, educatorIdx) => (
+                            <motion.div
+                              key={educator.name}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 0.3 + idx * 0.05 + educatorIdx * 0.02 }}
+                              className="flex items-center gap-3 rounded-lg bg-gray-50 border px-4 py-3 shadow-sm transition-all hover:bg-white hover:shadow-md"
+                              style={{ borderColor: `${info.color}30` }}
+                            >
+                              {getEducatorAvatar(educator.name) ? (
+                                <img
+                                  src={getEducatorAvatar(educator.name)!}
+                                  alt={educator.name}
+                                  className="h-10 w-10 rounded-full object-cover shadow-sm ring-2"
+                                  style={{ '--tw-ring-color': `${info.color}40` } as React.CSSProperties}
+                                />
+                              ) : (
+                                <div
+                                  className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold shadow-sm"
+                                  style={{
+                                    background: `linear-gradient(135deg, ${info.color}20, ${info.color}40)`,
+                                    color: info.color,
+                                  }}
+                                >
+                                  {educator.name.split(' ').map(n => n[0]).join('')}
+                                </div>
+                              )}
+                              <div className="flex flex-col">
+                                <span className="text-sm font-semibold text-gray-800">{educator.name}</span>
+                                <span className="text-xs text-gray-500">{educator.subject} · Ages {educator.ageGroup}</span>
+                                <span className="text-xs text-gray-400">{educator.flag} {educator.school}</span>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )
+                })}
               </div>
             </div>
           </div>
