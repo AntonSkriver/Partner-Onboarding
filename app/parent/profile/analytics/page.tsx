@@ -136,6 +136,8 @@ interface SchoolDetail {
   country: string
   flag: string
   students: number
+  activeStudents: number
+  ageRange: string
   teachers: number
   city?: string
   schoolType?: 'primary' | 'secondary' | 'higher-ed'
@@ -184,92 +186,37 @@ export default function ParentAnalyticsPage() {
       .map((program) => buildProgramSummary(database, program))
   }, [prototypeReady, database, allowedPartnerIds])
 
+  // Always use hardcoded metrics for consistent display
   const programMetrics = useMemo(() => {
-    if (programSummaries.length === 0) {
-      return {
-        totalPrograms: 2,
-        activePrograms: 2,
-        coPartners: 2,
-        coordinators: 4,
-        institutions: 5, // 5 schools involved in projects
-        teachers: 10,
-        students: 128, // Total from projectDetails
-        projects: 3,
-        activeProjects: 2, // 2 active partner projects
-        completedProjects: 0,
-        templates: 3,
-        pendingInvitations: 1, // Ørestad looking for partner
-        countryCount: 2,
-      }
+    return {
+      totalPrograms: 3,
+      activePrograms: 3,
+      coPartners: 2,
+      coordinators: 4,
+      institutions: 7, // 7 schools shown in schoolDetails
+      teachers: 12, // 12 educators in educatorDetails
+      students: 128, // Total from projectDetails
+      projects: 3,
+      activeProjects: 3, // 2 active + 1 looking-for-partner
+      completedProjects: 0,
+      templates: 3,
+      pendingInvitations: 1, // Ørestad looking for partner
+      countryCount: 2,
     }
-    return aggregateProgramMetrics(programSummaries)
-  }, [programSummaries])
+  }, [])
 
-  // Build detailed school data
+  // Build detailed school data - always use hardcoded data for consistency
   const schoolDetails = useMemo<SchoolDetail[]>(() => {
-    if (programSummaries.length === 0) {
-      return [
-        { name: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', students: 850, teachers: 4, city: 'Copenhagen', schoolType: 'secondary', status: 'active', projectCount: 2 },
-        { name: 'Christianhavns rettighedskole', country: 'Denmark', flag: '🇩🇰', students: 540, teachers: 3, city: 'Copenhagen', schoolType: 'secondary', status: 'active', projectCount: 2 },
-        { name: 'Mørke Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 380, teachers: 2, city: 'Mørke', schoolType: 'secondary', status: 'active', projectCount: 1 },
-        { name: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 420, teachers: 3, city: 'Aalborg', schoolType: 'secondary', status: 'active', projectCount: 1 },
-        { name: 'London Climate Academy', country: 'United Kingdom', flag: '🇬🇧', students: 620, teachers: 5, city: 'London', schoolType: 'secondary', status: 'active', projectCount: 3 },
-        { name: 'Manchester Rights School', country: 'United Kingdom', flag: '🇬🇧', students: 460, teachers: 4, city: 'Manchester', schoolType: 'secondary', status: 'active', projectCount: 1 },
-        { name: 'Bristol Green School', country: 'United Kingdom', flag: '🇬🇧', students: 540, teachers: 3, city: 'Bristol', schoolType: 'secondary', status: 'onboarding', projectCount: 0 },
-      ]
-    }
-
-    // Use school name as key to dedupe schools that appear multiple times
-    const schoolMap = new Map<string, SchoolDetail & { _ids: Set<string> }>()
-    programSummaries.forEach(summary => {
-      summary.institutions.forEach(inst => {
-        const { flag, name: countryName } = getCountryDisplay(inst.country || '')
-        const teacherCount = summary.teachers.filter(t => t.institutionId === inst.id).length
-        const projectCount = summary.projects.filter(p => {
-          const creator = summary.teachers.find(t => t.id === p.createdById)
-          return creator?.institutionId === inst.id
-        }).length
-
-        const existing = schoolMap.get(inst.name)
-        if (existing) {
-          // Merge: accumulate teachers/projects, keep highest student count
-          if (!existing._ids.has(inst.id)) {
-            existing._ids.add(inst.id)
-            existing.teachers += teacherCount
-            existing.projectCount = (existing.projectCount || 0) + projectCount
-            existing.students = Math.max(existing.students, inst.studentCount || 0)
-          }
-        } else {
-          schoolMap.set(inst.name, {
-            name: inst.name,
-            country: countryName,
-            flag,
-            students: inst.studentCount || 0,
-            teachers: teacherCount,
-            city: inst.city,
-            schoolType: 'secondary',
-            status: 'onboarding',
-            projectCount,
-            _ids: new Set([inst.id]),
-          })
-        }
-      })
-    })
-
-    // Calculate status based on merged data and return without internal _ids field
-    return Array.from(schoolMap.values())
-      .map(({ _ids, ...school }) => {
-        let status: 'active' | 'partial' | 'onboarding' = 'onboarding'
-        if (school.teachers > 0 && (school.projectCount || 0) > 1) {
-          status = 'active'
-        } else if (school.teachers > 0 || (school.projectCount || 0) > 0) {
-          status = 'partial'
-        }
-        return { ...school, status }
-      })
-      .filter((entry) => entry.teachers > 0 || entry.students > 0)
-      .sort((a, b) => b.students - a.students)
-  }, [programSummaries])
+    return [
+      { name: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', students: 850, activeStudents: 156, ageRange: '16-19', teachers: 4, city: 'Copenhagen', schoolType: 'secondary', status: 'active', projectCount: 2 },
+      { name: 'Christianhavns rettighedskole', country: 'Denmark', flag: '🇩🇰', students: 540, activeStudents: 48, ageRange: '12-16', teachers: 3, city: 'Copenhagen', schoolType: 'secondary', status: 'active', projectCount: 1 },
+      { name: 'Mørke Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 380, activeStudents: 24, ageRange: '12-16', teachers: 2, city: 'Mørke', schoolType: 'secondary', status: 'active', projectCount: 1 },
+      { name: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', students: 420, activeStudents: 24, ageRange: '12-16', teachers: 3, city: 'Aalborg', schoolType: 'secondary', status: 'active', projectCount: 1 },
+      { name: 'London Climate Academy', country: 'United Kingdom', flag: '🇬🇧', students: 620, activeStudents: 145, ageRange: '12-18', teachers: 5, city: 'London', schoolType: 'secondary', status: 'active', projectCount: 1 },
+      { name: 'Manchester Rights School', country: 'United Kingdom', flag: '🇬🇧', students: 460, activeStudents: 26, ageRange: '11-16', teachers: 4, city: 'Manchester', schoolType: 'secondary', status: 'active', projectCount: 1 },
+      { name: 'Bristol Green School', country: 'United Kingdom', flag: '🇬🇧', students: 540, activeStudents: 0, ageRange: '11-16', teachers: 3, city: 'Bristol', schoolType: 'secondary', status: 'onboarding', projectCount: 0 },
+    ]
+  }, [])
 
   // Build detailed project data
   // Build detailed project data with partner school pairings
@@ -347,215 +294,66 @@ export default function ParentAnalyticsPage() {
     ]
   }, [])
 
-  // Build educator details
+  // Build educator details - always use hardcoded data for consistency
   const educatorDetails = useMemo(() => {
-    if (programSummaries.length === 0) {
-      return [
-        { name: 'Sarah Johnson', subject: 'Science', school: 'London Academy', country: 'United Kingdom', flag: '🇬🇧', projectCount: 2, ageGroup: '14-16' },
-        { name: 'Anne Holm', subject: 'Social Studies', school: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', projectCount: 2, ageGroup: '16-18' },
-        { name: 'James Wilson', subject: 'English', school: 'Manchester International', country: 'United Kingdom', flag: '🇬🇧', projectCount: 1, ageGroup: '12-14' },
-        { name: 'Jonas Madsen', subject: 'Art & Design', school: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '16-18' },
-      ]
-    }
+    return [
+      // Denmark - Ørestad Gymnasium
+      { name: 'Anne Holm', subject: 'Social Studies', school: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', projectCount: 2, ageGroup: '16-18' },
+      { name: 'Jonas Madsen', subject: 'Art & Design', school: 'Ørestad Gymnasium', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '16-18' },
+      // Denmark - Christianhavns rettighedskole
+      { name: 'Sofie Larsen', subject: 'History', school: 'Christianhavns rettighedskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16' },
+      { name: 'Peter Andersen', subject: 'Geography', school: 'Christianhavns rettighedskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16' },
+      // Denmark - Mørke Rettighedsskole
+      { name: 'Ulla Jensen', subject: 'Global Citizenship', school: 'Mørke Rettighedsskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16' },
+      { name: 'Mette Nielsen', subject: 'Danish', school: 'Mørke Rettighedsskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16' },
+      // Denmark - Vesterbjerg Rettighedsskole
+      { name: 'Karin Albrectsen', subject: 'Environmental Science', school: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16' },
+      { name: 'Henrik Møller', subject: 'Civics', school: 'Vesterbjerg Rettighedsskole', country: 'Denmark', flag: '🇩🇰', projectCount: 1, ageGroup: '12-16' },
+      // UK - London Climate Academy
+      { name: 'Sarah Johnson', subject: 'Science', school: 'London Climate Academy', country: 'United Kingdom', flag: '🇬🇧', projectCount: 1, ageGroup: '14-16' },
+      { name: 'Michael Thompson', subject: 'Environmental Studies', school: 'London Climate Academy', country: 'United Kingdom', flag: '🇬🇧', projectCount: 1, ageGroup: '14-18' },
+      // UK - Manchester Rights School
+      { name: 'James Wilson', subject: 'English', school: 'Manchester Rights School', country: 'United Kingdom', flag: '🇬🇧', projectCount: 1, ageGroup: '12-14' },
+      { name: 'Emma Roberts', subject: 'PSHE', school: 'Manchester Rights School', country: 'United Kingdom', flag: '🇬🇧', projectCount: 1, ageGroup: '11-16' },
+    ]
+  }, [])
 
-    const educators: Array<{
-      name: string
-      subject: string
-      school: string
-      country: string
-      flag: string
-      projectCount: number
-      ageGroup: string
-    }> = []
-
-    const seenTeacherIds = new Set<string>()
-    const seenTeacherNames = new Set<string>()
-    programSummaries.forEach(summary => {
-      summary.teachers.forEach(teacher => {
-        const fullName = `${teacher.firstName} ${teacher.lastName}`
-        // Dedupe by both ID and name to prevent duplicates across programs
-        if (seenTeacherIds.has(teacher.id) || seenTeacherNames.has(fullName)) return
-        seenTeacherIds.add(teacher.id)
-        seenTeacherNames.add(fullName)
-
-        const institution = summary.institutions.find(i => i.id === teacher.institutionId)
-        const { flag, name: countryName } = institution?.country
-          ? getCountryDisplay(institution.country)
-          : { flag: '', name: '' }
-
-        const projectCount = summary.projects.filter(p => p.createdById === teacher.id).length
-
-        // Generate an age group based on subject or use a default
-        const ageGroups = ['12-14', '14-16', '16-18']
-        const ageGroup = ageGroups[Math.floor(Math.random() * ageGroups.length)]
-
-        educators.push({
-          name: `${teacher.firstName} ${teacher.lastName}`,
-          subject: teacher.subject || 'General',
-          school: institution?.name || 'Unknown',
-          country: countryName,
-          flag,
-          projectCount,
-          ageGroup,
-        })
-      })
-    })
-
-    return educators.sort((a, b) => b.projectCount - a.projectCount)
-  }, [programSummaries])
-
-  // Student breakdown by program
+  // Student breakdown by program - always use hardcoded data for consistency
   const studentBreakdown = useMemo(() => {
-    if (programSummaries.length === 0) {
-      return [
-        { program: 'UNICEF Denmark: Communities in Focus', students: 2400, schools: 2, countries: 1 },
-        { program: 'UNICEF UK: Climate Action', students: 2800, schools: 2, countries: 1 },
-      ]
-    }
+    return [
+      { program: 'Communities in Focus', students: 48, schools: 2, countries: 1 },
+      { program: 'Child in the World', students: 52, schools: 2, countries: 2 },
+      { program: 'Climate Action Exchange', students: 28, schools: 1, countries: 1 },
+    ]
+  }, [])
 
-    return programSummaries.map(summary => {
-      const students = summary.institutions.reduce((sum, i) => sum + (i.studentCount || 0), 0)
-      return {
-        program: summary.program.name,
-        students,
-        schools: summary.institutions.length,
-        countries: new Set(summary.institutions.map(i => i.country).filter(Boolean)).size,
-      }
-    }).sort((a, b) => b.students - a.students)
-  }, [programSummaries])
-
+  // Country impact - always use hardcoded data for consistency
   const countryImpact = useMemo(() => {
-    if (programSummaries.length === 0) {
-      return [
-        {
-          country: 'DK',
-          countryLabel: 'Denmark',
-          flag: '🇩🇰',
-          institutions: 2,
-          teachers: 4,
-          students: 2400,
-          projects: 3,
-          completedProjects: 1,
-          regions: ['Capital Region', 'Jutland'],
-        },
-        {
-          country: 'UK',
-          countryLabel: 'United Kingdom',
-          flag: '🇬🇧',
-          institutions: 2,
-          teachers: 4,
-          students: 2800,
-          projects: 3,
-          completedProjects: 1,
-          regions: ['London', 'Manchester'],
-        },
-      ]
-    }
-
-    type MutableEntry = {
-      country: string
-      institutions: Set<string>
-      teachers: Set<string>
-      regions: Set<string>
-      students: number
-      projects: Set<string>
-      completedProjects: number
-    }
-
-    const stats = new Map<string, MutableEntry>()
-
-    const ensureEntry = (countryCode: string): MutableEntry => {
-      const key = countryCode || 'Unknown'
-      let entry = stats.get(key)
-      if (!entry) {
-        entry = {
-          country: key,
-          institutions: new Set<string>(),
-          teachers: new Set<string>(),
-          regions: new Set<string>(),
-          students: 0,
-          projects: new Set<string>(),
-          completedProjects: 0,
-        }
-        stats.set(key, entry)
-      }
-      return entry
-    }
-
-    const institutionById = new Map(
-      (database?.institutions ?? []).map((institution) => [institution.id, institution]),
-    )
-    const teacherById = new Map(
-      (database?.institutionTeachers ?? []).map((teacher) => [teacher.id, teacher]),
-    )
-    const allowedCountries = new Set(['DK', 'UK'])
-
-    for (const summary of programSummaries) {
-      summary.institutions.forEach((institution) => {
-        if (!institution.country || !allowedCountries.has(institution.country)) {
-          return
-        }
-        const entry = ensureEntry(institution.country)
-        entry.institutions.add(institution.id)
-        entry.students += institution.studentCount ?? 0
-        if (institution.region) {
-          entry.regions.add(institution.region)
-        }
-      })
-
-      summary.teachers.forEach((teacher) => {
-        const institution =
-          summary.institutions.find((inst) => inst.id === teacher.institutionId) ??
-          institutionById.get(teacher.institutionId)
-        if (institution?.country && allowedCountries.has(institution.country)) {
-          const entry = ensureEntry(institution.country)
-          entry.teachers.add(teacher.id)
-        }
-      })
-
-      summary.projects.forEach((project) => {
-        const teacher =
-          summary.teachers.find((entry) => entry.id === project.createdById) ??
-          teacherById.get(project.createdById)
-        if (!teacher) {
-          return
-        }
-
-        const institution =
-          summary.institutions.find((inst) => inst.id === teacher.institutionId) ??
-          institutionById.get(teacher.institutionId)
-        if (institution?.country && allowedCountries.has(institution.country)) {
-          const entry = ensureEntry(institution.country)
-          entry.projects.add(project.id)
-          if (project.status === 'completed') {
-            entry.completedProjects += 1
-          }
-        }
-      })
-    }
-
-    return Array.from(stats.values())
-      .map((entry) => {
-        const { flag, name } = getCountryDisplay(entry.country)
-        return {
-          country: entry.country,
-          countryLabel: name,
-          flag,
-          institutions: entry.institutions.size,
-          teachers: entry.teachers.size,
-          students: entry.students,
-          projects: entry.projects.size,
-          completedProjects: entry.completedProjects,
-          regions: Array.from(entry.regions).sort((a, b) => a.localeCompare(b)),
-        }
-      })
-      .sort((a, b) => {
-        if (b.students !== a.students) {
-          return b.students - a.students
-        }
-        return b.projects - a.projects
-      })
-  }, [programSummaries, database])
+    return [
+      {
+        country: 'DK',
+        countryLabel: 'Denmark',
+        flag: '🇩🇰',
+        institutions: 4,
+        teachers: 8, // 2 Ørestad + 2 Christianhavns + 2 Mørke + 2 Vesterbjerg
+        students: 2190,
+        projects: 2,
+        completedProjects: 0,
+        regions: ['Capital Region', 'Central Denmark', 'North Denmark'],
+      },
+      {
+        country: 'UK',
+        countryLabel: 'United Kingdom',
+        flag: '🇬🇧',
+        institutions: 3,
+        teachers: 4, // 2 London Climate Academy + 2 Manchester Rights School (Bristol onboarding)
+        students: 1620,
+        projects: 1,
+        completedProjects: 0,
+        regions: ['London', 'Manchester', 'Bristol'],
+      },
+    ]
+  }, [])
 
   const headlineMetrics = [
     {
@@ -616,7 +414,7 @@ export default function ParentAnalyticsPage() {
     },
     {
       label: 'Programs live',
-      value: programSummaries.length > 0 ? programSummaries.length.toString() : '2',
+      value: '3',
     },
   ]
 
@@ -651,7 +449,7 @@ export default function ParentAnalyticsPage() {
         name: 'Denmark',
         flag: '🇩🇰',
         coordinates: [55.6761, 12.5683],
-        metrics: { students: 2700, schools: 4, educators: 12, projects: 5, completedProjects: 2 },
+        metrics: { students: 2700, schools: 4, educators: 12, projects: 2, completedProjects: 0 },
         regions: ['Capital Region', 'Central Denmark', 'North Denmark'],
         engagementScore: 4.2,
         growthRate: 0.15,
@@ -667,7 +465,7 @@ export default function ParentAnalyticsPage() {
         name: 'United Kingdom',
         flag: '🇬🇧',
         coordinates: [51.5074, -0.1278],
-        metrics: { students: 2900, schools: 3, educators: 12, projects: 6, completedProjects: 1 },
+        metrics: { students: 2900, schools: 3, educators: 12, projects: 1, completedProjects: 0 },
         regions: ['London', 'Manchester', 'Bristol'],
         engagementScore: 3.8,
         growthRate: 0.12,
@@ -728,13 +526,7 @@ export default function ParentAnalyticsPage() {
 
     switch (selectedMetric) {
       case 'students': {
-        const uniqueCountries = new Set<string>()
-        programSummaries.forEach((summary) => {
-          summary.institutions
-            .filter((inst) => inst.country)
-            .forEach((inst) => uniqueCountries.add(inst.country))
-        })
-        const countryCount = uniqueCountries.size || 2
+        const countryCount = 2 // Denmark and UK
 
         // Prepare pie chart data
         const pieData = studentBreakdown.map((item, idx) => ({
@@ -980,6 +772,7 @@ export default function ParentAnalyticsPage() {
       }
       case 'schools': {
         const totalSchoolStudents = schoolDetails.reduce((sum, s) => sum + s.students, 0)
+        const totalActiveStudents = schoolDetails.reduce((sum, s) => sum + s.activeStudents, 0)
         const uniqueCountries = new Set(schoolDetails.map(s => s.country)).size
 
         return (
@@ -991,9 +784,16 @@ export default function ParentAnalyticsPage() {
                 <p className="mt-2 text-5xl font-bold">
                   <AnimatedCounter value={programMetrics.institutions} />
                 </p>
-                <div className="mt-4 flex items-center gap-2 text-blue-100">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="text-sm">{totalSchoolStudents.toLocaleString()} students across {uniqueCountries} countries</span>
+                <div className="mt-4 flex flex-wrap items-center gap-4 text-blue-100">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    <span className="text-sm">{totalSchoolStudents.toLocaleString()} total students</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1">
+                    <Users className="h-3.5 w-3.5" />
+                    <span className="text-sm">{totalActiveStudents} active in projects</span>
+                  </div>
+                  <span className="text-sm">{uniqueCountries} countries</span>
                 </div>
               </div>
               <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white/10" />
@@ -1028,11 +828,29 @@ export default function ParentAnalyticsPage() {
                           <p className="mt-1.5 text-sm text-gray-500">
                             {school.flag} {school.city}, {school.country}
                           </p>
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700">
+                              Ages {school.ageRange}
+                            </span>
+                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                              {school.teachers} educators
+                            </span>
+                            {school.projectCount && school.projectCount > 0 && (
+                              <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                                {school.projectCount} {school.projectCount === 1 ? 'project' : 'projects'}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">{school.students.toLocaleString()}</p>
-                        <p className="mt-1 text-sm text-gray-500">students</p>
+                        <p className="text-sm text-gray-500">total students</p>
+                        {school.activeStudents > 0 ? (
+                          <p className="mt-1 text-sm font-medium text-emerald-600">{school.activeStudents} active</p>
+                        ) : (
+                          <p className="mt-1 text-sm text-gray-400">onboarding</p>
+                        )}
                       </div>
                     </div>
                   </motion.div>
