@@ -128,11 +128,11 @@ export default function CoordinatorPartnerPage() {
                 <img
                   src={partnerRecord.logo}
                   alt={partnerRecord.organizationName}
-                  className="h-14 w-14 rounded-xl bg-white object-contain p-1"
+                  className="h-20 w-20 rounded-2xl bg-white object-contain p-2 shadow-lg"
                 />
               ) : (
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
-                  <Building2 className="h-7 w-7 text-white" />
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/20">
+                  <Building2 className="h-9 w-9 text-white" />
                 </div>
               )}
               <div className="flex-1">
