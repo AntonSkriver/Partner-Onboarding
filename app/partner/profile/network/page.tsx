@@ -19,6 +19,7 @@ import {
 import { Database } from '@/lib/types/database'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import { buildProgramSummariesForPartner, type ProgramSummary } from '@/lib/programs/selectors'
+import { getCurrentSession } from '@/lib/auth/session'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
 type Country = 'Denmark' | 'England'
@@ -93,10 +94,11 @@ export default function PartnerNetworkPage() {
     setLoading(true)
     try {
       // Use sample data for prototype - no strict session check needed
+      const session = getCurrentSession()
       // For demo purposes - sample organization data
       const sampleOrg: Organization = {
         id: 'demo-org-id',
-        name: 'UNICEF Denmark',
+        name: session?.organization ?? 'UNICEF Denmark',
         organization_type: 'ngo',
         website: 'https://unicef.dk',
         logo: null,

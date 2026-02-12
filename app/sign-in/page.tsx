@@ -6,19 +6,27 @@ import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Globe2, Lock, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { clearSession, startTeacherPreviewSession } from '@/lib/auth/session'
+import { clearSession, startTeacherPreviewSession, startCoordinatorPreviewSession } from '@/lib/auth/session'
 
 export default function SignInPage() {
   const router = useRouter()
-  const [role, setRole] = useState<'teacher' | 'student'>('teacher')
+  const [role, setRole] = useState<'teacher' | 'student' | 'coordinator'>('teacher')
   const [showPassword, setShowPassword] = useState(false)
   const [isTeacherPreviewLoading, setIsTeacherPreviewLoading] = useState(false)
+  const [isCoordinatorPreviewLoading, setIsCoordinatorPreviewLoading] = useState(false)
 
   const handleTeacherPreview = () => {
     setIsTeacherPreviewLoading(true)
     clearSession()
     startTeacherPreviewSession()
     router.push('/teacher/dashboard')
+  }
+
+  const handleCoordinatorPreview = () => {
+    setIsCoordinatorPreviewLoading(true)
+    clearSession()
+    startCoordinatorPreviewSession()
+    router.push('/coordinator/dashboard')
   }
 
   return (
@@ -69,6 +77,17 @@ export default function SignInPage() {
                   className="h-4 w-4 border-purple-400 text-purple-600 focus:ring-purple-500"
                 />
                 Student
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="radio"
+                  name="role"
+                  value="coordinator"
+                  checked={role === 'coordinator'}
+                  onChange={() => setRole('coordinator')}
+                  className="h-4 w-4 border-purple-400 text-purple-600 focus:ring-purple-500"
+                />
+                Coordinator
               </label>
             </div>
 
@@ -141,6 +160,19 @@ export default function SignInPage() {
               </Button>
               <p className="text-center text-xs text-gray-500">
                 Jump into the teacher dashboard with demo data.
+              </p>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100"
+                onClick={handleCoordinatorPreview}
+                disabled={isCoordinatorPreviewLoading}
+              >
+                {isCoordinatorPreviewLoading ? 'Loading...' : 'Continue as Coordinator'}
+              </Button>
+              <p className="text-center text-xs text-gray-500">
+                Jump into the coordinator dashboard as Marco Bianchi (STC Italy).
               </p>
 
               <p className="text-center text-sm text-gray-600">

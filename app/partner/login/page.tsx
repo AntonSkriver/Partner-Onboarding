@@ -27,7 +27,7 @@ export default function PartnerLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isDemoLoading, setIsDemoLoading] = useState<
-    'parent' | 'partner' | 'school' | 'unicef-denmark' | 'unicef-england' | null
+    'parent' | 'partner' | 'school' | 'unicef-denmark' | 'unicef-england' | 'stc-italy' | null
   >(null)
   const [isResetting, setIsResetting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -50,6 +50,15 @@ export default function PartnerLoginPage() {
       role: 'partner',
       organization: 'UNICEF Denmark',
       name: 'UNICEF Coordinator',
+      redirect: '/partner/profile/overview',
+    },
+    {
+      id: 'stc-italy' as const,
+      label: 'Save the Children Italy',
+      description: 'Manage Italian Punti Luce and programs.',
+      role: 'partner',
+      organization: 'Save the Children Italy',
+      name: 'STC Italy Director',
       redirect: '/partner/profile/overview',
     },
   ]
@@ -229,12 +238,6 @@ export default function PartnerLoginPage() {
             >
               {isDemoLoading === 'school' ? 'Loading...' : 'Continue as School'}
             </Button>
-            <Link
-              href="/partner/invite/accept?name=Amelia%20Parker&email=amelia.parker@unicef.org.uk&partnerId=partner-unicef&programId=program-communities-2025"
-              className="flex h-12 items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-4 text-sm font-semibold text-blue-800 transition hover:bg-blue-100"
-            >
-              Preview coordinator invite
-            </Link>
             <Link
               href="/school/invite/accept?schoolName=Langelinie%20Rettighedsskole&contactName=Emma%20Hansen&email=emma@langelinie.dk&partnerId=partner-unicef&programId=program-communities-2025&country=DK&city=Copenhagen"
               className="flex h-12 items-center justify-center rounded-md border border-purple-200 bg-purple-50 px-4 text-sm font-semibold text-purple-800 transition hover:bg-purple-100"

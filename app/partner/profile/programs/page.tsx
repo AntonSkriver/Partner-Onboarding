@@ -53,7 +53,6 @@ export default function PartnerProgramsPage() {
 
     return catalog
       .filter((item) => allowedProgramIds.has(item.programId))
-      .filter((item) => !item.name.includes('Save the Children'))
   }, [database, partnerRecord, sessionRole])
 
   const programDataLoading = !prototypeReady || !database || (sessionRole !== 'parent' && !partnerRecord)
@@ -65,10 +64,11 @@ export default function PartnerProgramsPage() {
   const loadOrganizationProfile = async () => {
     setLoading(true)
     try {
+      const session = getCurrentSession()
       // For demo purposes - sample organization data
       const sampleOrg: Organization = {
         id: 'demo-org-id',
-        name: 'UNICEF Denmark',
+        name: session?.organization ?? 'UNICEF Denmark',
         organization_type: 'ngo',
         website: 'https://unicef.dk',
         logo: null,

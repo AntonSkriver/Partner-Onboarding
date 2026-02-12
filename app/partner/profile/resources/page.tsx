@@ -25,10 +25,11 @@ export default function PartnerResourcesPage() {
   const loadOrganizationData = async () => {
     setLoading(true)
     try {
+      const session = getCurrentSession()
       // For demo purposes - sample organization data
       const sampleOrg: Organization = {
         id: 'demo-org-id',
-        name: 'UNICEF Denmark',
+        name: session?.organization ?? 'UNICEF Denmark',
         organization_type: 'ngo',
         website: 'https://unicef.dk',
         logo: null,

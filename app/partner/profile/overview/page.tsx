@@ -145,52 +145,107 @@ export default function PartnerOverviewPage() {
 
   useEffect(() => {
     loadOrganizationProfile()
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prototypeReady, database])
 
   const loadOrganizationProfile = async () => {
     setLoading(true)
     try {
       const session = getCurrentSession()
+      const orgName = session?.organization ?? 'UNICEF Denmark'
 
-      // For demo purposes - sample organization data
+      // Build dynamic org data from prototype database when available
+      const partnerUsers = database?.partnerUsers ?? []
+      const matchedPartner = database?.partners.find(
+        (p) => p.organizationName.toLowerCase() === orgName.trim().toLowerCase(),
+      )
+
+      // Build contacts from partner users linked to this partner
+      const contacts = matchedPartner
+        ? partnerUsers
+            .filter((u) => u.partnerId === matchedPartner.id && u.isActive)
+            .map((u, i) => ({
+              name: `${u.firstName} ${u.lastName}`,
+              email: u.email,
+              role: u.role === 'admin' ? 'Director' : 'Coordinator',
+              isPrimary: i === 0,
+            }))
+        : []
+
+      // If no partner users, use partner contact as fallback
+      if (contacts.length === 0 && matchedPartner) {
+        contacts.push({
+          name: orgName,
+          email: matchedPartner.contactEmail,
+          role: 'Primary Contact',
+          isPrimary: true,
+        })
+      }
+
+      // Build countries from programs
+      const programs = database?.programs ?? []
+      const programPartners = database?.programPartners ?? []
+      const linkedProgramIds = matchedPartner
+        ? new Set([
+            ...programs.filter((p) => p.partnerId === matchedPartner.id).map((p) => p.id),
+            ...programPartners.filter((pp) => pp.partnerId === matchedPartner.id).map((pp) => pp.programId),
+          ])
+        : new Set<string>()
+      const linkedPrograms = programs.filter((p) => linkedProgramIds.has(p.id))
+      const countriesSet = new Set<string>()
+      linkedPrograms.forEach((p) => p.countriesInScope?.forEach((c: string) => countriesSet.add(c)))
+
+      // Build SDG tags from partner record
+      const sdgTags = matchedPartner?.sdgFocus
+        ? matchedPartner.sdgFocus.map((s) => s.replace('SDG ', ''))
+        : ['4']
+
+      // Build thematic tags from program pedagogical frameworks
+      const thematicSet = new Set<string>()
+      linkedPrograms.forEach((p) => {
+        p.pedagogicalFramework?.forEach((f: string) => {
+          const labels: Record<string, string> = {
+            pbl: 'Project-Based Learning',
+            design_thinking: 'Design Thinking',
+            global_citizenship: 'Global Citizenship',
+            steam: 'STEAM Education',
+          }
+          thematicSet.add(labels[f] ?? f)
+        })
+        p.projectTypes?.forEach((t: string) => {
+          const labels: Record<string, string> = {
+            cultural_exchange: 'Cultural Exchange',
+            explore_global_challenges: 'Global Challenges',
+            create_solutions: 'Solution Design',
+          }
+          if (labels[t]) thematicSet.add(labels[t])
+        })
+      })
+
+      // Build CRC focus from programs
+      const crcSet = new Set<string>()
+      linkedPrograms.forEach((p) => {
+        p.crcFocus?.forEach((c: string) => crcSet.add(c))
+      })
+
       const sampleOrg: Organization = {
-        id: 'demo-org-id',
-        name: 'UNICEF Denmark',
-        organization_type: 'ngo',
-        website: 'https://unicef.dk',
-        logo: null,
-        short_description:
-          'Connecting classrooms worldwide through collaborative learning experiences aligned with UN Sustainable Development Goals',
-        primary_contacts: [
-          {
-            name: 'Mette Victoria',
-            email: 'Mette@unicef.dk',
-            role: 'Project Leader',
-            isPrimary: true,
-          },
-          {
-            name: 'Christian Bindslev',
-            email: 'Christian@unicef.dk',
-            role: 'Senior Consultant',
-            isPrimary: false,
-          },
-        ],
-        regions_of_operation: ['Europe', 'Africa', 'Asia-Pacific'],
-        countries_of_operation: ['Denmark', 'Mexico', 'Italy', 'Germany', 'Brazil', 'Finland'],
-        languages: ['Danish', 'English', 'Spanish', 'Italian'],
-        sdg_tags: ['4', '10', '16', '17'],
-        thematic_tags: [
-          "Children's Rights",
-          'Global Citizenship',
-          'Cultural Exchange',
-          'Human Rights Education',
-          'Healthy Communities',
-        ],
-        verification_status: 'verified',
+        id: matchedPartner?.id ?? 'demo-org-id',
+        name: orgName,
+        organization_type: matchedPartner?.organizationType ?? 'ngo',
+        website: matchedPartner?.website ?? null,
+        logo: matchedPartner?.logo ?? null,
+        short_description: matchedPartner?.description ?? 'Partner organization on Class2Class.',
+        primary_contacts: contacts,
+        regions_of_operation: [],
+        countries_of_operation: Array.from(countriesSet),
+        languages: matchedPartner?.languages ?? ['en'],
+        sdg_tags: sdgTags,
+        thematic_tags: Array.from(thematicSet),
+        verification_status: matchedPartner?.verificationStatus ?? 'verified',
         brand_settings: null,
-        created_at: '2024-01-15T10:00:00Z',
-        updated_at: '2024-03-10T15:30:00Z',
-        is_active: true,
+        created_at: matchedPartner?.createdAt ?? '2024-01-15T10:00:00Z',
+        updated_at: matchedPartner?.updatedAt ?? '2024-03-10T15:30:00Z',
+        is_active: matchedPartner?.isActive ?? true,
       }
 
       const mockResources = [
@@ -210,7 +265,7 @@ export default function PartnerOverviewPage() {
 
       setOrganization(sampleOrg)
       setResources(mockResources)
-      setChildRightsFocus(['12', '24', '28'])
+      setChildRightsFocus(Array.from(crcSet))
     } catch (err) {
       console.error('Error loading organization profile:', err)
     } finally {
@@ -426,10 +481,7 @@ export default function PartnerOverviewPage() {
         </CardHeader>
         <CardContent>
           <p className="leading-relaxed text-gray-700">
-            UNICEF Danmark works to secure all children&rsquo;s rights through fundraising,
-            education and advocacy in Denmark. We collaborate with schools, organizations and
-            communities to create awareness about children&rsquo;s global situation and mobilize
-            resources for UNICEF&rsquo;s work worldwide.
+            {partnerRecord?.mission ?? organization?.short_description ?? 'No mission statement available.'}
           </p>
         </CardContent>
       </Card>

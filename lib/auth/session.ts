@@ -3,7 +3,7 @@
 
 export interface UserSession {
   email: string
-  role: 'partner' | 'teacher' | 'student' | 'parent'
+  role: 'partner' | 'teacher' | 'student' | 'parent' | 'coordinator'
   organization?: string
   name?: string
   loginTime: string
@@ -183,6 +183,9 @@ export function redirectBasedOnRole(defaultPath = '/'): void {
     case 'student':
       window.location.href = '/student/dashboard'
       break
+    case 'coordinator':
+      window.location.href = '/coordinator/dashboard'
+      break
     default:
       window.location.href = defaultPath
   }
@@ -202,5 +205,22 @@ export function startTeacherPreviewSession(
     ...TEACHER_PREVIEW_TEMPLATE,
     ...overrides,
     role: 'teacher',
+  })
+}
+
+const COORDINATOR_PREVIEW_TEMPLATE: Omit<UserSession, 'loginTime'> = {
+  email: 'marco.bianchi@savethechildren.it',
+  role: 'coordinator',
+  organization: 'Save the Children Italy',
+  name: 'Marco Bianchi',
+}
+
+export function startCoordinatorPreviewSession(
+  overrides: Partial<Omit<UserSession, 'loginTime'>> = {},
+): void {
+  switchToPreviewSession({
+    ...COORDINATOR_PREVIEW_TEMPLATE,
+    ...overrides,
+    role: 'coordinator',
   })
 }
