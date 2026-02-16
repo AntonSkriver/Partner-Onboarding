@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter } from '@/i18n/navigation'
 import {
   Compass,
   Home,
@@ -31,18 +32,20 @@ interface TeacherShellProps {
   children: React.ReactNode
 }
 
-const navItems = [
-  { href: '/teacher/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/teacher/discover', label: 'Discover', icon: Compass },
-  { href: '/teacher/connect', label: 'Connect', icon: Link2 },
-  { href: '/teacher/projects', label: 'My Projects', icon: Layers },
-  { href: '/teacher/programs', label: 'My Programs', icon: FolderOpen },
-  { href: '/teacher/school', label: 'My School', icon: Building2 },
-]
-
 export function TeacherShell({ children }: TeacherShellProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const tNav = useTranslations('nav')
+  const tShell = useTranslations('shell')
+
+  const navItems = [
+    { href: '/teacher/dashboard', label: tNav('dashboard'), icon: Home },
+    { href: '/teacher/discover', label: tNav('discover'), icon: Compass },
+    { href: '/teacher/connect', label: tNav('connect'), icon: Link2 },
+    { href: '/teacher/projects', label: tNav('myProjects'), icon: Layers },
+    { href: '/teacher/programs', label: tNav('myPrograms'), icon: FolderOpen },
+    { href: '/teacher/school', label: tNav('mySchool'), icon: Building2 },
+  ]
   const [session, setSession] = useState<UserSession | null>(null)
   const [hasBackup, setHasBackup] = useState(false)
 
@@ -86,10 +89,10 @@ export function TeacherShell({ children }: TeacherShellProps) {
                 height={32}
                 className="h-8 w-8"
               />
-              <span className="text-lg font-semibold text-gray-900">Class2Class Teacher</span>
+              <span className="text-lg font-semibold text-gray-900">{tShell('class2classTeacher')}</span>
             </Link>
             <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-              Teacher preview
+              {tShell('teacherPreview')}
             </Badge>
           </div>
           <div className="flex items-center gap-3">
@@ -104,12 +107,12 @@ export function TeacherShell({ children }: TeacherShellProps) {
               {hasBackup && (
                 <Button variant="ghost" size="sm" onClick={handleReturnToPartner}>
                   <ArrowLeft className="mr-1 h-4 w-4" />
-                  Back to partner
+                  {tShell('backToPartner')}
                 </Button>
               )}
               <Button variant="ghost" size="sm" onClick={handleTeacherLogout}>
                 <LogOut className="mr-1 h-4 w-4" />
-                Sign out
+                {tShell('signOut')}
               </Button>
             </div>
           </div>
@@ -141,9 +144,9 @@ export function TeacherShell({ children }: TeacherShellProps) {
               )
             })}
             <div className="mt-3 rounded-lg bg-purple-50 p-3 text-xs text-purple-700">
-              <p className="font-semibold">Need a student view?</p>
+              <p className="font-semibold">{tShell('needStudentView')}</p>
               <p className="mt-1 text-purple-600">
-                Coming soon – preview the student journey from a classroom invite.
+                {tShell('needStudentViewDesc')}
               </p>
             </div>
           </nav>
@@ -158,7 +161,7 @@ export function TeacherShell({ children }: TeacherShellProps) {
             {hasBackup && (
               <Button variant="ghost" size="sm" onClick={handleReturnToPartner}>
                 <ArrowLeft className="mr-1 h-4 w-4" />
-                Partner view
+                {tShell('partnerView')}
               </Button>
             )}
           </div>

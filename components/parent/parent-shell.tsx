@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter } from '@/i18n/navigation'
 import {
   Home,
   Layers,
@@ -22,18 +23,20 @@ interface ParentShellProps {
   children: React.ReactNode
 }
 
-const navItems = [
-  { href: '/parent/profile/dashboard', label: 'Home', icon: Home },
-  { href: '/parent/profile/overview', label: 'Overview', icon: Building2 },
-  { href: '/parent/profile/programs', label: 'Programs', icon: Layers },
-  { href: '/parent/profile/resources', label: 'Resources', icon: BookOpen },
-  { href: '/parent/profile/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/parent/profile/network', label: 'Network', icon: Users },
-]
-
 export function ParentShell({ children }: ParentShellProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const tNav = useTranslations('nav')
+  const tShell = useTranslations('shell')
+
+  const navItems = [
+    { href: '/parent/profile/dashboard', label: tNav('home'), icon: Home },
+    { href: '/parent/profile/overview', label: tNav('overview'), icon: Building2 },
+    { href: '/parent/profile/programs', label: tNav('programs'), icon: Layers },
+    { href: '/parent/profile/resources', label: tNav('resources'), icon: BookOpen },
+    { href: '/parent/profile/analytics', label: tNav('analytics'), icon: BarChart3 },
+    { href: '/parent/profile/network', label: tNav('network'), icon: Users },
+  ]
   const [session, setSession] = useState<UserSession | null>(null)
 
   useEffect(() => {
@@ -66,7 +69,7 @@ export function ParentShell({ children }: ParentShellProps) {
                 height={32}
                 className="h-8 w-8"
               />
-              <span className="text-lg font-semibold text-gray-900">Class2Class</span>
+              <span className="text-lg font-semibold text-gray-900">{tShell('class2class')}</span>
             </Link>
           </div>
           <div className="flex items-center gap-3">
@@ -80,7 +83,7 @@ export function ParentShell({ children }: ParentShellProps) {
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="mr-1 h-4 w-4" />
-                Sign out
+                {tShell('signOut')}
               </Button>
             </div>
           </div>

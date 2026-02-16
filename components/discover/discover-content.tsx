@@ -1,7 +1,8 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useMemo, useState } from 'react'
 import { Plus, Search, Globe2, Users2, Clock, Languages } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -44,6 +45,7 @@ type CollaborationProject = {
 }
 
 function ProjectCard({ project }: { project: CollaborationProject }) {
+  const tc = useTranslations('common')
   const [isExpanded, setIsExpanded] = useState(false)
   const { flag: countryFlag, name: countryName } = getCountryDisplay(project.teacherCountry)
   const isUnicef = project.partnerName?.toLowerCase().includes('unicef')
@@ -166,7 +168,7 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
             onClick={() => setIsExpanded(!isExpanded)}
             className="mt-0.5 text-xs font-medium text-[#7F56D9] underline decoration-2 underline-offset-2 hover:text-[#6941C6]"
           >
-            {isExpanded ? 'Read less' : 'Read more'}
+            {isExpanded ? tc('readLess') : tc('readMore')}
           </button>
         </div>
 
@@ -387,6 +389,7 @@ export function DiscoverContent({
   layout = 'standalone',
   discoverBasePath = '/discover',
 }: DiscoverContentProps) {
+  const tc = useTranslations('common')
   const [activeTab, setActiveTab] = useState('collaboration')
   const [searchQuery, setSearchQuery] = useState('')
   const { ready: dataReady, database } = usePrototypeDb()

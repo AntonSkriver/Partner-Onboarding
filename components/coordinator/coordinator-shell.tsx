@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter } from '@/i18n/navigation'
 import {
   Home,
   Layers,
@@ -25,15 +26,17 @@ interface CoordinatorShellProps {
   children: React.ReactNode
 }
 
-const navItems = [
-  { href: '/coordinator/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/coordinator/programs', label: 'My Programs', icon: Layers },
-  { href: '/coordinator/partner', label: 'My Partner', icon: Building2 },
-]
-
 export function CoordinatorShell({ children }: CoordinatorShellProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const tNav = useTranslations('nav')
+  const tShell = useTranslations('shell')
+
+  const navItems = [
+    { href: '/coordinator/dashboard', label: tNav('dashboard'), icon: Home },
+    { href: '/coordinator/programs', label: tNav('myPrograms'), icon: Layers },
+    { href: '/coordinator/partner', label: tNav('myPartner'), icon: Building2 },
+  ]
   const [session, setSession] = useState<UserSession | null>(null)
 
   useEffect(() => {
@@ -66,10 +69,10 @@ export function CoordinatorShell({ children }: CoordinatorShellProps) {
                 height={32}
                 className="h-8 w-8"
               />
-              <span className="text-lg font-semibold text-gray-900">Class2Class Coordinator</span>
+              <span className="text-lg font-semibold text-gray-900">{tShell('class2classCoordinator')}</span>
             </Link>
             <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-              Coordinator preview
+              {tShell('coordinatorPreview')}
             </Badge>
           </div>
           <div className="flex items-center gap-3">
@@ -82,7 +85,7 @@ export function CoordinatorShell({ children }: CoordinatorShellProps) {
             </div>
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               <LogOut className="mr-1 h-4 w-4" />
-              Sign out
+              {tShell('signOut')}
             </Button>
           </div>
         </div>
@@ -113,9 +116,9 @@ export function CoordinatorShell({ children }: CoordinatorShellProps) {
               )
             })}
             <div className="mt-3 rounded-lg bg-purple-50 p-3 text-xs text-purple-700">
-              <p className="font-semibold">Need partner-level access?</p>
+              <p className="font-semibold">{tShell('needPartnerAccess')}</p>
               <p className="mt-1 text-purple-600">
-                Contact your organization administrator.
+                {tShell('needPartnerAccessDesc')}
               </p>
             </div>
           </nav>

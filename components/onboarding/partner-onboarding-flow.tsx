@@ -9,7 +9,7 @@ import { ContactInformation } from './contact-information'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, ArrowLeft } from 'lucide-react'
 import { usePartnerForm } from '@/contexts/partner-form-context'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
 const STEP_NAMES = [
   'Type',

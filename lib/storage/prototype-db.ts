@@ -13,6 +13,7 @@ import type {
   ProgramInvitation,
   ProgramActivity,
 } from '@/lib/types/program'
+import type { ProgramResource } from '@/lib/types/resource'
 
 // Local storage key – bump version when we need to invalidate older seeds
 export const PROTOTYPE_STORAGE_KEY = 'class2class_prototype_db_v6'
@@ -39,6 +40,7 @@ type PrototypeTables = {
   programTemplates: ProgramProjectTemplate[]
   invitations: ProgramInvitation[]
   activities: ProgramActivity[]
+  resources: ProgramResource[]
 }
 
 export type PrototypeTableKey = keyof PrototypeTables
@@ -64,6 +66,7 @@ const DEFAULT_DB: PrototypeDatabase = {
   programTemplates: [],
   invitations: [],
   activities: [],
+  resources: [],
   metadata: {
     version: 5,
     seededAt: null,

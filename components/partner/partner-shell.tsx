@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter } from '@/i18n/navigation'
 import {
   Home,
   Layers,
@@ -28,18 +29,20 @@ interface PartnerShellProps {
   children: React.ReactNode
 }
 
-const navItems = [
-  { href: '/partner/profile/dashboard', label: 'Home', icon: Home },
-  { href: '/partner/profile/overview', label: 'Overview', icon: Building2 },
-  { href: '/partner/profile/programs', label: 'Programs', icon: Layers },
-  { href: '/partner/profile/resources', label: 'Resources', icon: BookOpen },
-  { href: '/partner/profile/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/partner/profile/network', label: 'Network', icon: Users },
-]
-
 export function PartnerShell({ children }: PartnerShellProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const tNav = useTranslations('nav')
+  const tShell = useTranslations('shell')
+
+  const navItems = [
+    { href: '/partner/profile/dashboard', label: tNav('home'), icon: Home },
+    { href: '/partner/profile/overview', label: tNav('overview'), icon: Building2 },
+    { href: '/partner/profile/programs', label: tNav('programs'), icon: Layers },
+    { href: '/partner/profile/resources', label: tNav('resources'), icon: BookOpen },
+    { href: '/partner/profile/analytics', label: tNav('analytics'), icon: BarChart3 },
+    { href: '/partner/profile/network', label: tNav('network'), icon: Users },
+  ]
   const [session, setSession] = useState<UserSession | null>(null)
 
   useEffect(() => {
@@ -72,10 +75,10 @@ export function PartnerShell({ children }: PartnerShellProps) {
                 height={32}
                 className="h-8 w-8"
               />
-              <span className="text-lg font-semibold text-gray-900">Class2Class Partner</span>
+              <span className="text-lg font-semibold text-gray-900">{tShell('class2classPartner')}</span>
             </Link>
             <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-              Partner Profile
+              {tShell('partnerProfile')}
             </Badge>
           </div>
           <div className="flex items-center gap-3">
@@ -89,7 +92,7 @@ export function PartnerShell({ children }: PartnerShellProps) {
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="mr-1 h-4 w-4" />
-                Sign out
+                {tShell('signOut')}
               </Button>
             </div>
           </div>
@@ -104,7 +107,7 @@ export function PartnerShell({ children }: PartnerShellProps) {
               const isActive =
                 pathname === item.href ||
                 pathname.startsWith(`${item.href}/`) ||
-                (item.label === 'Programs' && pathname.startsWith('/partner/programs'))
+                (item.href === '/partner/profile/programs' && pathname.startsWith('/partner/programs'))
 
               return (
                 <Link

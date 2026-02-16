@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter } from '@/i18n/navigation'
 import {
   Home,
   Layers,
@@ -28,19 +29,21 @@ interface SchoolShellProps {
   children: React.ReactNode
 }
 
-const navItems = [
-  { href: '/school/dashboard/home', label: 'Home', icon: Home },
-  { href: '/school/dashboard/overview', label: 'Overview', icon: School },
-  { href: '/school/dashboard/programs', label: 'Programs', icon: Layers },
-  { href: '/school/dashboard/projects', label: 'Projects', icon: FolderKanban },
-  { href: '/school/dashboard/resources', label: 'Resources', icon: BookOpen },
-  { href: '/school/dashboard/network', label: 'Network', icon: Users },
-  { href: '/school/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
-]
-
 export function SchoolShell({ children }: SchoolShellProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const tNav = useTranslations('nav')
+  const tShell = useTranslations('shell')
+
+  const navItems = [
+    { href: '/school/dashboard/home', label: tNav('home'), icon: Home },
+    { href: '/school/dashboard/overview', label: tNav('overview'), icon: School },
+    { href: '/school/dashboard/programs', label: tNav('programs'), icon: Layers },
+    { href: '/school/dashboard/projects', label: tNav('projects'), icon: FolderKanban },
+    { href: '/school/dashboard/resources', label: tNav('resources'), icon: BookOpen },
+    { href: '/school/dashboard/network', label: tNav('network'), icon: Users },
+    { href: '/school/dashboard/analytics', label: tNav('analytics'), icon: BarChart3 },
+  ]
   const [session, setSession] = useState<UserSession | null>(null)
 
   useEffect(() => {
@@ -73,10 +76,10 @@ export function SchoolShell({ children }: SchoolShellProps) {
                 height={32}
                 className="h-8 w-8"
               />
-              <span className="text-lg font-semibold text-gray-900">Class2Class School</span>
+              <span className="text-lg font-semibold text-gray-900">{tShell('class2classSchool')}</span>
             </Link>
             <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-              School Profile
+              {tShell('schoolProfile')}
             </Badge>
           </div>
           <div className="flex items-center gap-3">
@@ -90,7 +93,7 @@ export function SchoolShell({ children }: SchoolShellProps) {
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="mr-1 h-4 w-4" />
-                Sign out
+                {tShell('signOut')}
               </Button>
             </div>
           </div>
@@ -122,9 +125,9 @@ export function SchoolShell({ children }: SchoolShellProps) {
               )
             })}
             <div className="mt-4 rounded-lg bg-purple-50 p-3 text-xs text-purple-700">
-              <p className="font-semibold">Partner Programs</p>
+              <p className="font-semibold">{tShell('partnerPrograms')}</p>
               <p className="mt-1 text-purple-600">
-                Explore programs to join collaborative projects.
+                {tShell('partnerProgramsDesc')}
               </p>
             </div>
           </nav>

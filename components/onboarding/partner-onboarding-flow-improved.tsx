@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { usePartnerForm } from '@/contexts/partner-form-context'
 import { ProgressBar } from './progress-bar-improved'
 import { WelcomeScreen } from './welcome-screen-improved'

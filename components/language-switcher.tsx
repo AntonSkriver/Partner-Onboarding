@@ -1,45 +1,45 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Globe } from 'lucide-react'
-import { useLanguage } from '@/components/language-provider'
-import { Language } from '@/lib/localization'
-
-const languages = [
-  { code: 'en' as Language, name: 'English', flag: '🇺🇸' },
-  { code: 'da' as Language, name: 'Dansk', flag: '🇩🇰' }
-]
+import { useLocale } from 'next-intl'
+import { useRouter, usePathname } from '@/i18n/navigation'
+import { locales, localeNames, localeFlags, type Locale } from '@/i18n/config'
 
 export function LanguageSwitcher() {
-  const { language, setLanguage } = useLanguage()
-  
-  const currentLanguage = languages.find(lang => lang.code === language)
+  const locale = useLocale() as Locale
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const handleChange = (newLocale: Locale) => {
+    router.replace(pathname, { locale: newLocale })
+  }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="gap-2">
           <Globe className="h-4 w-4" />
-          <span>{currentLanguage?.flag}</span>
-          <span className="hidden sm:inline">{currentLanguage?.name}</span>
+          <span>{localeFlags[locale]}</span>
+          <span className="hidden sm:inline">{localeNames[locale]}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {languages.map((lang) => (
+        {locales.map((l) => (
           <DropdownMenuItem
-            key={lang.code}
-            onClick={() => setLanguage(lang.code)}
-            className={`flex items-center gap-2 ${language === lang.code ? 'bg-gray-100' : ''}`}
+            key={l}
+            onClick={() => handleChange(l)}
+            className={`flex items-center gap-2 ${locale === l ? 'bg-gray-100' : ''}`}
           >
-            <span>{lang.flag}</span>
-            <span>{lang.name}</span>
-            {language === lang.code && <span className="ml-auto">✓</span>}
+            <span>{localeFlags[l]}</span>
+            <span>{localeNames[l]}</span>
+            {locale === l && <span className="ml-auto">✓</span>}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

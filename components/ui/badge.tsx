@@ -11,6 +11,10 @@ const badgeVariants = cva(
       variant: {
         default:
           "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
+        profile:
+          "border-transparent bg-purple-600 text-white [a&]:hover:bg-purple-700",
+        profileSoft:
+          "border-purple-200 bg-purple-50 text-purple-700 [a&]:hover:bg-purple-100",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
         destructive:

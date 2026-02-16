@@ -6,7 +6,7 @@ import {
   StoredPartnerUser,
 } from '@/lib/storage/prototype-db'
 
-const PROTOTYPE_SEED_VERSION = 23
+const PROTOTYPE_SEED_VERSION = 24
 
 const buildSeedPartners = (): StoredPartner[] => [
   {
@@ -100,6 +100,24 @@ const buildSeedPartners = (): StoredPartner[] => [
     verificationStatus: 'verified',
   },
   {
+    id: 'partner-save-the-children-mexico',
+    organizationName: 'Save the Children Mexico',
+    organizationType: 'ngo',
+    logo: '/partners/save-the-children.svg',
+    description: 'Save the Children Mexico supports child rights and education initiatives through school and community partnerships.',
+    mission: 'Ensure children in Mexico can learn, participate, and thrive through rights-based educational programs.',
+    website: 'https://www.savethechildren.mx',
+    contactEmail: 'programas@savethechildren.mx',
+    contactPhone: '+52 55 5512 1313',
+    country: 'MX',
+    languages: ['es', 'en'],
+    sdgFocus: ['SDG 4', 'SDG 10', 'SDG 16'],
+    createdAt: '2025-01-22T09:00:00.000Z',
+    updatedAt: '2025-03-09T10:30:00.000Z',
+    isActive: true,
+    verificationStatus: 'verified',
+  },
+  {
     id: 'partner-alm-brand',
     organizationName: 'Alm. Brand Foundation',
     organizationType: 'foundation',
@@ -183,6 +201,19 @@ const buildSeedPartnerUsers = (): StoredPartnerUser[] => [
     twoFactorEnabled: false,
     createdAt: '2025-01-16T10:00:00.000Z',
     lastLoginAt: '2025-03-04T09:15:00.000Z',
+    isActive: true,
+  },
+  {
+    id: 'partner-user-stc-mexico-director',
+    partnerId: 'partner-save-the-children-mexico',
+    email: 'directora@savethechildren.mx',
+    firstName: 'Valeria',
+    lastName: 'Soto',
+    role: 'admin',
+    hasAcceptedTerms: true,
+    twoFactorEnabled: true,
+    createdAt: '2025-01-22T09:10:00.000Z',
+    lastLoginAt: '2025-03-09T08:30:00.000Z',
     isActive: true,
   },
   {
@@ -318,6 +349,34 @@ const buildSeedPrograms = (): PrototypeDatabase['programs'] => [
     createdAt: '2025-01-20T09:00:00.000Z',
     updatedAt: '2025-03-08T11:00:00.000Z',
     createdBy: 'partner-user-stc-italy-director',
+  },
+  {
+    id: 'program-escuelas-por-los-derechos-2025',
+    partnerId: 'partner-save-the-children-mexico',
+    displayTitle: 'STC Mexico: Escuelas por los Derechos',
+    name: 'Escuelas por los Derechos',
+    marketingTagline: 'School-based rights education connecting Mexican classrooms and communities.',
+    description:
+      'Escuelas por los Derechos engages students aged 9–16 in participatory rights education, local storytelling, and collaborative action projects with teachers and community partners.',
+    projectTypes: ['cultural_exchange', 'explore_global_challenges', 'create_solutions'],
+    pedagogicalFramework: ['pbl', 'design_thinking', 'global_citizenship'],
+    learningGoals:
+      'Support children in understanding their rights, expressing their voices, and co-designing local actions that improve school and community wellbeing.',
+    targetAgeRanges: ['9-11', '12-14', '15-18'],
+    countriesInScope: ['MX'],
+    sdgFocus: [4, 10, 16],
+    crcFocus: ['12', '28', '31'],
+    startDate: '2025-02-10',
+    endDate: '2025-12-10',
+    programUrl: 'https://prototype.class2class.org/programs/escuelas-por-los-derechos',
+    brandColor: '#D32F2F',
+    logo: '/programs/escuelas-por-los-derechos/logo.svg',
+    heroImageUrl: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&h=720&fit=crop',
+    status: 'active',
+    isPublic: true,
+    createdAt: '2025-01-25T09:00:00.000Z',
+    updatedAt: '2025-03-09T11:00:00.000Z',
+    createdBy: 'partner-user-stc-mexico-director',
   },
   {
     id: 'program-uk-climate-2025',
@@ -2148,6 +2207,60 @@ const buildSeedActivities = (): PrototypeDatabase['activities'] => [
   },
 ]
 
+const buildSeedResources = (): PrototypeDatabase['resources'] => [
+  {
+    id: 'resource-stc-italy-rights-toolkit',
+    title: "Children's Rights Education Toolkit",
+    description:
+      "Comprehensive guide for teaching children's rights concepts across cultures. Suitable for middle and high school classrooms.",
+    type: 'document',
+    language: 'English',
+    targetAudience: ['secondary', 'teachers'],
+    sdgAlignment: [4, 16],
+    crcAlignment: ['12', '28', '31'],
+    tags: ['children rights', 'citizenship', 'discussion'],
+    isPublic: false,
+    sourceType: 'url',
+    sourceUrl:
+      'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=480&fit=crop',
+    heroImageUrl:
+      'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=480&fit=crop',
+    ownerRole: 'partner',
+    ownerOrganization: 'Save the Children Italy',
+    ownerPartnerId: 'partner-save-the-children-italy',
+    createdBy: 'coordinamento@savethechildren.it',
+    programAssignment: 'all',
+    availabilityScope: 'organization',
+    createdAt: '2025-01-10T10:00:00Z',
+    updatedAt: '2025-01-10T10:00:00Z',
+  },
+  {
+    id: 'resource-parent-global-safeguarding-guide',
+    title: 'Global Safeguarding Starter Pack',
+    description:
+      'Shared safeguarding checklists and onboarding templates distributed by the parent organization.',
+    type: 'document',
+    language: 'English',
+    targetAudience: ['teachers', 'parents'],
+    sdgAlignment: [4, 16],
+    crcAlignment: ['19'],
+    tags: ['safeguarding', 'starter pack'],
+    isPublic: false,
+    sourceType: 'url',
+    sourceUrl:
+      'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=480&fit=crop',
+    heroImageUrl:
+      'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=480&fit=crop',
+    ownerRole: 'parent',
+    ownerOrganization: 'Save the Children World',
+    createdBy: 'global-admin@savethechildren.org',
+    programAssignment: 'all',
+    availabilityScope: 'all_partners',
+    createdAt: '2025-01-20T10:00:00Z',
+    updatedAt: '2025-01-20T10:00:00Z',
+  },
+]
+
 const buildSeedDatabase = (): PrototypeDatabase => {
   const seededAt = new Date().toISOString()
 
@@ -2163,6 +2276,7 @@ const buildSeedDatabase = (): PrototypeDatabase => {
     programTemplates: buildSeedProgramTemplates(),
     invitations: buildSeedInvitations(),
     activities: buildSeedActivities(),
+    resources: buildSeedResources(),
     metadata: {
       version: PROTOTYPE_SEED_VERSION,
       seededAt,
