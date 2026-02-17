@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { ChevronDown } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 export default function Home() {
   const t = useTranslations('home')
@@ -49,6 +50,7 @@ export default function Home() {
 
         {/* User Profile / Right Nav */}
         <div className="hidden md:flex items-center space-x-4">
+          <LanguageSwitcher />
           <Link href="/sign-in">
             <Button variant="outline" className="border-[#8B5CF6] text-[#8B5CF6] hover:bg-purple-50">
               {t('login')}

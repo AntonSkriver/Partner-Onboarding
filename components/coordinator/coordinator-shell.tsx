@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { LanguageSwitcher } from '@/components/language-switcher'
 import {
   getCurrentSession,
   clearSession,
@@ -83,6 +84,7 @@ export function CoordinatorShell({ children }: CoordinatorShellProps) {
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-600 text-sm font-semibold text-white">
               {initials}
             </div>
+            <LanguageSwitcher />
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               <LogOut className="mr-1 h-4 w-4" />
               {tShell('signOut')}

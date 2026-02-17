@@ -19,6 +19,7 @@ import {
 import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 const partnerTypes = [
   {
@@ -109,41 +110,42 @@ export default function PartnersPage() {
         backgroundColor: scrollY > 50 ? 'rgba(224, 204, 255, 0.95)' : 'transparent',
         backdropFilter: scrollY > 50 ? 'blur(12px)' : 'none',
       }}>
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-5 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-3 group">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-4 flex justify-between items-center">
+          <Link href="/" className="flex-shrink-0 flex items-center gap-3 group">
             <Image
               src="/isotipo.png"
               alt="Class2Class"
-              width={44}
-              height={44}
-              className="w-11 h-11 group-hover:scale-110 transition-transform duration-300"
+              width={40}
+              height={40}
+              className="w-10 h-10 group-hover:scale-110 transition-transform duration-300"
             />
           </Link>
 
-          <nav className="hidden md:flex items-center gap-10">
-            <Link href="#" className="text-gray-700 hover:text-[#8157D9] text-base font-semibold transition-colors">{tn('howItWorks')}</Link>
-            <Link href="#" className="text-gray-700 hover:text-[#8157D9] text-base font-semibold transition-colors">{tn('platform')}</Link>
-            <Link href="/discover" className="text-gray-700 hover:text-[#8157D9] text-base font-semibold transition-colors">{tn('exploreProjects')}</Link>
-            <Link href="#" className="text-gray-700 hover:text-[#8157D9] text-base font-semibold transition-colors">{tn('aboutUs')}</Link>
-            <button className="flex items-center gap-1 text-gray-700 hover:text-[#8157D9] text-base font-semibold transition-colors">
+          <nav className="hidden lg:flex items-center gap-5 xl:gap-8">
+            <Link href="#" className="text-gray-700 hover:text-[#8157D9] text-sm xl:text-base font-semibold transition-colors whitespace-nowrap">{tn('howItWorks')}</Link>
+            <Link href="#" className="text-gray-700 hover:text-[#8157D9] text-sm xl:text-base font-semibold transition-colors whitespace-nowrap">{tn('platform')}</Link>
+            <Link href="/discover" className="text-gray-700 hover:text-[#8157D9] text-sm xl:text-base font-semibold transition-colors whitespace-nowrap">{tn('exploreProjects')}</Link>
+            <Link href="#" className="text-gray-700 hover:text-[#8157D9] text-sm xl:text-base font-semibold transition-colors whitespace-nowrap">{tn('aboutUs')}</Link>
+            <button className="flex items-center gap-1 text-gray-700 hover:text-[#8157D9] text-sm xl:text-base font-semibold transition-colors whitespace-nowrap">
               {tn('resources')}
               <ChevronDown className="w-4 h-4" />
             </button>
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             <Link href="/partner/login">
-              <Button variant="ghost" className="text-gray-600 hover:text-[#8157D9] text-base font-medium px-4 py-5">
+              <Button variant="ghost" className="text-gray-600 hover:text-[#8157D9] text-sm xl:text-base font-medium px-3 py-4">
                 {t('demo')}
               </Button>
             </Link>
             <Link href="/login">
-              <Button variant="outline" className="border-[#8157D9] text-[#8157D9] hover:bg-white text-base font-medium rounded-full bg-white px-6 py-5">
+              <Button variant="outline" className="border-[#8157D9] text-[#8157D9] hover:bg-white text-sm xl:text-base font-medium rounded-full bg-white px-4 xl:px-6 py-4">
                 {t('logIn')}
               </Button>
             </Link>
             <Link href="/partner/onboarding">
-              <Button className="bg-[#8157D9] hover:bg-[#7048C6] text-white text-base font-medium px-6 py-5 rounded-full">
+              <Button className="bg-[#8157D9] hover:bg-[#7048C6] text-white text-sm xl:text-base font-medium px-4 xl:px-6 py-4 rounded-full">
                 {t('signUp')}
               </Button>
             </Link>

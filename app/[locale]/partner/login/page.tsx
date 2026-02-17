@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link } from '@/i18n/navigation'
 import { useRouter } from '@/i18n/navigation'
+import Image from 'next/image'
 import { Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { createSession, clearSession } from '@/lib/auth/session'
 import { resetPrototypeDb } from '@/lib/storage/prototype-db'
 import { seedPrototypeDb } from '@/lib/storage/seeds'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -47,7 +49,7 @@ export default function PartnerLoginPage() {
     {
       id: 'stc-world' as const,
       label: 'StC World',
-      description: 'See all Save the Children country programs and performance.',
+      descriptionKey: 'demoStcWorld' as const,
       role: 'parent',
       organization: 'Save the Children World',
       name: 'StC Global Director',
@@ -56,7 +58,7 @@ export default function PartnerLoginPage() {
     {
       id: 'unicef-world' as const,
       label: 'UNICEF World',
-      description: 'See UNICEF country program performance and collaboration.',
+      descriptionKey: 'demoUnicefWorld' as const,
       role: 'parent',
       organization: 'UNICEF World Organization',
       name: 'UNICEF Global Director',
@@ -65,7 +67,7 @@ export default function PartnerLoginPage() {
     {
       id: 'unicef-denmark' as const,
       label: 'UNICEF Denmark',
-      description: 'Manage UNICEF Denmark programs and partner schools.',
+      descriptionKey: 'demoUnicefDenmark' as const,
       role: 'partner',
       organization: 'UNICEF Denmark',
       name: 'UNICEF Denmark Coordinator',
@@ -74,7 +76,7 @@ export default function PartnerLoginPage() {
     {
       id: 'stc-italy' as const,
       label: 'Save the Children Italy',
-      description: 'Manage Italian Punti Luce and programs.',
+      descriptionKey: 'demoStcItaly' as const,
       role: 'partner',
       organization: 'Save the Children Italy',
       name: 'STC Italy Director',
@@ -83,7 +85,7 @@ export default function PartnerLoginPage() {
     {
       id: 'stc-mexico' as const,
       label: 'Save the Children Mexico',
-      description: 'Manage Mexico programs and school partnerships.',
+      descriptionKey: 'demoStcMexico' as const,
       role: 'partner',
       organization: 'Save the Children Mexico',
       name: 'STC Mexico Director',
@@ -226,13 +228,18 @@ export default function PartnerLoginPage() {
   return (
     <div className="min-h-screen bg-white lg:grid lg:grid-cols-2">
       <div className="flex flex-col px-6 py-8 sm:px-10 lg:px-16">
-        <header className="flex items-center gap-3">
+        <header className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 text-purple-700 hover:text-purple-900 transition">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-purple-200 bg-purple-100 text-sm font-semibold">
-              C2C
-            </div>
+            <Image
+              src="/isotipo.png"
+              alt="Class2Class"
+              width={40}
+              height={40}
+              className="h-10 w-10"
+            />
             <span className="text-lg font-semibold">Class2Class</span>
           </Link>
+          <LanguageSwitcher />
         </header>
 
         <main className="flex flex-1 items-center">
@@ -270,7 +277,7 @@ export default function PartnerLoginPage() {
                           <div className="flex items-center justify-between gap-2">
                             <div>
                               <p className="text-sm font-semibold text-gray-900">{option.label}</p>
-                              <p className="text-xs text-gray-600">{option.description}</p>
+                              <p className="text-xs text-gray-600">{t(option.descriptionKey)}</p>
                             </div>
                             <span className="text-[11px] font-medium text-purple-700">
                               {option.role === 'parent' ? t('roleParent') : t('roleCountry')}
@@ -425,11 +432,11 @@ export default function PartnerLoginPage() {
           <div className="mt-auto">
             <div className="rounded-2xl bg-white/15 p-6 backdrop-blur-sm">
               <p className="text-sm leading-relaxed text-white/90">
-                “Class2Class helps our UK schools see progress and stay in sync with partners abroad. It keeps coordinators and teachers aligned without extra overhead.”
+                &ldquo;{t('testimonialQuote')}&rdquo;
               </p>
               <div className="mt-4">
                 <p className="text-sm font-semibold text-white">Amelia Parker</p>
-                <p className="text-xs uppercase tracking-wide text-white/70">Program Director · Save the Children Mexico</p>
+                <p className="text-xs uppercase tracking-wide text-white/70">{t('testimonialRole')}</p>
               </div>
               <div className="mt-6 flex items-center gap-2 text-white/40">
                 <span className="h-2 w-2 rounded-full bg-white" />

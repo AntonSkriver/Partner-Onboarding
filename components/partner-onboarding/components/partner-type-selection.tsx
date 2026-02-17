@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button"
 import { usePartnerOnboarding, type PartnerType } from "../../../contexts/partner-onboarding-context"
-import { Building2, Landmark, GraduationCap, Building, HelpCircle, School, Check, Sparkles } from "lucide-react"
+import { Building2, Landmark, GraduationCap, Building, HelpCircle, School, Check } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface PartnerTypeSelectionProps {
   onNext: () => void
@@ -22,58 +23,59 @@ interface PartnerTypeOption {
 
 export function PartnerTypeSelection({ onNext, onPrevious }: PartnerTypeSelectionProps) {
   const { formData, updateFormData, isStepComplete } = usePartnerOnboarding()
+  const t = useTranslations('onboarding')
 
   const partnerTypes: PartnerTypeOption[] = [
     {
       id: 'ngo',
-      title: 'NGO',
-      description: 'Non-profit organizations driving education and social impact',
-      examples: 'UNICEF, Save the Children, Oxfam',
+      title: t('typeOrgNgo'),
+      description: t('typeDescNgo'),
+      examples: t('typeExampleNgo'),
       icon: Building2,
       gradient: 'from-blue-500 to-cyan-400',
       iconBg: 'bg-blue-500/10 group-hover:bg-blue-500/20',
     },
     {
       id: 'government',
-      title: 'Government',
-      description: 'Public institutions and ministries of education',
-      examples: 'Ministry of Education, UNESCO',
+      title: t('typeOrgGovernment'),
+      description: t('typeDescGovernment'),
+      examples: t('typeExampleGovernment'),
       icon: Landmark,
       gradient: 'from-emerald-500 to-teal-400',
       iconBg: 'bg-emerald-500/10 group-hover:bg-emerald-500/20',
     },
     {
       id: 'school',
-      title: 'School',
-      description: 'Individual schools seeking global classroom connections',
-      examples: 'Primary, Secondary, International Schools',
+      title: t('typeOrgSchool'),
+      description: t('typeDescSchool'),
+      examples: t('typeExampleSchool'),
       icon: School,
       gradient: 'from-cyan-500 to-blue-400',
       iconBg: 'bg-cyan-500/10 group-hover:bg-cyan-500/20',
     },
     {
       id: 'school_network',
-      title: 'School Network',
-      description: 'Districts, networks, or groups of schools',
-      examples: 'School Districts, Academy Chains',
+      title: t('typeOrgSchoolNetwork'),
+      description: t('typeDescSchoolNetwork'),
+      examples: t('typeExampleSchoolNetwork'),
       icon: GraduationCap,
       gradient: 'from-violet-500 to-purple-400',
       iconBg: 'bg-violet-500/10 group-hover:bg-violet-500/20',
     },
     {
       id: 'commercial',
-      title: 'Corporate',
-      description: 'Companies with educational CSR initiatives',
-      examples: 'LEGO Education, Microsoft, Google',
+      title: t('typeOrgCorporate'),
+      description: t('typeDescCorporate'),
+      examples: t('typeExampleCorporate'),
       icon: Building,
       gradient: 'from-orange-500 to-amber-400',
       iconBg: 'bg-orange-500/10 group-hover:bg-orange-500/20',
     },
     {
       id: 'other',
-      title: 'Other',
-      description: 'Foundations, research institutes, and more',
-      examples: 'Think Tanks, Educational Foundations',
+      title: t('typeOrgOther'),
+      description: t('typeDescOther'),
+      examples: t('typeExampleOther'),
       icon: HelpCircle,
       gradient: 'from-gray-500 to-slate-400',
       iconBg: 'bg-gray-500/10 group-hover:bg-gray-500/20',
@@ -89,21 +91,10 @@ export function PartnerTypeSelection({ onNext, onPrevious }: PartnerTypeSelectio
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#8157D9]/10 border border-[#8157D9]/20">
-          <Sparkles className="w-4 h-4 text-[#8157D9]" />
-          <span className="text-[#8157D9] text-sm font-medium">Step 1 of 5</span>
-        </div>
-
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
-          What type of organization
-          <br />
-          <span className="text-[#8157D9]">are you?</span>
-        </h1>
-
-        <p className="text-gray-500 max-w-lg mx-auto">
-          This helps us tailor your experience and connect you with the right schools and partners.
-        </p>
+      <div>
+        <p className="text-sm font-medium text-purple-600 mb-1">{t('typeStepLabel')}</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('typeStepTitle')}</h1>
+        <p className="mt-1 text-sm text-gray-500">{t('typeStepSubtitle')}</p>
       </div>
 
       {/* Organization Type Grid */}
@@ -173,10 +164,9 @@ export function PartnerTypeSelection({ onNext, onPrevious }: PartnerTypeSelectio
             <span className="text-xl">💡</span>
           </div>
           <div>
-            <h4 className="font-medium text-gray-900 mb-1">Why does this matter?</h4>
+            <h4 className="font-medium text-gray-900 mb-1">{t('typeWhyMattersTitle')}</h4>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Different organization types have different collaboration styles. We&apos;ll customize your dashboard,
-              suggest relevant SDG projects, and match you with schools that best fit your mission.
+              {t('typeWhyMattersDesc')}
             </p>
           </div>
         </div>
@@ -190,15 +180,15 @@ export function PartnerTypeSelection({ onNext, onPrevious }: PartnerTypeSelectio
           className="flex-1 py-6 text-base border-gray-200 hover:bg-gray-50"
           size="lg"
         >
-          Back
+          {t('typeBack')}
         </Button>
         <Button
           onClick={onNext}
-          className="flex-1 py-6 text-base bg-[#8157D9] hover:bg-[#7048C6] text-white shadow-lg shadow-[#8157D9]/25 disabled:opacity-50 disabled:shadow-none"
+          className="flex-1 py-6 text-base bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
           disabled={!canProceed}
           size="lg"
         >
-          Continue
+          {t('typeContinue')}
         </Button>
       </div>
     </div>

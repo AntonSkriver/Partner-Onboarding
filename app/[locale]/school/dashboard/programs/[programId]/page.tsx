@@ -1,1 +1,1 @@
-export { default } from '@/app/partner/programs/[programId]/page'
+export { default } from '@/app/[locale]/partner/programs/[programId]/page'

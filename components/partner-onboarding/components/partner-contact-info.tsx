@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { usePartnerOnboarding, getOrganizationTypeLabel, type ContactRole } from "../../../contexts/partner-onboarding-context"
-import { User, Mail, Phone, Shield, AlertCircle, CheckCircle2, Sparkles, Briefcase } from "lucide-react"
+import { User, Mail, Phone, Shield, AlertCircle, CheckCircle2, Briefcase } from "lucide-react"
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 
 interface PartnerContactInfoProps {
   onNext: () => void
@@ -14,21 +15,22 @@ interface PartnerContactInfoProps {
   onGoToStep: (step: number) => void
 }
 
-const CONTACT_ROLES: { value: ContactRole; label: string }[] = [
-  { value: 'ceo', label: 'CEO/Executive Director' },
-  { value: 'program_manager', label: 'Program Manager' },
-  { value: 'education_director', label: 'Education Director' },
-  { value: 'partnerships_manager', label: 'Partnerships Manager' },
-  { value: 'communications_director', label: 'Communications Director' },
-  { value: 'project_coordinator', label: 'Project Coordinator' },
-  { value: 'outreach_coordinator', label: 'Outreach Coordinator' },
-  { value: 'other', label: 'Other' }
-]
-
 export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoProps) {
   const { formData, updateFormData, isStepComplete } = usePartnerOnboarding()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const t = useTranslations('onboarding')
+
+  const CONTACT_ROLES: { value: ContactRole; label: string }[] = [
+    { value: 'ceo', label: t('contactRoleCeo') },
+    { value: 'program_manager', label: t('contactRoleProgramManager') },
+    { value: 'education_director', label: t('contactRoleEducationDirector') },
+    { value: 'partnerships_manager', label: t('contactRolePartnershipsManager') },
+    { value: 'communications_director', label: t('contactRoleCommunicationsDirector') },
+    { value: 'project_coordinator', label: t('contactRoleProjectCoordinator') },
+    { value: 'outreach_coordinator', label: t('contactRoleOutreachCoordinator') },
+    { value: 'other', label: t('contactRoleOther') }
+  ]
 
   const validateField = (field: string, value: string | ContactRole | null) => {
     const newErrors = { ...errors }
@@ -37,9 +39,9 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
       case 'contactName':
         const nameValue = value as string
         if (!nameValue?.trim()) {
-          newErrors.contactName = 'Contact name is required'
+          newErrors.contactName = t('contactValidationNameRequired')
         } else if (nameValue.trim().length < 2) {
-          newErrors.contactName = 'Contact name must be at least 2 characters'
+          newErrors.contactName = t('contactValidationNameMinLength')
         } else {
           delete newErrors.contactName
         }
@@ -48,9 +50,9 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
       case 'contactEmail':
         const emailValue = value as string
         if (!emailValue?.trim()) {
-          newErrors.contactEmail = 'Email address is required'
+          newErrors.contactEmail = t('contactValidationEmailRequired')
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
-          newErrors.contactEmail = 'Please enter a valid email address'
+          newErrors.contactEmail = t('contactValidationEmailInvalid')
         } else {
           delete newErrors.contactEmail
         }
@@ -59,7 +61,7 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
       case 'contactPhone':
         const phoneValue = value as string
         if (phoneValue?.trim() && !/^[\+]?[\d\s\-\(\)]{8,}$/.test(phoneValue)) {
-          newErrors.contactPhone = 'Please enter a valid phone number'
+          newErrors.contactPhone = t('contactValidationPhoneInvalid')
         } else {
           delete newErrors.contactPhone
         }
@@ -67,7 +69,7 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
 
       case 'contactRole':
         if (!value) {
-          newErrors.contactRole = 'Please select your role'
+          newErrors.contactRole = t('contactValidationRoleRequired')
         } else {
           delete newErrors.contactRole
         }
@@ -142,21 +144,10 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#8157D9]/10 border border-[#8157D9]/20">
-          <Sparkles className="w-4 h-4 text-[#8157D9]" />
-          <span className="text-[#8157D9] text-sm font-medium">Step 4 of 5</span>
-        </div>
-
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
-          Who should schools
-          <br />
-          <span className="text-[#8157D9]">contact?</span>
-        </h1>
-
-        <p className="text-gray-500 max-w-lg mx-auto">
-          Add a primary contact for your {orgTypeLabel} so schools can reach out about collaborations.
-        </p>
+      <div>
+        <p className="text-sm font-medium text-purple-600 mb-1">{t('contactStepLabel')}</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('contactStepTitle')}</h1>
+        <p className="mt-1 text-sm text-gray-500">{t('contactStepSubtitle')}</p>
       </div>
 
       {/* Form */}
@@ -165,14 +156,14 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
         <div className="space-y-3">
           <Label htmlFor="contactName" className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <User className="w-4 h-4 text-[#8157D9]" />
-            Full Name
+            {t('contactFullName')}
             <span className="text-[#8157D9]">*</span>
           </Label>
 
           <div className="relative">
             <Input
               id="contactName"
-              placeholder="e.g., Maria Jensen"
+              placeholder={t('contactFullNamePlaceholder')}
               value={formData.contactName || ''}
               onChange={(e) => handleInputChange('contactName', e.target.value)}
               onBlur={() => handleBlur('contactName')}
@@ -198,7 +189,7 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
             </div>
           ) : (
             <p className="text-sm text-gray-400">
-              This person will receive collaboration requests from schools
+              {t('contactFullNameHelper')}
             </p>
           )}
         </div>
@@ -207,7 +198,7 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
         <div className="space-y-3">
           <Label htmlFor="contactEmail" className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <Mail className="w-4 h-4 text-[#8157D9]" />
-            Email Address
+            {t('contactEmail')}
             <span className="text-[#8157D9]">*</span>
           </Label>
 
@@ -215,7 +206,7 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
             <Input
               id="contactEmail"
               type="email"
-              placeholder="e.g., maria@organization.org"
+              placeholder={t('contactEmailPlaceholder')}
               value={formData.contactEmail || ''}
               onChange={(e) => handleInputChange('contactEmail', e.target.value)}
               onBlur={() => handleBlur('contactEmail')}
@@ -246,7 +237,7 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
         <div className="space-y-3">
           <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <Briefcase className="w-4 h-4 text-[#8157D9]" />
-            Role/Position
+            {t('contactRole')}
             <span className="text-[#8157D9]">*</span>
           </Label>
 
@@ -264,7 +255,7 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
                   : 'border-gray-200 focus:border-[#8157D9] focus:ring-[#8157D9]/20'
               }
             `}>
-              <SelectValue placeholder="Select your role" />
+              <SelectValue placeholder={t('contactRolePlaceholder')} />
             </SelectTrigger>
             <SelectContent>
               {CONTACT_ROLES.map((role) => (
@@ -287,15 +278,15 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
         <div className="space-y-3">
           <Label htmlFor="contactPhone" className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <Phone className="w-4 h-4 text-[#8157D9]" />
-            Phone Number
-            <span className="text-gray-400 font-normal">(optional)</span>
+            {t('contactPhone')}
+            <span className="text-gray-400 font-normal">{t('contactPhoneOptional')}</span>
           </Label>
 
           <div className="relative">
             <Input
               id="contactPhone"
               type="tel"
-              placeholder="e.g., +45 31 64 07 02"
+              placeholder={t('contactPhonePlaceholder')}
               value={formData.contactPhone || ''}
               onChange={(e) => handleInputChange('contactPhone', e.target.value)}
               onBlur={() => handleBlur('contactPhone')}
@@ -326,10 +317,9 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
             <Shield className="w-5 h-5 text-amber-600" />
           </div>
           <div>
-            <h4 className="font-semibold text-amber-900 mb-1">Your privacy matters</h4>
+            <h4 className="font-semibold text-amber-900 mb-1">{t('contactPrivacyTitle')}</h4>
             <p className="text-sm text-amber-700 leading-relaxed">
-              Contact information is only shared with schools that express genuine interest in partnering.
-              You control who can contact you and can update these details anytime.
+              {t('contactPrivacyDesc')}
             </p>
           </div>
         </div>
@@ -343,15 +333,15 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
           className="flex-1 py-6 text-base border-gray-200 hover:bg-gray-50"
           size="lg"
         >
-          Back
+          {t('contactBack')}
         </Button>
         <Button
           onClick={handleContinue}
-          className="flex-1 py-6 text-base bg-[#8157D9] hover:bg-[#7048C6] text-white shadow-lg shadow-[#8157D9]/25 disabled:opacity-50 disabled:shadow-none"
+          className="flex-1 py-6 text-base bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
           disabled={!canProceed}
           size="lg"
         >
-          Continue
+          {t('contactContinue')}
         </Button>
       </div>
     </div>

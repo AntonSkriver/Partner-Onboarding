@@ -20,6 +20,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { LanguageSwitcher } from '@/components/language-switcher'
 import {
   getCurrentSession,
   hasSessionBackup,
@@ -104,6 +105,7 @@ export function TeacherShell({ children }: TeacherShellProps) {
               {initials}
             </div>
             <div className="flex items-center gap-2">
+              <LanguageSwitcher />
               {hasBackup && (
                 <Button variant="ghost" size="sm" onClick={handleReturnToPartner}>
                   <ArrowLeft className="mr-1 h-4 w-4" />

@@ -2,9 +2,10 @@
 
 import { Button } from "@/components/ui/button"
 import { usePartnerOnboarding, SDG_OPTIONS } from "../../../contexts/partner-onboarding-context"
-import { Globe2, AlertCircle, Check, Sparkles } from "lucide-react"
+import { Globe2, AlertCircle, Check } from "lucide-react"
 import { useState } from "react"
 import { SDGIcon } from "../../sdg-icons"
+import { useTranslations } from "next-intl"
 
 interface PartnerMissionSdgProps {
   onNext: () => void
@@ -16,6 +17,7 @@ export function PartnerMissionSdg({ onNext, onPrevious }: PartnerMissionSdgProps
   const { formData, updateFormData, isStepComplete } = usePartnerOnboarding()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const t = useTranslations('onboarding')
 
   const validateField = (field: string, value: number[]) => {
     const newErrors = { ...errors }
@@ -23,7 +25,7 @@ export function PartnerMissionSdg({ onNext, onPrevious }: PartnerMissionSdgProps
     switch (field) {
       case 'sdgFocus':
         if (!value || value.length === 0) {
-          newErrors.sdgFocus = 'Please select at least one SDG that aligns with your work'
+          newErrors.sdgFocus = t('sdgValidationMinimum')
         } else {
           delete newErrors.sdgFocus
         }
@@ -71,21 +73,11 @@ export function PartnerMissionSdg({ onNext, onPrevious }: PartnerMissionSdgProps
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#8157D9]/10 border border-[#8157D9]/20">
-          <Sparkles className="w-4 h-4 text-[#8157D9]" />
-          <span className="text-[#8157D9] text-sm font-medium">Step 3 of 5</span>
-        </div>
-
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
-          Select your
-          <br />
-          <span className="text-[#8157D9]">SDG Focus Areas</span>
-        </h1>
-
-        <p className="text-gray-500 max-w-lg mx-auto">
-          Choose the UN Sustainable Development Goals that align with your organization&apos;s work.
-          Schools can filter partners by these focus areas.
+      <div>
+        <p className="text-sm font-medium text-purple-600 mb-1">{t('sdgStepLabel')}</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('sdgStepTitle')}</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          {t('sdgStepSubtitle')}
         </p>
       </div>
 
@@ -94,11 +86,11 @@ export function PartnerMissionSdg({ onNext, onPrevious }: PartnerMissionSdgProps
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium text-gray-700 flex items-center gap-2">
             <Globe2 className="w-4 h-4 text-[#8157D9]" />
-            Select SDGs <span className="text-[#8157D9]">*</span>
+            {t('sdgSelectLabel')} <span className="text-[#8157D9]">*</span>
           </p>
           {formData.sdgFocus.length > 0 && (
             <span className="text-sm text-[#8157D9] font-medium">
-              {formData.sdgFocus.length} selected
+              {formData.sdgFocus.length} {t('sdgSelected')}
             </span>
           )}
         </div>
@@ -159,7 +151,7 @@ export function PartnerMissionSdg({ onNext, onPrevious }: PartnerMissionSdgProps
             </div>
             <div className="flex-1">
               <p className="font-medium text-emerald-900 mb-2">
-                Selected SDGs ({getSelectedSDGs().length})
+                {t('sdgSelectedTitle')} ({getSelectedSDGs().length})
               </p>
               <div className="flex flex-wrap gap-2">
                 {getSelectedSDGs().map(sdg => (
@@ -185,10 +177,9 @@ export function PartnerMissionSdg({ onNext, onPrevious }: PartnerMissionSdgProps
             <span className="text-xl">🎯</span>
           </div>
           <div>
-            <h4 className="font-semibold text-blue-900 mb-1">Enhanced School Matching</h4>
+            <h4 className="font-semibold text-blue-900 mb-1">{t('sdgMatchingTitle')}</h4>
             <p className="text-sm text-blue-700 leading-relaxed">
-              Schools can search and filter partners by SDG focus areas. Selecting relevant SDGs
-              helps schools understand how collaborating with your organization aligns with their educational goals.
+              {t('sdgMatchingDesc')}
             </p>
           </div>
         </div>
@@ -202,15 +193,15 @@ export function PartnerMissionSdg({ onNext, onPrevious }: PartnerMissionSdgProps
           className="flex-1 py-6 text-base border-gray-200 hover:bg-gray-50"
           size="lg"
         >
-          Back
+          {t('sdgBack')}
         </Button>
         <Button
           onClick={handleContinue}
-          className="flex-1 py-6 text-base bg-[#8157D9] hover:bg-[#7048C6] text-white shadow-lg shadow-[#8157D9]/25 disabled:opacity-50 disabled:shadow-none"
+          className="flex-1 py-6 text-base bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
           disabled={!canProceed}
           size="lg"
         >
-          Continue
+          {t('sdgContinue')}
         </Button>
       </div>
     </div>

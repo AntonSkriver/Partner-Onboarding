@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { usePartnerOnboarding, getOrganizationTypeLabel } from "../../../contexts/partner-onboarding-context"
-import { Building2, Globe, AlertCircle, Sparkles, CheckCircle2 } from "lucide-react"
+import { Building2, Globe, AlertCircle, CheckCircle2 } from "lucide-react"
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 
 interface PartnerOrganizationDetailsProps {
   onNext: () => void
@@ -17,6 +18,7 @@ export function PartnerOrganizationDetails({ onNext, onPrevious }: PartnerOrgani
   const { formData, updateFormData, isStepComplete } = usePartnerOnboarding()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const t = useTranslations('onboarding')
 
   const validateField = (field: string, value: string) => {
     const newErrors = { ...errors }
@@ -24,9 +26,9 @@ export function PartnerOrganizationDetails({ onNext, onPrevious }: PartnerOrgani
     switch (field) {
       case 'organizationName':
         if (!value.trim()) {
-          newErrors.organizationName = 'Organization name is required'
+          newErrors.organizationName = t('detailsValidationNameRequired')
         } else if (value.trim().length < 2) {
-          newErrors.organizationName = 'Organization name must be at least 2 characters'
+          newErrors.organizationName = t('detailsValidationNameMinLength')
         } else {
           delete newErrors.organizationName
         }
@@ -34,7 +36,7 @@ export function PartnerOrganizationDetails({ onNext, onPrevious }: PartnerOrgani
 
       case 'organizationWebsite':
         if (value.trim() && !/^https?:\/\/.+\..+/.test(value)) {
-          newErrors.organizationWebsite = 'Please enter a valid URL (e.g., https://example.org)'
+          newErrors.organizationWebsite = t('detailsValidationUrlInvalid')
         } else {
           delete newErrors.organizationWebsite
         }
@@ -75,21 +77,10 @@ export function PartnerOrganizationDetails({ onNext, onPrevious }: PartnerOrgani
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#8157D9]/10 border border-[#8157D9]/20">
-          <Sparkles className="w-4 h-4 text-[#8157D9]" />
-          <span className="text-[#8157D9] text-sm font-medium">Step 2 of 5</span>
-        </div>
-
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
-          Tell us about your
-          <br />
-          <span className="text-[#8157D9]">{orgTypeLabel}</span>
-        </h1>
-
-        <p className="text-gray-500 max-w-lg mx-auto">
-          Help schools learn about your organization and find you for collaborations.
-        </p>
+      <div>
+        <p className="text-sm font-medium text-purple-600 mb-1">{t('detailsStepLabel')}</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('detailsStepTitle')}</h1>
+        <p className="mt-1 text-sm text-gray-500">{t('detailsStepSubtitle')}</p>
       </div>
 
       {/* Form */}
@@ -98,14 +89,14 @@ export function PartnerOrganizationDetails({ onNext, onPrevious }: PartnerOrgani
         <div className="space-y-3">
           <Label htmlFor="organizationName" className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <Building2 className="w-4 h-4 text-[#8157D9]" />
-            Organization Name
+            {t('detailsOrgName')}
             <span className="text-[#8157D9]">*</span>
           </Label>
 
           <div className="relative">
             <Input
               id="organizationName"
-              placeholder="e.g., UNICEF Denmark, Copenhagen School District"
+              placeholder={t('detailsOrgNamePlaceholder')}
               value={formData.organizationName || ''}
               onChange={(e) => handleInputChange('organizationName', e.target.value)}
               onBlur={() => handleBlur('organizationName')}
@@ -131,7 +122,7 @@ export function PartnerOrganizationDetails({ onNext, onPrevious }: PartnerOrgani
             </div>
           ) : (
             <p className="text-sm text-gray-400">
-              Use your official organization name as it appears on documents
+              {t('detailsOrgNameHelper')}
             </p>
           )}
         </div>
@@ -140,14 +131,14 @@ export function PartnerOrganizationDetails({ onNext, onPrevious }: PartnerOrgani
         <div className="space-y-3">
           <Label htmlFor="organizationWebsite" className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <Globe className="w-4 h-4 text-[#8157D9]" />
-            Website
-            <span className="text-gray-400 font-normal">(optional)</span>
+            {t('detailsWebsite')}
+            <span className="text-gray-400 font-normal">{t('detailsOptional')}</span>
           </Label>
 
           <div className="relative">
             <Input
               id="organizationWebsite"
-              placeholder="https://www.yourorganization.org"
+              placeholder={t('detailsWebsitePlaceholder')}
               value={formData.organizationWebsite || ''}
               onChange={(e) => handleInputChange('organizationWebsite', e.target.value)}
               onBlur={() => handleBlur('organizationWebsite')}
@@ -173,7 +164,7 @@ export function PartnerOrganizationDetails({ onNext, onPrevious }: PartnerOrgani
             </div>
           ) : (
             <p className="text-sm text-gray-400">
-              Schools can learn more about your work and we&apos;ll display your logo
+              {t('detailsWebsiteHelper')}
             </p>
           )}
         </div>
@@ -187,10 +178,9 @@ export function PartnerOrganizationDetails({ onNext, onPrevious }: PartnerOrgani
             <span className="text-xl">🌟</span>
           </div>
           <div>
-            <h4 className="font-semibold text-emerald-900 mb-1">Build trust with schools</h4>
+            <h4 className="font-semibold text-emerald-900 mb-1">{t('detailsTrustTitle')}</h4>
             <p className="text-sm text-emerald-700 leading-relaxed">
-              A complete profile with accurate details helps schools verify your organization
-              and increases collaboration success by 3x. Administrators appreciate transparency.
+              {t('detailsTrustDesc')}
             </p>
           </div>
         </div>
@@ -204,15 +194,15 @@ export function PartnerOrganizationDetails({ onNext, onPrevious }: PartnerOrgani
           className="flex-1 py-6 text-base border-gray-200 hover:bg-gray-50"
           size="lg"
         >
-          Back
+          {t('detailsBack')}
         </Button>
         <Button
           onClick={handleContinue}
-          className="flex-1 py-6 text-base bg-[#8157D9] hover:bg-[#7048C6] text-white shadow-lg shadow-[#8157D9]/25 disabled:opacity-50 disabled:shadow-none"
+          className="flex-1 py-6 text-base bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
           disabled={!canProceed}
           size="lg"
         >
-          Continue
+          {t('detailsContinue')}
         </Button>
       </div>
     </div>

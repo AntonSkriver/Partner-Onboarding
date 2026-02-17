@@ -43,8 +43,8 @@ import {
   STATUS_VALUES,
   friendlyLabel,
   programSchema,
-} from '@/app/partner/programs/shared'
-import type { ProgramFormValues } from '@/app/partner/programs/shared'
+} from '@/lib/programs/shared'
+import type { ProgramFormValues } from '@/lib/programs/shared'
 import { findProgramSummaryById } from '@/lib/programs/selectors'
 
 const CRC_CATEGORIES = [

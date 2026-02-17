@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button"
 import { usePartnerOnboarding, getOrganizationTypeLabel, getContactRoleLabel, SDG_OPTIONS } from "../../../contexts/partner-onboarding-context"
-import { Building2, Globe, Mail, Phone, User, Pencil, CheckCircle2, Sparkles, Target, Rocket } from "lucide-react"
+import { Building2, Globe, Mail, Phone, User, Pencil, CheckCircle2, Target, Rocket } from "lucide-react"
 import { SDGIcon } from "../../sdg-icons"
+import { useTranslations } from "next-intl"
 
 interface PartnerSummaryProps {
   onNext: () => void
@@ -13,6 +14,7 @@ interface PartnerSummaryProps {
 
 export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummaryProps) {
   const { formData } = usePartnerOnboarding()
+  const t = useTranslations('onboarding')
 
   const getSelectedSDGs = () => {
     return formData.sdgFocus.map(id => SDG_OPTIONS.find(sdg => sdg.id === id)).filter(Boolean)
@@ -21,21 +23,10 @@ export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummar
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-100 border border-emerald-200">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <span className="text-emerald-700 text-sm font-medium">Step 5 of 5</span>
-        </div>
-
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
-          Review your
-          <br />
-          <span className="text-[#8157D9]">profile</span>
-        </h1>
-
-        <p className="text-gray-500 max-w-lg mx-auto">
-          Almost there! Review your information and make any final edits before completing registration.
-        </p>
+      <div>
+        <p className="text-sm font-medium text-emerald-600 mb-1">{t('summaryStepLabel')}</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('summaryStepTitle')}</h1>
+        <p className="mt-1 text-sm text-gray-500">{t('summaryStepSubtitle')}</p>
       </div>
 
       {/* Summary Cards */}
@@ -48,7 +39,7 @@ export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummar
                 <Building2 className="w-5 h-5 text-[#8157D9]" />
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">Organization Type</p>
+                <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">{t('summaryOrgType')}</p>
                 <p className="font-semibold text-gray-900">{getOrganizationTypeLabel(formData.organizationType)}</p>
               </div>
             </div>
@@ -72,8 +63,8 @@ export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummar
                 <Globe className="w-5 h-5 text-blue-500" />
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">Organization</p>
-                <p className="font-semibold text-gray-900">{formData.organizationName || 'Not specified'}</p>
+                <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">{t('summaryOrganization')}</p>
+                <p className="font-semibold text-gray-900">{formData.organizationName || t('summaryNotSpecified')}</p>
                 {formData.organizationWebsite && (
                   <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
                     <Globe className="w-3 h-3" />
@@ -102,7 +93,7 @@ export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummar
                 <Target className="w-5 h-5 text-emerald-500" />
               </div>
               <div className="flex-1">
-                <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-2">SDG Focus Areas</p>
+                <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-2">{t('summarySdgFocusAreas')}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {getSelectedSDGs().slice(0, 6).map((sdg) => (
                     <div key={sdg!.id} className="w-10 h-10 rounded-lg overflow-hidden">
@@ -115,7 +106,7 @@ export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummar
                     </div>
                   )}
                 </div>
-                <p className="text-xs text-gray-400 mt-2">{formData.sdgFocus.length} SDGs selected</p>
+                <p className="text-xs text-gray-400 mt-2">{formData.sdgFocus.length} {t('summarySdgsSelected')}</p>
               </div>
             </div>
             <Button
@@ -138,8 +129,8 @@ export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummar
                 <User className="w-5 h-5 text-amber-500" />
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">Contact Person</p>
-                <p className="font-semibold text-gray-900">{formData.contactName || 'Not specified'}</p>
+                <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">{t('summaryContactPerson')}</p>
+                <p className="font-semibold text-gray-900">{formData.contactName || t('summaryNotSpecified')}</p>
                 <p className="text-sm text-gray-500">{getContactRoleLabel(formData.contactRole)}</p>
                 <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-500">
                   <span className="flex items-center gap-1">
@@ -176,19 +167,19 @@ export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummar
             <CheckCircle2 className="w-6 h-6 text-emerald-600" />
           </div>
           <div>
-            <h4 className="font-semibold text-emerald-900 mb-2">Ready to launch!</h4>
+            <h4 className="font-semibold text-emerald-900 mb-2">{t('summaryReadyTitle')}</h4>
             <p className="text-sm text-emerald-700 leading-relaxed mb-3">
-              Your profile looks great. Once registered, schools will be able to find you through SDG-based searches and reach out for collaborations.
+              {t('summaryReadyDesc')}
             </p>
             <div className="flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-xs font-medium text-emerald-700 border border-emerald-200">
-                <CheckCircle2 className="w-3 h-3" /> Discoverable by schools
+                <CheckCircle2 className="w-3 h-3" /> {t('summaryDiscoverable')}
               </span>
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-xs font-medium text-emerald-700 border border-emerald-200">
-                <CheckCircle2 className="w-3 h-3" /> SDG matching enabled
+                <CheckCircle2 className="w-3 h-3" /> {t('summarySdgMatchingEnabled')}
               </span>
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-xs font-medium text-emerald-700 border border-emerald-200">
-                <CheckCircle2 className="w-3 h-3" /> Contact verified
+                <CheckCircle2 className="w-3 h-3" /> {t('summaryContactVerified')}
               </span>
             </div>
           </div>
@@ -202,19 +193,19 @@ export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummar
             <Rocket className="w-5 h-5 text-[#8157D9]" />
           </div>
           <div>
-            <h4 className="font-semibold text-gray-900 mb-3">What happens after registration?</h4>
+            <h4 className="font-semibold text-gray-900 mb-3">{t('summaryWhatHappensTitle')}</h4>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#8157D9]" />
-                Access your partner dashboard with analytics
+                {t('summaryWhatHappensDashboard')}
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#8157D9]" />
-                Browse and connect with schools worldwide
+                {t('summaryWhatHappensBrowse')}
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#8157D9]" />
-                Create and manage SDG-aligned projects
+                {t('summaryWhatHappensProjects')}
               </div>
             </div>
           </div>
@@ -229,15 +220,15 @@ export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummar
           className="flex-1 py-6 text-base border-gray-200 hover:bg-gray-50"
           size="lg"
         >
-          Back
+          {t('summaryBack')}
         </Button>
         <Button
           onClick={onNext}
-          className="flex-1 py-6 text-base bg-[#8157D9] hover:bg-[#7048C6] text-white shadow-lg shadow-[#8157D9]/25"
+          className="flex-1 py-6 text-base bg-purple-600 hover:bg-purple-700 text-white"
           size="lg"
         >
-          <Sparkles className="w-5 h-5 mr-2" />
-          Complete Registration
+          <CheckCircle2 className="w-5 h-5 mr-2" />
+          {t('summaryCompleteRegistration')}
         </Button>
       </div>
     </div>

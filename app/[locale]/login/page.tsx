@@ -9,6 +9,7 @@ import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
 import { useState } from 'react'
 import { useRouter } from '@/i18n/navigation'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 // Hardcoded credentials
 const VALID_CREDENTIALS = [
@@ -75,16 +76,19 @@ export default function LoginPage() {
       {/* Left Side - Login Form */}
       <div className="w-full lg:w-[45%] bg-white flex flex-col justify-center px-8 md:px-16 lg:px-20 py-12">
         <div className="max-w-md w-full mx-auto">
-          {/* Logo */}
-          <Link href="/partners" className="inline-flex items-center gap-3 mb-12 group">
-            <Image
-              src="/isotipo.png"
-              alt="Class2Class"
-              width={48}
-              height={48}
-              className="w-12 h-12 group-hover:scale-105 transition-transform"
-            />
-          </Link>
+          {/* Logo & Language */}
+          <div className="flex items-center justify-between mb-12">
+            <Link href="/partners" className="inline-flex items-center gap-3 group">
+              <Image
+                src="/isotipo.png"
+                alt="Class2Class"
+                width={48}
+                height={48}
+                className="w-12 h-12 group-hover:scale-105 transition-transform"
+              />
+            </Link>
+            <LanguageSwitcher />
+          </div>
 
           {/* Title */}
           <h1 className="text-3xl font-bold text-[#1a1a2e] mb-2">

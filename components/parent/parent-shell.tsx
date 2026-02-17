@@ -17,6 +17,7 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { LanguageSwitcher } from '@/components/language-switcher'
 import { getCurrentSession, clearSession, type UserSession } from '@/lib/auth/session'
 
 interface ParentShellProps {
@@ -81,6 +82,7 @@ export function ParentShell({ children }: ParentShellProps) {
               {initials}
             </div>
             <div className="flex items-center gap-2">
+              <LanguageSwitcher />
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="mr-1 h-4 w-4" />
                 {tShell('signOut')}

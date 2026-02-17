@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { Eye, EyeOff, Globe2, Lock, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 export default function SignUpPage() {
   const t = useTranslations('auth')
@@ -30,10 +31,7 @@ export default function SignUpPage() {
             />
             <span className="text-lg font-semibold">Class2Class</span>
           </Link>
-          <button className="flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-600 shadow-sm">
-            <Globe2 className="h-4 w-4 text-gray-500" />
-            EN
-          </button>
+          <LanguageSwitcher />
         </header>
 
         <main className="mx-auto flex w-full max-w-md flex-1 items-center">

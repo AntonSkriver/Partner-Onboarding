@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { LanguageSwitcher } from '@/components/language-switcher'
 import {
   getCurrentSession,
   clearSession,
@@ -90,6 +91,7 @@ export function PartnerShell({ children }: PartnerShellProps) {
               {initials}
             </div>
             <div className="flex items-center gap-2">
+              <LanguageSwitcher />
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="mr-1 h-4 w-4" />
                 {tShell('signOut')}
