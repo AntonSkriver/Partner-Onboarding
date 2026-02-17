@@ -156,31 +156,26 @@ export default function SignInPage() {
                 {t('continueWithGoogle')}
               </Button>
 
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100"
-                onClick={handleTeacherPreview}
-                disabled={isTeacherPreviewLoading}
-              >
-                {isTeacherPreviewLoading ? tc('loading') : t('continueAsTeacher')}
-              </Button>
-              <p className="text-center text-xs text-gray-500">
-                {t('jumpIntoTeacher')}
-              </p>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100"
-                onClick={handleCoordinatorPreview}
-                disabled={isCoordinatorPreviewLoading}
-              >
-                {isCoordinatorPreviewLoading ? tc('loading') : t('continueAsCoordinator')}
-              </Button>
-              <p className="text-center text-xs text-gray-500">
-                {t('jumpIntoCoordinator')}
-              </p>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 text-sm"
+                  onClick={handleTeacherPreview}
+                  disabled={isTeacherPreviewLoading}
+                >
+                  {isTeacherPreviewLoading ? tc('loading') : t('continueAsTeacher')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 text-sm"
+                  onClick={handleCoordinatorPreview}
+                  disabled={isCoordinatorPreviewLoading}
+                >
+                  {isCoordinatorPreviewLoading ? tc('loading') : t('continueAsCoordinator')}
+                </Button>
+              </div>
 
               <p className="text-center text-sm text-gray-600">
                 {t('dontHaveAccount')}{' '}

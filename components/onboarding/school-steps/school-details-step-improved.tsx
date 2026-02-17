@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { useSchoolForm } from '@/contexts/school-form-context'
-import { MapPin, Users, ArrowLeft } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 const schoolDetailsSchema = z.object({
   schoolType: z.enum(['public', 'private', 'international', 'charter', 'other']),
@@ -29,20 +29,12 @@ interface SchoolDetailsStepProps {
   onPrevious: () => void
 }
 
-const schoolTypes = [
-  { value: 'public', label: 'Public School' },
-  { value: 'private', label: 'Private School' },
-  { value: 'international', label: 'International School' },
-  { value: 'charter', label: 'Charter School' },
-  { value: 'other', label: 'Other' },
-]
-
 const gradeLevels = [
   'Pre-K', 'Kindergarten', '1st Grade', '2nd Grade', '3rd Grade', '4th Grade', '5th Grade',
   '6th Grade', '7th Grade', '8th Grade', '9th Grade', '10th Grade', '11th Grade', '12th Grade'
 ]
 
-const languages = [
+const languageOptions = [
   'English', 'Spanish', 'French', 'German', 'Danish', 'Swedish', 'Norwegian', 'Dutch',
   'Portuguese', 'Italian', 'Chinese', 'Japanese', 'Arabic', 'Russian', 'Other'
 ]
@@ -55,6 +47,15 @@ const countries = [
 export function SchoolDetailsStep({ onNext, onPrevious }: SchoolDetailsStepProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { formData, updateFormData } = useSchoolForm()
+  const t = useTranslations('schoolOnboarding')
+
+  const schoolTypes = [
+    { value: 'public', label: t('schoolType_public') },
+    { value: 'private', label: t('schoolType_private') },
+    { value: 'international', label: t('schoolType_international') },
+    { value: 'charter', label: t('schoolType_charter') },
+    { value: 'other', label: t('schoolType_other') },
+  ]
 
   const form = useForm<SchoolDetailsData>({
     resolver: zodResolver(schoolDetailsSchema),
@@ -85,16 +86,10 @@ export function SchoolDetailsStep({ onNext, onPrevious }: SchoolDetailsStepProps
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
-          <MapPin className="w-8 h-8 text-blue-600" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tell us about your school</h1>
-          <p className="text-gray-600 mt-2">
-            Help us understand your school's size and characteristics
-          </p>
-        </div>
+      <div>
+        <p className="text-sm font-medium text-purple-600 mb-1">{t('detailsStepLabel')}</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('detailsStepTitle')}</h1>
+        <p className="mt-1 text-sm text-gray-500">{t('detailsStepSubtitle')}</p>
       </div>
 
       {/* Form */}
@@ -106,11 +101,11 @@ export function SchoolDetailsStep({ onNext, onPrevious }: SchoolDetailsStepProps
             name="schoolType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>School Type</FormLabel>
+                <FormLabel>{t('schoolTypeLabel')}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select school type" />
+                    <SelectTrigger className="h-14 text-base rounded-xl">
+                      <SelectValue placeholder={t('schoolTypePlaceholder')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -133,11 +128,11 @@ export function SchoolDetailsStep({ onNext, onPrevious }: SchoolDetailsStepProps
               name="country"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Country</FormLabel>
+                  <FormLabel>{t('countryLabel')}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select country" />
+                      <SelectTrigger className="h-14 text-base rounded-xl">
+                        <SelectValue placeholder={t('countryPlaceholder')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -157,9 +152,9 @@ export function SchoolDetailsStep({ onNext, onPrevious }: SchoolDetailsStepProps
               name="city"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>City</FormLabel>
+                  <FormLabel>{t('cityLabel')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Copenhagen" {...field} />
+                    <Input placeholder={t('cityPlaceholder')} {...field} className="h-14 text-base px-4 rounded-xl" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -174,9 +169,9 @@ export function SchoolDetailsStep({ onNext, onPrevious }: SchoolDetailsStepProps
               name="studentCount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Number of Students</FormLabel>
+                  <FormLabel>{t('studentCountLabel')}</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="e.g., 450" {...field} />
+                    <Input type="number" placeholder={t('studentCountPlaceholder')} {...field} className="h-14 text-base px-4 rounded-xl" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -187,9 +182,9 @@ export function SchoolDetailsStep({ onNext, onPrevious }: SchoolDetailsStepProps
               name="teacherCount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Number of Teachers</FormLabel>
+                  <FormLabel>{t('teacherCountLabel')}</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="e.g., 25" {...field} />
+                    <Input type="number" placeholder={t('teacherCountPlaceholder')} {...field} className="h-14 text-base px-4 rounded-xl" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -203,8 +198,8 @@ export function SchoolDetailsStep({ onNext, onPrevious }: SchoolDetailsStepProps
             name="gradelevels"
             render={() => (
               <FormItem>
-                <FormLabel>Grade Levels (Select all that apply)</FormLabel>
-                <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto">
+                <FormLabel>{t('gradeLevelsLabel')} <span className="text-gray-400 font-normal">({t('gradeLevelsSubLabel')})</span></FormLabel>
+                <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto rounded-xl border border-gray-200 p-3">
                   {gradeLevels.map((grade) => (
                     <FormField
                       key={grade}
@@ -250,9 +245,9 @@ export function SchoolDetailsStep({ onNext, onPrevious }: SchoolDetailsStepProps
             name="languages"
             render={() => (
               <FormItem>
-                <FormLabel>Languages Used in Teaching</FormLabel>
-                <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto">
-                  {languages.map((language) => (
+                <FormLabel>{t('languagesLabel')}</FormLabel>
+                <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto rounded-xl border border-gray-200 p-3">
+                  {languageOptions.map((language) => (
                     <FormField
                       key={language}
                       control={form.control}
@@ -292,22 +287,23 @@ export function SchoolDetailsStep({ onNext, onPrevious }: SchoolDetailsStepProps
           />
 
           {/* Actions */}
-          <div className="flex justify-between pt-6">
+          <div className="flex gap-4 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={onPrevious}
-              className="flex items-center gap-2"
+              className="flex-1 py-6 text-base border-gray-200 hover:bg-gray-50"
+              size="lg"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Back
+              {t('back')}
             </Button>
             <Button
               type="submit"
               disabled={isLoading}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="flex-1 py-6 text-base bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
+              size="lg"
             >
-              {isLoading ? 'Processing...' : 'Continue'}
+              {isLoading ? t('processing') : t('continue')}
             </Button>
           </div>
         </form>

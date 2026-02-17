@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { useSchoolForm } from '@/contexts/school-form-context'
-import { School, ArrowLeft } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 const schoolNameSchema = z.object({
   schoolName: z.string().min(2, 'School name must be at least 2 characters'),
@@ -24,6 +24,7 @@ interface SchoolNameStepProps {
 export function SchoolNameStep({ onNext, onPrevious }: SchoolNameStepProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { formData, updateFormData } = useSchoolForm()
+  const t = useTranslations('schoolOnboarding')
 
   const form = useForm<SchoolNameData>({
     resolver: zodResolver(schoolNameSchema),
@@ -48,16 +49,10 @@ export function SchoolNameStep({ onNext, onPrevious }: SchoolNameStepProps) {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="w-16 h-16 mx-auto bg-purple-100 rounded-full flex items-center justify-center">
-          <School className="w-8 h-8 text-purple-600" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">What's your school name?</h1>
-          <p className="text-gray-600 mt-2">
-            Let's start by getting to know your school
-          </p>
-        </div>
+      <div>
+        <p className="text-sm font-medium text-purple-600 mb-1">{t('nameStepLabel')}</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('nameStepTitle')}</h1>
+        <p className="mt-1 text-sm text-gray-500">{t('nameStepSubtitle')}</p>
       </div>
 
       {/* Form */}
@@ -68,12 +63,12 @@ export function SchoolNameStep({ onNext, onPrevious }: SchoolNameStepProps) {
             name="schoolName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base font-medium">School Name</FormLabel>
+                <FormLabel className="text-base font-medium">{t('nameLabel')}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="e.g., Lincoln Elementary School"
+                    placeholder={t('namePlaceholder')}
                     {...field}
-                    className="text-lg py-3"
+                    className="h-14 text-base px-4 rounded-xl border-gray-200 focus:border-purple-600 focus:ring-purple-600/20"
                     autoFocus
                   />
                 </FormControl>
@@ -83,22 +78,23 @@ export function SchoolNameStep({ onNext, onPrevious }: SchoolNameStepProps) {
           />
 
           {/* Actions */}
-          <div className="flex justify-between pt-6">
+          <div className="flex gap-4 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={onPrevious}
-              className="flex items-center gap-2"
+              className="flex-1 py-6 text-base border-gray-200 hover:bg-gray-50"
+              size="lg"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Back
+              {t('back')}
             </Button>
             <Button
               type="submit"
               disabled={isLoading || !form.watch('schoolName')}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="flex-1 py-6 text-base bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
+              size="lg"
             >
-              {isLoading ? 'Processing...' : 'Continue'}
+              {isLoading ? t('processing') : t('continue')}
             </Button>
           </div>
         </form>

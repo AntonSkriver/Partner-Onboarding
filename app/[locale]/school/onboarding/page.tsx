@@ -1,12 +1,7 @@
 'use client'
 
-import { SchoolFormProvider } from '@/contexts/school-form-context'
-import SchoolOnboardingFlowImproved from '@/components/onboarding/school-onboarding-flow-improved'
+import SchoolOnboardingPage from '@/components/school-onboarding/school-onboarding-page'
 
-export default function SchoolOnboardingPage() {
-  return (
-    <SchoolFormProvider>
-      <SchoolOnboardingFlowImproved />
-    </SchoolFormProvider>
-  )
+export default function SchoolOnboardingRoute() {
+  return <SchoolOnboardingPage />
 }

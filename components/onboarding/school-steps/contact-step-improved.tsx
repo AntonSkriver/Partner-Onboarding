@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { useSchoolForm } from '@/contexts/school-form-context'
-import { User, ArrowLeft } from 'lucide-react'
+import { Shield } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 const contactSchema = z.object({
   contactName: z.string().min(2, 'Name must be at least 2 characters'),
@@ -24,19 +25,20 @@ interface ContactStepProps {
   onPrevious: () => void
 }
 
-const roles = [
-  { value: 'principal', label: 'Principal' },
-  { value: 'vice-principal', label: 'Vice Principal' },
-  { value: 'teacher', label: 'Teacher' },
-  { value: 'coordinator', label: 'International Coordinator' },
-  { value: 'administrator', label: 'Administrator' },
-  { value: 'counselor', label: 'School Counselor' },
-  { value: 'other', label: 'Other' },
-]
-
 export function ContactStep({ onNext, onPrevious }: ContactStepProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { formData, updateFormData } = useSchoolForm()
+  const t = useTranslations('schoolOnboarding')
+
+  const roles = [
+    { value: 'principal', label: t('contactRole_principal') },
+    { value: 'vice-principal', label: t('contactRole_vice-principal') },
+    { value: 'teacher', label: t('contactRole_teacher') },
+    { value: 'coordinator', label: t('contactRole_coordinator') },
+    { value: 'administrator', label: t('contactRole_administrator') },
+    { value: 'counselor', label: t('contactRole_counselor') },
+    { value: 'other', label: t('contactRole_other') },
+  ]
 
   const form = useForm<ContactData>({
     resolver: zodResolver(contactSchema),
@@ -63,16 +65,10 @@ export function ContactStep({ onNext, onPrevious }: ContactStepProps) {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="w-16 h-16 mx-auto bg-purple-100 rounded-full flex items-center justify-center">
-          <User className="w-8 h-8 text-purple-600" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Contact Information</h1>
-          <p className="text-gray-600 mt-2">
-            Who should partners contact about collaboration opportunities?
-          </p>
-        </div>
+      <div>
+        <p className="text-sm font-medium text-purple-600 mb-1">{t('contactStepLabel')}</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('contactStepTitle')}</h1>
+        <p className="mt-1 text-sm text-gray-500">{t('contactStepSubtitle')}</p>
       </div>
 
       {/* Form */}
@@ -83,11 +79,12 @@ export function ContactStep({ onNext, onPrevious }: ContactStepProps) {
             name="contactName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full Name</FormLabel>
+                <FormLabel>{t('contactNameLabel')}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="e.g., Sarah Johnson"
+                    placeholder={t('contactNamePlaceholder')}
                     {...field}
+                    className="h-14 text-base px-4 rounded-xl border-gray-200 focus:border-purple-600 focus:ring-purple-600/20"
                     autoFocus
                   />
                 </FormControl>
@@ -101,12 +98,13 @@ export function ContactStep({ onNext, onPrevious }: ContactStepProps) {
             name="contactEmail"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email Address</FormLabel>
+                <FormLabel>{t('contactEmailLabel')}</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
-                    placeholder="e.g., sarah.johnson@school.edu"
+                    placeholder={t('contactEmailPlaceholder')}
                     {...field}
+                    className="h-14 text-base px-4 rounded-xl border-gray-200 focus:border-purple-600 focus:ring-purple-600/20"
                   />
                 </FormControl>
                 <FormMessage />
@@ -119,11 +117,11 @@ export function ContactStep({ onNext, onPrevious }: ContactStepProps) {
             name="contactRole"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Role at School</FormLabel>
+                <FormLabel>{t('contactRoleLabel')}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your role" />
+                    <SelectTrigger className="h-14 text-base rounded-xl">
+                      <SelectValue placeholder={t('contactRolePlaceholder')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -139,30 +137,39 @@ export function ContactStep({ onNext, onPrevious }: ContactStepProps) {
             )}
           />
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800">
-              <strong>Privacy Note:</strong> This contact information will only be shared with verified 
-              educational partners and organizations to facilitate meaningful collaboration opportunities.
-            </p>
+          {/* Privacy notice */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50 p-6 border border-amber-100/50">
+            <div className="relative flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                <Shield className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-amber-900 mb-1">{t('contactPrivacyTitle')}</h4>
+                <p className="text-sm text-amber-700 leading-relaxed">
+                  {t('contactPrivacyDesc')}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Actions */}
-          <div className="flex justify-between pt-6">
+          <div className="flex gap-4 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={onPrevious}
-              className="flex items-center gap-2"
+              className="flex-1 py-6 text-base border-gray-200 hover:bg-gray-50"
+              size="lg"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Back
+              {t('back')}
             </Button>
             <Button
               type="submit"
               disabled={isLoading}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="flex-1 py-6 text-base bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
+              size="lg"
             >
-              {isLoading ? 'Processing...' : 'Continue'}
+              {isLoading ? t('processing') : t('continue')}
             </Button>
           </div>
         </form>

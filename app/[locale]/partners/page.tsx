@@ -211,7 +211,7 @@ export default function PartnersPage() {
             {/* Right Visual */}
             <div className="md:col-span-6 relative">
               <div className="relative aspect-square max-w-md mx-auto">
-                {/* Connection Lines SVG */}
+                {/* Connection Lines SVG — connecting the floating stat cards */}
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 400">
                   <defs>
                     <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -219,9 +219,14 @@ export default function PartnersPage() {
                       <stop offset="100%" stopColor="#A78BFA" stopOpacity="0.2" />
                     </linearGradient>
                   </defs>
-                  <path d="M100,100 Q200,50 300,120" stroke="url(#lineGradient)" strokeWidth="2" fill="none" strokeDasharray="8,4" className="animate-pulse" style={{ animationDuration: '3s' }} />
-                  <path d="M80,200 Q200,180 320,250" stroke="url(#lineGradient)" strokeWidth="2" fill="none" strokeDasharray="8,4" className="animate-pulse" style={{ animationDuration: '4s' }} />
-                  <path d="M150,300 Q250,260 350,310" stroke="url(#lineGradient)" strokeWidth="2" fill="none" strokeDasharray="8,4" className="animate-pulse" style={{ animationDuration: '3.5s' }} />
+                  {/* Countries → Teachers */}
+                  <path d="M130,40 Q230,60 290,110" stroke="url(#lineGradient)" strokeWidth="2" fill="none" strokeDasharray="8,4" className="animate-pulse" style={{ animationDuration: '3s' }} />
+                  {/* Countries → Students */}
+                  <path d="M85,55 Q70,130 95,200" stroke="url(#lineGradient)" strokeWidth="2" fill="none" strokeDasharray="8,4" className="animate-pulse" style={{ animationDuration: '4s' }} />
+                  {/* Teachers → Connections */}
+                  <path d="M330,155 Q340,240 315,300" stroke="url(#lineGradient)" strokeWidth="2" fill="none" strokeDasharray="8,4" className="animate-pulse" style={{ animationDuration: '3.5s' }} />
+                  {/* Students → Connections */}
+                  <path d="M155,235 Q230,270 275,315" stroke="url(#lineGradient)" strokeWidth="2" fill="none" strokeDasharray="8,4" className="animate-pulse" style={{ animationDuration: '3.2s' }} />
                 </svg>
 
                 {/* Floating Cards */}

@@ -32,6 +32,9 @@ export interface SchoolFormData {
   // Step 6: Interests
   subjectAreas?: string[]
   collaborationInterests?: string[]
+
+  // Step 7: SDG Focus
+  sdgFocus?: string[]
 }
 
 interface SchoolFormContextType {

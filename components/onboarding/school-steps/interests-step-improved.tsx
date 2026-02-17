@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { useSchoolForm } from '@/contexts/school-form-context'
-import { Heart, ArrowLeft } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 const interestsSchema = z.object({
   subjectAreas: z.array(z.string()).min(1, 'Please select at least one subject area'),
@@ -55,6 +55,7 @@ const collaborationTypes = [
 export function InterestsStep({ onNext, onPrevious }: InterestsStepProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { formData, updateFormData } = useSchoolForm()
+  const t = useTranslations('schoolOnboarding')
 
   const form = useForm<InterestsData>({
     resolver: zodResolver(interestsSchema),
@@ -80,16 +81,10 @@ export function InterestsStep({ onNext, onPrevious }: InterestsStepProps) {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="w-16 h-16 mx-auto bg-pink-100 rounded-full flex items-center justify-center">
-          <Heart className="w-8 h-8 text-pink-600" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Areas of Interest</h1>
-          <p className="text-gray-600 mt-2">
-            What subjects and collaboration types interest your school most?
-          </p>
-        </div>
+      <div>
+        <p className="text-sm font-medium text-purple-600 mb-1">{t('interestsStepLabel')}</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('interestsStepTitle')}</h1>
+        <p className="mt-1 text-sm text-gray-500">{t('interestsStepSubtitle')}</p>
       </div>
 
       {/* Form */}
@@ -101,8 +96,8 @@ export function InterestsStep({ onNext, onPrevious }: InterestsStepProps) {
             name="subjectAreas"
             render={() => (
               <FormItem>
-                <FormLabel className="text-lg font-medium">Subject Areas</FormLabel>
-                <div className="grid grid-cols-2 gap-3">
+                <FormLabel className="text-base font-medium">{t('subjectAreasLabel')}</FormLabel>
+                <div className="grid grid-cols-2 gap-2">
                   {subjectAreas.map((subject) => (
                     <FormField
                       key={subject}
@@ -112,7 +107,7 @@ export function InterestsStep({ onNext, onPrevious }: InterestsStepProps) {
                         return (
                           <FormItem
                             key={subject}
-                            className="flex flex-row items-start space-x-2 space-y-0 p-3 border rounded-lg hover:bg-gray-50"
+                            className="flex flex-row items-start space-x-2 space-y-0 p-3 border rounded-xl hover:bg-gray-50 transition-colors"
                           >
                             <FormControl>
                               <Checkbox
@@ -148,8 +143,8 @@ export function InterestsStep({ onNext, onPrevious }: InterestsStepProps) {
             name="collaborationInterests"
             render={() => (
               <FormItem>
-                <FormLabel className="text-lg font-medium">Collaboration Interests</FormLabel>
-                <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
+                <FormLabel className="text-base font-medium">{t('collaborationLabel')}</FormLabel>
+                <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
                   {collaborationTypes.map((collaboration) => (
                     <FormField
                       key={collaboration}
@@ -159,7 +154,7 @@ export function InterestsStep({ onNext, onPrevious }: InterestsStepProps) {
                         return (
                           <FormItem
                             key={collaboration}
-                            className="flex flex-row items-start space-x-2 space-y-0 p-3 border rounded-lg hover:bg-gray-50"
+                            className="flex flex-row items-start space-x-2 space-y-0 p-3 border rounded-xl hover:bg-gray-50 transition-colors"
                           >
                             <FormControl>
                               <Checkbox
@@ -190,22 +185,23 @@ export function InterestsStep({ onNext, onPrevious }: InterestsStepProps) {
           />
 
           {/* Actions */}
-          <div className="flex justify-between pt-6">
+          <div className="flex gap-4 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={onPrevious}
-              className="flex items-center gap-2"
+              className="flex-1 py-6 text-base border-gray-200 hover:bg-gray-50"
+              size="lg"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Back
+              {t('back')}
             </Button>
             <Button
               type="submit"
               disabled={isLoading}
-              className="bg-pink-600 hover:bg-pink-700"
+              className="flex-1 py-6 text-base bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
+              size="lg"
             >
-              {isLoading ? 'Processing...' : 'Continue'}
+              {isLoading ? t('processing') : t('continue')}
             </Button>
           </div>
         </form>
