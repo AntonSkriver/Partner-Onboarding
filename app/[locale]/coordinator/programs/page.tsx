@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from '@/i18n/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,10 @@ import { ProgramCatalogCard } from '@/components/program/program-catalog-card'
 export default function CoordinatorProgramsPage() {
   const t = useTranslations('coordinator')
   const tp = useTranslations('programs')
-  const [session] = useState(() => getCurrentSession())
+  const [session, setSession] = useState<ReturnType<typeof getCurrentSession> | null>(null)
+  useEffect(() => {
+    setSession(getCurrentSession())
+  }, [])
   const { ready, database } = usePrototypeDb()
 
   const coordinatorRecords = useMemo(() => {

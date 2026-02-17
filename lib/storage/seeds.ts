@@ -6,7 +6,7 @@ import {
   StoredPartnerUser,
 } from '@/lib/storage/prototype-db'
 
-const PROTOTYPE_SEED_VERSION = 24
+const PROTOTYPE_SEED_VERSION = 25
 
 const buildSeedPartners = (): StoredPartner[] => [
   {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from '@/i18n/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,10 @@ import { getCountryDisplay } from '@/lib/countries'
 export default function CoordinatorProjectsPage() {
   const t = useTranslations('dashboard')
   const tNav = useTranslations('nav')
-  const [session] = useState(() => getCurrentSession())
+  const [session, setSession] = useState<ReturnType<typeof getCurrentSession> | null>(null)
+  useEffect(() => {
+    setSession(getCurrentSession())
+  }, [])
   const { ready, database } = usePrototypeDb()
 
   const coordinatorRecords = useMemo(() => {

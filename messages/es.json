@@ -102,8 +102,7 @@
     "logIn": "Iniciar sesión",
     "signUp": "Registrarse",
     "forOrganizations": "Para organizaciones e instituciones",
-    "heroTitle": "Asóciese con nosotros para {highlight} la educación global",
-    "heroHighlight": "transformar",
+    "heroTitle": "Asóciese con nosotros para <highlight>transformar</highlight> la educación global",
     "heroSubtitle": "Únase a una red de organizaciones innovadoras que crean conexiones significativas entre aulas a través de fronteras, culturas y continentes.",
     "becomePartner": "Conviértase en socio",
     "joinAsSchool": "Únase como escuela",
@@ -289,6 +288,7 @@
     "noProjectsDesc": "Los proyectos aparecerán aquí una vez que sean creados dentro de sus programas.",
     "noSchools": "No hay escuelas asignadas",
     "noSchoolsDesc": "Las escuelas aparecerán aquí una vez que sean asignadas a su coordinación.",
+    "yourSchool": "Tu escuela",
     "noPartner": "No hay organización socia",
     "noPartnerDesc": "Los detalles de su organización socia aparecerán aquí."
   },

@@ -26,7 +26,7 @@ export default function Home() {
       {/* Header */}
       <header className="relative z-10 w-full py-4 px-6 md:px-12 flex justify-between items-center bg-white/80 backdrop-blur-md border-b border-white/20">
         {/* Logo */}
-        <div className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3">
           <Image
             src="/isotipo.png"
             alt="Class2Class Logo"
@@ -35,7 +35,7 @@ export default function Home() {
             className="w-10 h-10"
           />
           <span className="text-xl font-semibold text-[#1a1a2e]">Class2Class</span>
-        </div>
+        </Link>
 
         {/* Navigation - Centered */}
         <nav className="hidden md:flex items-center space-x-8">

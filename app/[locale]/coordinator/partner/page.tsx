@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -65,18 +65,18 @@ const MOCK_RESOURCES = [
 export default function CoordinatorPartnerPage() {
   const t = useTranslations('coordinator')
   const td = useTranslations('dashboard')
-  const [session] = useState(() => getCurrentSession())
+  const [session, setSession] = useState<ReturnType<typeof getCurrentSession>>(null)
   const { ready, database } = usePrototypeDb()
 
+  useEffect(() => {
+    setSession(getCurrentSession())
+  }, [])
+
+  // Coordinator's partner is Save the Children Italy
   const partnerRecord = useMemo(() => {
-    if (!database || !session?.organization) return null
-    const normalizedName = session.organization.trim().toLowerCase()
-    return (
-      database.partners.find(
-        (p) => p.organizationName.toLowerCase() === normalizedName,
-      ) ?? null
-    )
-  }, [database, session?.organization])
+    if (!database) return null
+    return database.partners.find((p) => p.id === 'partner-save-the-children-italy') ?? null
+  }, [database])
 
   const stats = useMemo(() => {
     if (!database || !partnerRecord) return null

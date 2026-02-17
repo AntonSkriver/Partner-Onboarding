@@ -1,8 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
   <!-- Save the Children logo - child with raised arms in circle -->
+  <circle cx="50" cy="50" r="48" fill="#E11B22"/>
   <g fill="white" stroke="white">
-    <!-- Circle outline -->
-    <circle cx="50" cy="50" r="45" fill="none" stroke="white" stroke-width="5"/>
     <!-- Child head -->
     <circle cx="50" cy="35" r="10" fill="white"/>
     <!-- Child body (trapezoid shape) -->

@@ -102,8 +102,7 @@
     "logIn": "Log ind",
     "signUp": "Tilmeld dig",
     "forOrganizations": "For organisationer og institutioner",
-    "heroTitle": "Bliv partner og {highlight} global uddannelse",
-    "heroHighlight": "transformer",
+    "heroTitle": "Bliv partner og <highlight>transformer</highlight> global uddannelse",
     "heroSubtitle": "Bliv en del af et netværk af fremsynede organisationer, der skaber meningsfulde forbindelser mellem klasseværelser på tværs af grænser, kulturer og kontinenter.",
     "becomePartner": "Bliv partner",
     "joinAsSchool": "Tilmeld som skole",
@@ -289,6 +288,7 @@
     "noProjectsDesc": "Projekter vil vises her, når de er oprettet inden for dine programmer.",
     "noSchools": "Ingen skoler tildelt",
     "noSchoolsDesc": "Skoler vil vises her, når de er tildelt din koordinering.",
+    "yourSchool": "Din skole",
     "noPartner": "Ingen partnerorganisation",
     "noPartnerDesc": "Dine partnerorganisationsoplysninger vil vises her."
   },

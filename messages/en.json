@@ -102,8 +102,7 @@
     "logIn": "Log in",
     "signUp": "Sign up",
     "forOrganizations": "For Organizations & Institutions",
-    "heroTitle": "Partner with us to {highlight} global education",
-    "heroHighlight": "transform",
+    "heroTitle": "Partner with us to <highlight>transform</highlight> global education",
     "heroSubtitle": "Join a network of forward-thinking organizations creating meaningful connections between classrooms across borders, cultures, and continents.",
     "becomePartner": "Become a Partner",
     "joinAsSchool": "Join as School",
@@ -289,6 +288,7 @@
     "noProjectsDesc": "Projects will appear here once they are created within your programs.",
     "noSchools": "No Schools Assigned",
     "noSchoolsDesc": "Schools will appear here once they are assigned to your coordination.",
+    "yourSchool": "Your school",
     "noPartner": "No Partner Organization",
     "noPartnerDesc": "Your partner organization details will appear here."
   },

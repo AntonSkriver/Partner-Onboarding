@@ -13,7 +13,10 @@ import { usePrototypeDb } from '@/hooks/use-prototype-db'
 export default function CoordinatorDashboardPage() {
   const t = useTranslations('dashboard')
   const tc = useTranslations('coordinator')
-  const [session] = useState(() => getCurrentSession())
+  const [session, setSession] = useState<ReturnType<typeof getCurrentSession> | null>(null)
+  useEffect(() => {
+    setSession(getCurrentSession())
+  }, [])
   const { ready, database } = usePrototypeDb()
 
   const coordinatorRecords = useMemo(() => {

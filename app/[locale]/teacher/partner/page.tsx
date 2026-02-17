@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -18,37 +18,17 @@ import { SDG_DATA } from '@/components/sdg-icons'
 export default function TeacherPartnerPage() {
   const t = useTranslations('coordinator')
   const td = useTranslations('dashboard')
-  const [session] = useState(() => getCurrentSession())
+  const [session, setSession] = useState<ReturnType<typeof getCurrentSession> | null>(null)
+  useEffect(() => {
+    setSession(getCurrentSession())
+  }, [])
   const { ready, database } = usePrototypeDb()
 
-  // Trace: teacher email → institutionTeachers → institution → program → partner
+  // Teacher's partner is UNICEF Denmark
   const partnerRecord = useMemo(() => {
-    if (!database || !session?.email) return null
-
-    // Find teacher records by email
-    const teacherRecords = database.institutionTeachers.filter(
-      (t) => t.email.toLowerCase() === session.email.toLowerCase(),
-    )
-    if (teacherRecords.length === 0) return null
-
-    // Get the institutions the teacher belongs to
-    const institutionIds = new Set(teacherRecords.map((t) => t.institutionId))
-    const institutions = database.institutions.filter((i) => institutionIds.has(i.id))
-    if (institutions.length === 0) return null
-
-    // Get the programs from those institutions
-    const programIds = new Set(institutions.map((i) => i.programId))
-
-    // Find the partner that hosts these programs
-    const partnerIds = new Set<string>()
-    database.programs
-      .filter((p) => programIds.has(p.id))
-      .forEach((p) => partnerIds.add(p.partnerId))
-
-    // Return the first partner found (prefer the primary one)
-    if (partnerIds.size === 0) return null
-    return database.partners.find((p) => partnerIds.has(p.id)) ?? null
-  }, [database, session?.email])
+    if (!database) return null
+    return database.partners.find((p) => p.id === 'partner-unicef') ?? null
+  }, [database])
 
   const stats = useMemo(() => {
     if (!database || !partnerRecord) return null

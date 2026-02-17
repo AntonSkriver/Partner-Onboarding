@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -13,7 +13,10 @@ import { getCountryDisplay } from '@/lib/countries'
 export default function CoordinatorConnectPage() {
   const t = useTranslations('dashboard')
   const tNav = useTranslations('nav')
-  const [session] = useState(() => getCurrentSession())
+  const [session, setSession] = useState<ReturnType<typeof getCurrentSession> | null>(null)
+  useEffect(() => {
+    setSession(getCurrentSession())
+  }, [])
   const { ready, database } = usePrototypeDb()
 
   const coordinatorRecords = useMemo(() => {
