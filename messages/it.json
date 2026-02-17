@@ -106,6 +106,7 @@
     "heroHighlight": "trasformare",
     "heroSubtitle": "Si unisca a una rete di organizzazioni all'avanguardia che creano connessioni significative tra classi oltre confini, culture e continenti.",
     "becomePartner": "Diventa un partner",
+    "joinAsSchool": "Iscriviti come scuola",
     "exploreProjects": "Esplora i progetti",
     "sdgTitle": "A supporto degli SDG e dei diritti dell'infanzia",
     "sdgSubtitle": "Ogni connessione che facilitiamo contribuisce agli Obiettivi di Sviluppo Sostenibile delle Nazioni Unite e tutela i diritti fondamentali dei bambini.",
@@ -278,7 +279,18 @@
     "teacherSessionRequiredDesc": "Utilizzi il pulsante \"Accedi come insegnante\" dalla dashboard partner per visualizzare questa pagina.",
     "backToPartnerTools": "Torna agli strumenti partner",
     "welcomeDashboard": "Benvenuto nella Sua dashboard! Qui gestirà le Sue partnership e collaborazioni.",
-    "backToHome": "Torna alla home"
+    "backToHome": "Torna alla home",
+    "schoolsInNetwork": "{count, plural, =0 {Nessuna scuola nella rete ancora} one {1 scuola nella rete} other {# scuole nella rete}}",
+    "projectsInPrograms": "{count, plural, =0 {Nessun progetto ancora} one {1 progetto nei Suoi programmi} other {# progetti nei Suoi programmi}}",
+    "schoolsOverview": "{count, plural, =0 {Nessuna scuola assegnata ancora} one {1 scuola sotto la Sua coordinazione} other {# scuole sotto la Sua coordinazione}}",
+    "noConnections": "Nessuna connessione ancora",
+    "noConnectionsDesc": "Le scuole appariranno qui una volta assegnate ai Suoi programmi.",
+    "noProjects": "Nessun progetto ancora",
+    "noProjectsDesc": "I progetti appariranno qui una volta creati all'interno dei Suoi programmi.",
+    "noSchools": "Nessuna scuola assegnata",
+    "noSchoolsDesc": "Le scuole appariranno qui una volta assegnate alla Sua coordinazione.",
+    "noPartner": "Nessuna organizzazione partner",
+    "noPartnerDesc": "I dettagli della Sua organizzazione partner appariranno qui."
   },
   "onboarding": {
     "title": "Completi la configurazione",

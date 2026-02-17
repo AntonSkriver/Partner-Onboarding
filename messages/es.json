@@ -106,6 +106,7 @@
     "heroHighlight": "transformar",
     "heroSubtitle": "Únase a una red de organizaciones innovadoras que crean conexiones significativas entre aulas a través de fronteras, culturas y continentes.",
     "becomePartner": "Conviértase en socio",
+    "joinAsSchool": "Únase como escuela",
     "exploreProjects": "Explorar proyectos",
     "sdgTitle": "Apoyo a los ODS y los derechos de la infancia",
     "sdgSubtitle": "Cada conexión que facilitamos contribuye a los Objetivos de Desarrollo Sostenible de la ONU y defiende los derechos fundamentales de la infancia.",
@@ -278,7 +279,18 @@
     "teacherSessionRequiredDesc": "Use el botón 'Iniciar sesión como docente' en el panel del socio para ver esta página.",
     "backToPartnerTools": "Volver a herramientas del socio",
     "welcomeDashboard": "¡Bienvenido a su panel! Aquí gestionará sus alianzas y colaboraciones.",
-    "backToHome": "Volver al inicio"
+    "backToHome": "Volver al inicio",
+    "schoolsInNetwork": "{count, plural, =0 {Aún no hay escuelas en su red} one {1 escuela en su red} other {# escuelas en su red}}",
+    "projectsInPrograms": "{count, plural, =0 {Aún no hay proyectos} one {1 proyecto en sus programas} other {# proyectos en sus programas}}",
+    "schoolsOverview": "{count, plural, =0 {Aún no hay escuelas asignadas} one {1 escuela bajo su coordinación} other {# escuelas bajo su coordinación}}",
+    "noConnections": "Aún no hay conexiones",
+    "noConnectionsDesc": "Las escuelas aparecerán aquí una vez que sean asignadas a sus programas.",
+    "noProjects": "Aún no hay proyectos",
+    "noProjectsDesc": "Los proyectos aparecerán aquí una vez que sean creados dentro de sus programas.",
+    "noSchools": "No hay escuelas asignadas",
+    "noSchoolsDesc": "Las escuelas aparecerán aquí una vez que sean asignadas a su coordinación.",
+    "noPartner": "No hay organización socia",
+    "noPartnerDesc": "Los detalles de su organización socia aparecerán aquí."
   },
   "onboarding": {
     "title": "Complete su configuración",

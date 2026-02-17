@@ -6,10 +6,13 @@ import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
 import { usePathname, useRouter } from '@/i18n/navigation'
 import {
+  Compass,
   Home,
   Layers,
   LogOut,
   Building2,
+  FolderOpen,
+  Link2,
   Users,
 } from 'lucide-react'
 
@@ -35,7 +38,11 @@ export function CoordinatorShell({ children }: CoordinatorShellProps) {
 
   const navItems = [
     { href: '/coordinator/dashboard', label: tNav('dashboard'), icon: Home },
-    { href: '/coordinator/programs', label: tNav('myPrograms'), icon: Layers },
+    { href: '/coordinator/discover', label: tNav('discover'), icon: Compass },
+    { href: '/coordinator/connect', label: tNav('connect'), icon: Link2 },
+    { href: '/coordinator/projects', label: tNav('myProjects'), icon: Layers },
+    { href: '/coordinator/programs', label: tNav('myPrograms'), icon: FolderOpen },
+    { href: '/coordinator/school', label: tNav('mySchool'), icon: Building2 },
     { href: '/coordinator/partner', label: tNav('myPartner'), icon: Building2 },
   ]
   const [session, setSession] = useState<UserSession | null>(null)

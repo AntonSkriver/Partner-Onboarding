@@ -193,17 +193,23 @@ export default function PartnersPage() {
                 {t('heroSubtitle')}
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                <Link href="/partner/onboarding">
-                  <Button size="lg" className="bg-[#8157D9] hover:bg-[#7048C6] text-white px-7 py-5 text-base font-semibold rounded-full shadow-lg shadow-[#8157D9]/25 hover:shadow-xl hover:shadow-[#8157D9]/30 transition-all hover:-translate-y-0.5 group">
-                    {t('becomePartner')}
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-                <Link href="/discover">
-                  <Button size="lg" variant="outline" className="border-[#8157D9] text-[#8157D9] hover:bg-white hover:text-[#7048C6] px-7 py-5 text-base font-medium rounded-full bg-white">
-                    {t('exploreProjects')}
-                  </Button>
+              <div className="flex flex-col gap-4 pt-2">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link href="/partner/onboarding">
+                    <Button size="lg" className="bg-[#8157D9] hover:bg-[#7048C6] text-white px-7 py-5 text-base font-semibold rounded-full shadow-lg shadow-[#8157D9]/25 hover:shadow-xl hover:shadow-[#8157D9]/30 transition-all hover:-translate-y-0.5 group">
+                      {t('becomePartner')}
+                      <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                  <Link href="/school/onboarding">
+                    <Button size="lg" variant="outline" className="border-[#8157D9] text-[#8157D9] hover:bg-white hover:text-[#7048C6] px-7 py-5 text-base font-medium rounded-full bg-white">
+                      {t('joinAsSchool')}
+                    </Button>
+                  </Link>
+                </div>
+                <Link href="/discover" className="text-gray-600 hover:text-[#8157D9] flex items-center gap-1.5 text-sm font-medium transition-colors w-fit">
+                  {t('exploreProjects')}
+                  <ArrowUpRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             </div>
@@ -557,13 +563,20 @@ export default function PartnersPage() {
           <p className="text-xl text-gray-700 mb-12 max-w-2xl mx-auto leading-relaxed">
             {t('ctaSubtitle')}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/partner/onboarding">
-              <Button size="lg" className="bg-[#8157D9] text-white hover:bg-[#7048C6] px-10 py-6 text-lg font-semibold rounded-full shadow-xl shadow-[#8157D9]/25 transition-all hover:-translate-y-1 group">
-                {t('startPartnership')}
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
+          <div className="flex flex-col items-center gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link href="/partner/onboarding">
+                <Button size="lg" className="bg-[#8157D9] text-white hover:bg-[#7048C6] px-10 py-6 text-lg font-semibold rounded-full shadow-xl shadow-[#8157D9]/25 transition-all hover:-translate-y-1 group">
+                  {t('startPartnership')}
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+              <Link href="/school/onboarding">
+                <Button size="lg" variant="outline" className="border-[#8157D9] text-[#8157D9] hover:bg-white hover:text-[#7048C6] px-10 py-6 text-lg font-medium rounded-full bg-white">
+                  {t('joinAsSchool')}
+                </Button>
+              </Link>
+            </div>
             <Link href="#" className="text-[#1a1a2e] hover:text-[#8157D9] flex items-center justify-center gap-2 font-medium py-4 px-6 transition-colors">
               {t('scheduleCall')}
               <ArrowUpRight className="w-4 h-4" />

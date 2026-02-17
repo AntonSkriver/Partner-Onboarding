@@ -6,6 +6,7 @@ import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
 import { usePathname, useRouter } from '@/i18n/navigation'
 import {
+  Briefcase,
   Compass,
   Home,
   Layers,
@@ -46,6 +47,7 @@ export function TeacherShell({ children }: TeacherShellProps) {
     { href: '/teacher/projects', label: tNav('myProjects'), icon: Layers },
     { href: '/teacher/programs', label: tNav('myPrograms'), icon: FolderOpen },
     { href: '/teacher/school', label: tNav('mySchool'), icon: Building2 },
+    { href: '/teacher/partner', label: tNav('myPartner'), icon: Briefcase },
   ]
   const [session, setSession] = useState<UserSession | null>(null)
   const [hasBackup, setHasBackup] = useState(false)
