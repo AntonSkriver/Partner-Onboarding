@@ -68,7 +68,6 @@ type InstitutionExtras = {
 
 export default function SchoolOverviewPage() {
   const t = useTranslations('profile.overview')
-  const tc = useTranslations('common')
   const tcrc = useTranslations('crc')
   const [school, setSchool] = useState<SchoolProfile | null>(null)
   const [loading, setLoading] = useState(true)

@@ -206,8 +206,8 @@ export function InterestsStep({ onNext, onBack, currentStep, totalSteps, initial
                   <div>
                     <p className="text-sm font-medium text-blue-900">Flexible Matching</p>
                     <p className="text-sm text-blue-700">
-                      Don't worry about choosing perfectly - you can always update your interests later, 
-                      and we'll show you opportunities that match your selected topics.
+                      Don&apos;t worry about choosing perfectly - you can always update your interests later,
+                      and we&apos;ll show you opportunities that match your selected topics.
                     </p>
                   </div>
                 </div>

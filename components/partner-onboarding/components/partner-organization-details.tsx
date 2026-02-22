@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { usePartnerOnboarding, getOrganizationTypeLabel } from "../../../contexts/partner-onboarding-context"
+import { usePartnerOnboarding } from "../../../contexts/partner-onboarding-context"
 import { Building2, Globe, AlertCircle, CheckCircle2 } from "lucide-react"
 import { useState } from "react"
 import { useTranslations } from "next-intl"
@@ -72,8 +72,6 @@ export function PartnerOrganizationDetails({ onNext, onPrevious }: PartnerOrgani
   }
 
   const canProceed = isStepComplete(2) && Object.keys(errors).length === 0
-  const orgTypeLabel = getOrganizationTypeLabel(formData.organizationType).toLowerCase()
-
   return (
     <div className="space-y-8">
       {/* Header */}

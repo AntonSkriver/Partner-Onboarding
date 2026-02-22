@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { usePartnerForm } from '@/contexts/partner-form-context'
-import Image from "next/image"
 
 interface WelcomeScreenProps {
   onNext: () => void
@@ -49,13 +48,13 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
           Welcome to Class2Class!
         </h1>
         <p className="welcome-description">
-          We're excited to help {organizationName} connect with schools and create meaningful educational partnerships. 
-          Let's set up your organization profile to get started.
+          We&apos;re excited to help {organizationName} connect with schools and create meaningful educational partnerships.
+          Let&apos;s set up your organization profile to get started.
         </p>
 
         <div className="mt-6 space-y-4">
           <div className="bg-purple-50 rounded-lg p-4">
-            <h3 className="font-semibold text-purple-900 mb-2">What we'll help you with:</h3>
+            <h3 className="font-semibold text-purple-900 mb-2">What we&apos;ll help you with:</h3>
             <ul className="text-sm text-purple-800 space-y-1">
               <li>• Connect with schools that align with your mission</li>
               <li>• Showcase your SDG focus areas</li>

@@ -10,7 +10,7 @@ interface FinalScreenProps {
   onGoToStep: (step: number) => void
 }
 
-export function FinalScreen({ onNext, onPrevious, onGoToStep }: FinalScreenProps) {
+export function FinalScreen(_props: FinalScreenProps) {
   const router = useRouter()
 
   const handleGoToDashboard = () => {
@@ -32,7 +32,7 @@ export function FinalScreen({ onNext, onPrevious, onGoToStep }: FinalScreenProps
           Welcome to Class2Class!
         </h1>
         <p className="text-lg text-gray-600 max-w-md mx-auto">
-          Your organization profile has been successfully created. You're now ready to connect with schools and start making a difference.
+          Your organization profile has been successfully created. You&apos;re now ready to connect with schools and start making a difference.
         </p>
       </div>
 

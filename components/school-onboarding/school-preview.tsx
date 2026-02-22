@@ -1,7 +1,7 @@
 "use client"
 
 import { useSchoolForm } from "@/contexts/school-form-context"
-import { School, MapPin, Users, Globe, Mail, User, Heart, GraduationCap } from "lucide-react"
+import { School, MapPin, Users, Globe, Mail, User, GraduationCap } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 interface SchoolPreviewProps {
@@ -27,7 +27,6 @@ export function SchoolPreview({ currentStep }: SchoolPreviewProps) {
   const sectionClass = (section: 'header' | 'details' | 'contact' | 'interests' | 'sdg') =>
     isHighlighted(section) ? 'border-l-2 border-purple-500 pl-3 -ml-3' : ''
 
-  const hasName = formData.schoolName
   const hasLocation = formData.country || formData.city
   const hasDetails = formData.studentCount || formData.teacherCount || (formData.gradelevels && formData.gradelevels.length > 0)
   const hasLanguages = formData.languages && formData.languages.length > 0

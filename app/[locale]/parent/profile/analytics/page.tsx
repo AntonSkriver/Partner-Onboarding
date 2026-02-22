@@ -16,13 +16,8 @@ import {
   PieChart,
   Pie,
   Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
   ResponsiveContainer,
   Tooltip,
-  LabelList,
 } from 'recharts'
 import {
   Target,
@@ -42,27 +37,13 @@ import Image from 'next/image'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
-import { SDGIcon, SDG_DATA } from '@/components/sdg-icons'
-import {
-  buildProgramSummary,
-  aggregateProgramMetrics,
-  type ProgramSummary,
-} from '@/lib/programs/selectors'
-import { getCountryDisplay } from '@/lib/countries'
+import { SDGIcon } from '@/components/sdg-icons'
 import { InteractiveMapWrapper, type CountryData } from '@/components/interactive-map-wrapper'
 import {
   getParentOrganizationProfilePreset,
-  getScopedParentPartnerIds,
 } from '@/lib/parent/network'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
-
-// Helper for consistent age group calculation based on project name hash
-function getProjectAgeGroup(projectName: string): string {
-  const ageGroups = ['12-14', '14-16', '16-18']
-  const hash = projectName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  return ageGroups[hash % ageGroups.length]
-}
 
 // Animated counter component for engaging number displays
 function AnimatedCounter({ value, duration = 1.5, className = '' }: { value: number; duration?: number; className?: string }) {
@@ -175,28 +156,11 @@ interface ProjectDetail {
 export default function ParentAnalyticsPage() {
   const t = useTranslations('profile.analytics')
   const tDash = useTranslations('dashboard')
-  const [session, setSession] = useState(() => getCurrentSession())
+  const [_session, setSession] = useState(() => getCurrentSession())
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null)
-  const { ready: prototypeReady, database } = usePrototypeDb()
-
-  const allowedPartnerIds = useMemo(
-    () =>
-      new Set(
-        database ? getScopedParentPartnerIds(database, session?.organization) : [],
-      ),
-    [database, session?.organization],
-  )
-
-  const programSummaries = useMemo<ProgramSummary[]>(() => {
-    if (!prototypeReady || !database) {
-      return []
-    }
-    return database.programs
-      .filter((program) => allowedPartnerIds.has(program.partnerId))
-      .map((program) => buildProgramSummary(database, program))
-  }, [prototypeReady, database, allowedPartnerIds])
+  usePrototypeDb()
 
   // Always use hardcoded metrics for consistent display
   const programMetrics = useMemo(() => {
@@ -337,34 +301,6 @@ export default function ParentAnalyticsPage() {
     ]
   }, [])
 
-  // Country impact - always use hardcoded data for consistency
-  const countryImpact = useMemo(() => {
-    return [
-      {
-        country: 'IT',
-        countryLabel: 'Italy',
-        flag: '🇮🇹',
-        institutions: 4,
-        teachers: 8, // 2 Punto Luce Roma + 2 Milano + 2 Napoli + 2 Palermo
-        students: 2190,
-        projects: 2,
-        completedProjects: 0,
-        regions: ['Lazio', 'Lombardy', 'Campania', 'Sicily'],
-      },
-      {
-        country: 'MX',
-        countryLabel: 'Mexico',
-        flag: '🇲🇽',
-        institutions: 2,
-        teachers: 4, // 2 CDMX + 2 Monterrey
-        students: 1080,
-        projects: 1,
-        completedProjects: 0,
-        regions: ['Mexico City', 'Nuevo Leon'],
-      },
-    ]
-  }, [])
-
   const headlineMetrics = [
     {
       id: 'students',
@@ -412,44 +348,6 @@ export default function ParentAnalyticsPage() {
       textColor: 'text-emerald-700',
     },
   ] as const
-
-  const countryReachStats = [
-    {
-      label: 'Countries active',
-      value: programMetrics.countryCount.toString(),
-    },
-    {
-      label: 'Institutions onboarded',
-      value: programMetrics.institutions.toString(),
-    },
-    {
-      label: 'Programs live',
-      value: '3',
-    },
-  ]
-
-  const markerPositions: Record<string, { x: string; y: string }> = {
-    Italy: { x: '53%', y: '33%' },
-    Mexico: { x: '26%', y: '47%' },
-  }
-
-  const mapMarkers =
-    countryImpact.length > 0
-      ? countryImpact.map((entry) => ({
-          country: entry.countryLabel,
-          flag: entry.flag,
-          x: markerPositions[entry.countryLabel]?.x ?? '50%',
-          y: markerPositions[entry.countryLabel]?.y ?? '50%',
-        }))
-      : [
-          { country: 'Italy', flag: '🇮🇹', x: markerPositions.Italy.x, y: markerPositions.Italy.y },
-          {
-            country: 'Mexico',
-            flag: '🇲🇽',
-            x: markerPositions.Mexico.x,
-            y: markerPositions.Mexico.y,
-          },
-        ]
 
   // Transform data for interactive map - use hardcoded data with reliable coordinates
   // Active students: IT (28+26+24+24=102), MX (0+26+0=26) = 128 total matching projectDetails
@@ -539,13 +437,6 @@ export default function ParentAnalyticsPage() {
     switch (selectedMetric) {
       case 'students': {
         const countryCount = 2 // Italy and Mexico
-
-        // Prepare pie chart data
-        const pieData = studentBreakdown.map((item, idx) => ({
-          name: item.program.split(':')[0] || item.program,
-          value: item.students,
-          fill: CHART_COLORS.purple[idx % CHART_COLORS.purple.length],
-        }))
 
         // Age group distribution (based on typical secondary school demographics)
         const totalStudents = programMetrics.students
@@ -1229,10 +1120,6 @@ export default function ParentAnalyticsPage() {
       case 'programs': {
         const totalStudents = studentBreakdown.reduce((sum, p) => sum + p.students, 0)
         const totalSchools = studentBreakdown.reduce((sum, p) => sum + p.schools, 0)
-        const uniqueCountries = new Set(studentBreakdown.flatMap(p => {
-          // Approximation based on countries field
-          return Array(p.countries).fill(0).map((_, i) => i)
-        })).size || programMetrics.countryCount
 
         return (
           <div className="space-y-10">

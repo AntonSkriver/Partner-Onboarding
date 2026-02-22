@@ -35,23 +35,6 @@ const friendlyLabel = (value: string): string =>
     .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
     .join(' ')
 
-const formatDateRange = (startDate?: string, endDate?: string): string => {
-  if (!startDate && !endDate) return 'TBD'
-  const start = startDate ? new Date(startDate) : null
-  const end = endDate ? new Date(endDate) : null
-  const format = new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    year: 'numeric',
-  })
-  if (start && end) {
-    return `${format.format(start)} – ${format.format(end)}`
-  }
-  if (start) {
-    return `${format.format(start)} onward`
-  }
-  return `Until ${format.format(end as Date)}`
-}
-
 const formatRelative = (isoDate: string | undefined): string | null => {
   if (!isoDate) return null
   const date = new Date(isoDate)
@@ -137,14 +120,6 @@ export function ProgramDetailPage({ basePath = '/discover' }: ProgramDetailPageP
   const { program, templates, institutions } = summary
   const isMember = viewerProgramIds.has(program.id)
   const canViewParticipants = program.isPublic || isMember
-  const hostPartner = summary.coPartners.find(
-    ({ relationship }) => relationship.role === 'host',
-  )?.partner
-  const supportingPartner = program.supportingPartnerId
-    ? summary.coPartners.find(
-        ({ relationship }) => relationship.partnerId === program.supportingPartnerId,
-      )?.partner
-    : undefined
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
@@ -224,7 +199,7 @@ export function ProgramDetailPage({ basePath = '/discover' }: ProgramDetailPageP
                 <CardContent>
                   {myProjects.length === 0 ? (
                     <div className="rounded-lg border border-dashed border-purple-200 bg-purple-50/70 p-6 text-center text-sm text-purple-700">
-                      You haven&apos;t created a project for this program yet. Use the "Create project" button on the dashboard to get started.
+                      You haven&apos;t created a project for this program yet. Use the &quot;Create project&quot; button on the dashboard to get started.
                     </div>
                   ) : (
                     <div className="grid gap-4 md:grid-cols-2">

@@ -157,10 +157,6 @@ export default function ProjectDetailsPage() {
         ? mock?.projectType
         : (db?.program?.projectTypes?.[0]?.replaceAll('_', ' ') ?? 'Collaboration')
 
-    const ageGroup = isMock
-        ? mock?.ageRange
-        : (db?.program?.targetAgeRanges?.[0] ? `${db.program.targetAgeRanges[0].replace('-', ' - ')} years old` : 'All ages')
-
     const startWindow = isMock
         ? mock?.startMonth
         : (db?.template?.recommendedStartMonth ?? 'Flexible start')
@@ -191,9 +187,9 @@ export default function ProjectDetailsPage() {
         })
 
         if (db?.project?.id === 'program-project-communities-belonging-ulla' && database) {
-            const karin = database.institutionTeachers.find((t: any) => t.id === 'teacher-aarhus-karin')
+            const karin = database.institutionTeachers.find((t) => t.id === 'teacher-aarhus-karin')
             if (karin) {
-                const karinInstitution = database.institutions.find((i: any) => i.id === karin.institutionId)
+                const karinInstitution = database.institutions.find((i) => i.id === karin.institutionId)
                 const { flag: karinFlag, name: karinCountry } = getCountryDisplay(karinInstitution?.country ?? 'DK')
 
                 list.push({
@@ -282,7 +278,7 @@ export default function ProjectDetailsPage() {
                                 </div>
                                 <p className="text-xs text-gray-700 leading-snug">
                                     <span className="font-semibold text-gray-900">{creatorName}</span> has created the project{' '}
-                                    <span className="font-semibold text-gray-900">"{title}"</span> in Class2Class.org
+                                    <span className="font-semibold text-gray-900">&quot;{title}&quot;</span> in Class2Class.org
                                 </p>
                             </div>
 

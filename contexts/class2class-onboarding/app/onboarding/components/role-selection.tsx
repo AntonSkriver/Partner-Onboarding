@@ -18,7 +18,7 @@ interface RoleOption {
   icon: React.ElementType
 }
 
-export function RoleSelection({ onNext, onPrevious }: RoleSelectionProps): ReactElement {
+export function RoleSelection({ onNext, onPrevious, onGoToStep: _onGoToStep }: RoleSelectionProps): ReactElement {
   const { formData, updateFormData } = useProfileForm()
 
   const roles: RoleOption[] = [
@@ -49,7 +49,7 @@ export function RoleSelection({ onNext, onPrevious }: RoleSelectionProps): React
   return (
     <div className="space-y-6 pt-16 sm:pt-6">
       <div className="text-center">
-        <h2 className="text-xl font-semibold">What's your role at your school?</h2>
+        <h2 className="text-xl font-semibold">What&apos;s your role at your school?</h2>
       </div>
 
       <div className="space-y-4">

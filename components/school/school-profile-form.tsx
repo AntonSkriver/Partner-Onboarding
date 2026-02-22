@@ -14,11 +14,35 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Mail, Phone, MapPin, GraduationCap, Shield, Users } from 'lucide-react'
-import { SchoolAPI, SCHOOL_TYPES, GRADE_LEVELS, DEFAULT_SAFEGUARDING_SETTINGS } from '@/lib/api/schools'
+import { SchoolAPI, SCHOOL_TYPES, GRADE_LEVELS } from '@/lib/api/schools'
 import { Database } from '@/lib/types/database'
 
 type School = Database['public']['Tables']['schools']['Row']
 type SchoolUpdate = Database['public']['Tables']['schools']['Update']
+
+interface SchoolAddress {
+  street?: string
+  city?: string
+  region?: string
+  country?: string
+  postalCode?: string
+}
+
+interface SchoolGradeRange {
+  min?: number
+  max?: number
+}
+
+interface SchoolSafeguardingSettings {
+  consentStatus?: string
+  defaultModerationMode?: string
+  mediaPreferences?: {
+    allowPhotos?: boolean
+    allowVideos?: boolean
+    requireParentConsent?: boolean
+  }
+  gdprCompliant?: boolean
+}
 
 const schoolSchema = z.object({
   name: z.string().min(1, 'School name is required'),
@@ -88,7 +112,6 @@ export function SchoolProfileForm({
     formState: { errors },
     setValue,
     watch,
-    control
   } = useForm<SchoolFormData>({
     resolver: zodResolver(schoolSchema),
     defaultValues: {
@@ -98,26 +121,26 @@ export function SchoolProfileForm({
       contact_phone: school?.contact_phone || '',
       principal_name: school?.principal_name || '',
       address: {
-        street: (school?.address as any)?.street || '',
-        city: (school?.address as any)?.city || '',
-        region: (school?.address as any)?.region || '',
-        country: (school?.address as any)?.country || '',
-        postalCode: (school?.address as any)?.postalCode || ''
+        street: (school?.address as SchoolAddress | undefined)?.street || '',
+        city: (school?.address as SchoolAddress | undefined)?.city || '',
+        region: (school?.address as SchoolAddress | undefined)?.region || '',
+        country: (school?.address as SchoolAddress | undefined)?.country || '',
+        postalCode: (school?.address as SchoolAddress | undefined)?.postalCode || ''
       },
       grade_range: {
-        min: (school?.grade_range as any)?.min || 1,
-        max: (school?.grade_range as any)?.max || 12
+        min: (school?.grade_range as SchoolGradeRange | undefined)?.min || 1,
+        max: (school?.grade_range as SchoolGradeRange | undefined)?.max || 12
       },
       languages: school?.languages || [],
       safeguarding_settings: {
-        consentStatus: (school?.safeguarding_settings as any)?.consentStatus || 'pending',
-        defaultModerationMode: (school?.safeguarding_settings as any)?.defaultModerationMode || 'teacher_approval',
+        consentStatus: (school?.safeguarding_settings as SchoolSafeguardingSettings | undefined)?.consentStatus as SchoolFormData['safeguarding_settings']['consentStatus'] || 'pending',
+        defaultModerationMode: (school?.safeguarding_settings as SchoolSafeguardingSettings | undefined)?.defaultModerationMode as SchoolFormData['safeguarding_settings']['defaultModerationMode'] || 'teacher_approval',
         mediaPreferences: {
-          allowPhotos: (school?.safeguarding_settings as any)?.mediaPreferences?.allowPhotos || false,
-          allowVideos: (school?.safeguarding_settings as any)?.mediaPreferences?.allowVideos || false,
-          requireParentConsent: (school?.safeguarding_settings as any)?.mediaPreferences?.requireParentConsent || true
+          allowPhotos: (school?.safeguarding_settings as SchoolSafeguardingSettings | undefined)?.mediaPreferences?.allowPhotos || false,
+          allowVideos: (school?.safeguarding_settings as SchoolSafeguardingSettings | undefined)?.mediaPreferences?.allowVideos || false,
+          requireParentConsent: (school?.safeguarding_settings as SchoolSafeguardingSettings | undefined)?.mediaPreferences?.requireParentConsent || true
         },
-        gdprCompliant: (school?.safeguarding_settings as any)?.gdprCompliant || false
+        gdprCompliant: (school?.safeguarding_settings as SchoolSafeguardingSettings | undefined)?.gdprCompliant || false
       }
     }
   })
@@ -137,19 +160,19 @@ export function SchoolProfileForm({
   const onSubmit = async (data: SchoolFormData) => {
     setIsSubmitting(true)
     try {
-      const schoolData: SchoolUpdate = {
+      const schoolData = {
         ...data,
-      } as any
+      } as unknown as SchoolUpdate
 
       let result: School | null = null
-      
+
       if (isEditing && school) {
-        result = await SchoolAPI.update(school.id, schoolData as any)
+        result = await SchoolAPI.update(school.id, schoolData as unknown as Parameters<typeof SchoolAPI.update>[1])
       } else {
         result = await SchoolAPI.create({
           ...schoolData,
           is_active: true,
-        } as any)
+        } as unknown as Parameters<typeof SchoolAPI.create>[0])
       }
 
       if (result) {
@@ -195,7 +218,7 @@ export function SchoolProfileForm({
           <div className="space-y-2">
             <Label htmlFor="school_type">School Type *</Label>
             <Select 
-              onValueChange={(value) => setValue('school_type', value as any)}
+              onValueChange={(value) => setValue('school_type', value as SchoolFormData['school_type'])}
               defaultValue={school?.school_type}
             >
               <SelectTrigger>
@@ -222,7 +245,7 @@ export function SchoolProfileForm({
                 <Label htmlFor="grade_min">Minimum Grade</Label>
                 <Select 
                   onValueChange={(value) => setValue('grade_range.min', parseInt(value))}
-                  defaultValue={(school?.grade_range as any)?.min?.toString() || '1'}
+                  defaultValue={(school?.grade_range as SchoolGradeRange | undefined)?.min?.toString() || '1'}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -240,7 +263,7 @@ export function SchoolProfileForm({
                 <Label htmlFor="grade_max">Maximum Grade</Label>
                 <Select 
                   onValueChange={(value) => setValue('grade_range.max', parseInt(value))}
-                  defaultValue={(school?.grade_range as any)?.max?.toString() || '12'}
+                  defaultValue={(school?.grade_range as SchoolGradeRange | undefined)?.max?.toString() || '12'}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -351,7 +374,7 @@ export function SchoolProfileForm({
               <div className="space-y-2">
                 <Select 
                   onValueChange={(value) => setValue('address.country', value)}
-                  defaultValue={(school?.address as any)?.country}
+                  defaultValue={(school?.address as SchoolAddress | undefined)?.country}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select country *" />
@@ -439,7 +462,7 @@ export function SchoolProfileForm({
           <div className="space-y-2">
             <Label>Parent/Guardian Consent Status</Label>
             <Select 
-              onValueChange={(value) => setValue('safeguarding_settings.consentStatus', value as any)}
+              onValueChange={(value) => setValue('safeguarding_settings.consentStatus', value as SchoolFormData['safeguarding_settings']['consentStatus'])}
               defaultValue={watchedSafeguarding.consentStatus}
             >
               <SelectTrigger>
@@ -457,7 +480,7 @@ export function SchoolProfileForm({
           <div className="space-y-2">
             <Label>Content Moderation</Label>
             <Select 
-              onValueChange={(value) => setValue('safeguarding_settings.defaultModerationMode', value as any)}
+              onValueChange={(value) => setValue('safeguarding_settings.defaultModerationMode', value as SchoolFormData['safeguarding_settings']['defaultModerationMode'])}
               defaultValue={watchedSafeguarding.defaultModerationMode}
             >
               <SelectTrigger>

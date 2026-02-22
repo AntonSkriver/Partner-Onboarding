@@ -173,7 +173,6 @@ type ProfileData = z.infer<typeof profileSchema>
 export default function EditProfilePage() {
   const t = useTranslations('profile.edit')
   const tc = useTranslations('common')
-  const tSdg = useTranslations('sdg')
   const tCrc = useTranslations('crc')
   const [saveComplete, setSaveComplete] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -342,7 +341,7 @@ export default function EditProfilePage() {
           phone: data.primaryContactPhone || '',
         },
         otherContacts: normalizedOtherContacts,
-      } as any)
+      } as Record<string, unknown>)
 
       // Simulate save delay
       await new Promise(resolve => setTimeout(resolve, 1000))

@@ -18,7 +18,7 @@ interface OrganizationDescriptionStepProps {
   onBack: () => void;
   initialValue?: string;
   organizationName?: string;
-  aiPrefillData?: any;
+  aiPrefillData?: Record<string, string>;
 }
 
 export function OrganizationDescriptionStep({ 

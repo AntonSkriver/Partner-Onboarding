@@ -15,7 +15,7 @@ interface InterestsMotivationsProps {
   onGoToStep: (step: number) => void
 }
 
-export function InterestsMotivations({ onNext, onPrevious }: InterestsMotivationsProps) {
+export function InterestsMotivations({ onNext, onPrevious, onGoToStep: _onGoToStep }: InterestsMotivationsProps) {
   const { formData, updateFormData } = useProfileForm()
 
   const interests: { id: Interest; label: string; description: string; icon: React.ReactNode }[] = [
@@ -54,7 +54,7 @@ export function InterestsMotivations({ onNext, onPrevious }: InterestsMotivation
       <div className="text-center">
         <h2 className="text-xl font-semibold">What type of classroom collaborations interest you?</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Select the type(s) of global connections you'd like to create for your students
+          Select the type(s) of global connections you&apos;d like to create for your students
         </p>
       </div>
 

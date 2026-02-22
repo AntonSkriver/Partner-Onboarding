@@ -1,26 +1,17 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
-import { useMemo } from 'react'
 import {
   Activity,
-  ArrowRight,
-  CalendarDays,
-  CheckCircle2,
-  Compass,
   Layers,
-  Users,
   GraduationCap,
   Sparkles,
   FolderKanban,
   Link as LinkIcon,
-  Globe2,
 } from 'lucide-react'
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useTranslations } from 'next-intl'
 import { useTeacherContext } from '@/hooks/use-teacher-context'
@@ -34,51 +25,10 @@ export default function TeacherDashboardPage() {
   const {
     ready,
     session,
-    programSummaries,
-    myProgramIds,
-    membershipIds,
     database,
-    myInstitutions,
   } = useTeacherContext()
 
   const isLoading = !ready || !database
-
-  const teacherProjects = useMemo(() => {
-    if (!database) return []
-    const createdBy = membershipIds
-    return database.programProjects.filter((project) => createdBy.has(project.createdById))
-  }, [database, membershipIds])
-
-  const peerConnections = useMemo(() => {
-    const peers = new Set<string>()
-    programSummaries.forEach((summary) => {
-      summary.teachers.forEach((teacher) => {
-        if (!membershipIds.has(teacher.id) && teacher.email) {
-          peers.add(teacher.email)
-        }
-      })
-    })
-    return peers.size
-  }, [programSummaries, membershipIds])
-
-  const studentsReached = useMemo(
-    () =>
-      myInstitutions.reduce(
-        (total, institution) => total + (institution.studentCount ?? 0),
-        0,
-      ),
-    [myInstitutions],
-  )
-
-  const openCollaborations = useMemo(() => {
-    if (!database) return []
-    return database.programProjects.filter(
-      (project) =>
-        project.status === 'active' &&
-        myProgramIds.has(project.programId) &&
-        !membershipIds.has(project.createdById),
-    )
-  }, [database, myProgramIds, membershipIds])
 
   if (isLoading) {
     return (
@@ -255,16 +205,6 @@ export default function TeacherDashboardPage() {
 
 
 
-    </div>
-  )
-}
-
-function Metric({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
-  return (
-    <div className="space-y-1 rounded-lg border border-purple-100 bg-purple-50/40 p-3 text-center">
-      <div className="flex items-center justify-center gap-1 text-purple-600">{icon}</div>
-      <p className="text-lg font-semibold text-gray-900">{value}</p>
-      <p className="text-xs uppercase tracking-wide text-gray-500">{label}</p>
     </div>
   )
 }

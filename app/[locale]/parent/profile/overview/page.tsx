@@ -22,7 +22,6 @@ import {
   Layers,
   BookOpen,
   Users,
-  Globe,
 } from 'lucide-react'
 import { getCurrentSession } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
@@ -86,7 +85,7 @@ const parseContacts = (rawContacts: Organization['primary_contacts'] | null | un
     return []
   }
 
-  return (rawContacts as any[])
+  return (rawContacts as Record<string, unknown>[])
     .filter((entry) => typeof entry === 'object' && entry !== null)
     .map((entry) => ({
       name: typeof entry.name === 'string' ? entry.name : undefined,
@@ -110,7 +109,6 @@ const extractChildRightsFocus = (org: Organization | null): string[] => {
 
 export default function ParentOverviewPage() {
   const t = useTranslations('profile.overview')
-  const tc = useTranslations('common')
   const tcrc = useTranslations('crc')
   const tDash = useTranslations('dashboard')
   const [session, setSession] = useState(() => getCurrentSession())

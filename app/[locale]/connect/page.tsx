@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { 
@@ -15,12 +15,8 @@ import {
   BookOpen,
   GraduationCap,
   Users,
-  School,
-  Building2,
-  MapPin,
   Clock,
   UserCheck,
-  UserX,
   UserPlus,
   Mail
 } from 'lucide-react'
@@ -247,7 +243,7 @@ export default function ConnectPage() {
     }
   }
 
-  const renderTeacherCard = (teacher: any) => (
+  const renderTeacherCard = (teacher: typeof teachersData.all[number]) => (
     <Card key={teacher.id} className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
@@ -321,7 +317,7 @@ export default function ConnectPage() {
     </Card>
   )
 
-  const renderSchoolCard = (school: any) => (
+  const renderSchoolCard = (school: typeof schoolsData.all[number]) => (
     <Card key={school.id} className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
@@ -378,7 +374,7 @@ export default function ConnectPage() {
     </Card>
   )
 
-  const renderPartnerCard = (partner: any) => (
+  const renderPartnerCard = (partner: typeof partnersData.all[number]) => (
     <Card key={partner.id} className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
@@ -459,9 +455,9 @@ export default function ConnectPage() {
     return (
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {currentData.map((item) => {
-          if (activeMainTab === 'teachers') return renderTeacherCard(item)
-          if (activeMainTab === 'schools') return renderSchoolCard(item)
-          if (activeMainTab === 'partners') return renderPartnerCard(item)
+          if (activeMainTab === 'teachers') return renderTeacherCard(item as typeof teachersData.all[number])
+          if (activeMainTab === 'schools') return renderSchoolCard(item as typeof schoolsData.all[number])
+          if (activeMainTab === 'partners') return renderPartnerCard(item as typeof partnersData.all[number])
           return null
         })}
       </div>

@@ -61,7 +61,7 @@ export function SchoolNameStep({ onNext, onBack, currentStep, totalSteps, initia
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <School className="h-8 w-8 text-blue-600" />
             </div>
-            <CardTitle className="text-2xl text-gray-900">What's your school's name?</CardTitle>
+            <CardTitle className="text-2xl text-gray-900">What&apos;s your school&apos;s name?</CardTitle>
             <CardDescription className="text-lg">
               Help us create your school profile and connect you with global learning opportunities
             </CardDescription>

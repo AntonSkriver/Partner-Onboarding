@@ -11,9 +11,9 @@ interface SchoolCountryStepProps {
   onGoToStep: (step: number) => void
 }
 
-export function SchoolCountryStep({ onNext, onPrevious }: SchoolCountryStepProps) {
+export function SchoolCountryStep({ onNext, onPrevious, onGoToStep: _onGoToStep }: SchoolCountryStepProps) {
   const { formData, updateFormData, isStepComplete } = useProfileForm()
-  const [countries, setCountries] = useState<string[]>([
+  const [countries] = useState<string[]>([
     "United States",
     "Canada",
     "Mexico",

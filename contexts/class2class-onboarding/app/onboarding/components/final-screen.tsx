@@ -1,7 +1,6 @@
 "use client"
 import { Card } from "@/components/ui/card"
-import { useProfileForm } from "../context/profile-form-context"
-import { Users, Search, ArrowLeft } from "lucide-react"
+import { Users, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 
@@ -11,7 +10,6 @@ interface FinalScreenProps {
 }
 
 export function FinalScreen({}: FinalScreenProps) {
-  const { formData } = useProfileForm()
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -28,9 +26,9 @@ export function FinalScreen({}: FinalScreenProps) {
           <div className="text-center space-y-2">
             <h2 className="text-xl font-bold">Welcome to Class2Class.org!</h2>
             <p className="text-sm text-muted-foreground">
-              Your profile is complete and you're ready to start connecting with educators around the world.
+              Your profile is complete and you&apos;re ready to start connecting with educators around the world.
             </p>
-            <p className="text-sm font-medium text-primary">Choose where you'd like to start:</p>
+            <p className="text-sm font-medium text-primary">Choose where you&apos;d like to start:</p>
           </div>
         </div>
 

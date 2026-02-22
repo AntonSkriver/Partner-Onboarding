@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { useProfileForm } from "../context/profile-form-context"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Check, ChevronsUpDown, Plus } from "lucide-react"
+import { Check, ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface LanguageSelectionProps {
@@ -50,7 +50,7 @@ const allLanguages = [
   { code: "bn", name: "Bengali" },
 ]
 
-export function LanguageSelection({ onNext, onPrevious }: LanguageSelectionProps) {
+export function LanguageSelection({ onNext, onPrevious, onGoToStep: _onGoToStep }: LanguageSelectionProps) {
   const { formData, updateFormData } = useProfileForm()
   const [open, setOpen] = useState(false)
 

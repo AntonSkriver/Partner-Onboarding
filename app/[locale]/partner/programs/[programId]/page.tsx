@@ -3,12 +3,10 @@
 import { Link } from '@/i18n/navigation'
 import { useParams } from 'next/navigation'
 import { useRouter } from '@/i18n/navigation'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowLeft,
   CalendarDays,
-  CheckCircle,
-  GraduationCap,
   Layers,
   MapPin,
   School,
@@ -23,7 +21,6 @@ import {
   Languages,
 } from 'lucide-react'
 import Image from 'next/image'
-import { cn } from '@/lib/utils'
 import { getCountryDisplay } from '@/lib/countries'
 
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
@@ -140,39 +137,6 @@ const getCountryBadgeStyles = (countryCode: string) => {
   }
   return 'bg-gray-100 text-gray-700 border-gray-200'
 }
-
-const metricItems = (summary: ProgramSummary) => [
-  {
-    label: 'Active projects',
-    value: summary.metrics.activeProjectCount,
-    icon: <Layers className="h-4 w-4 text-purple-500" />,
-  },
-  {
-    label: 'Finished projects',
-    value: summary.metrics.completedProjectCount,
-    icon: <CheckCircle className="h-4 w-4 text-purple-500" />,
-  },
-  {
-    label: 'Teachers',
-    value: summary.metrics.teacherCount,
-    icon: <Users className="h-4 w-4 text-purple-500" />,
-  },
-  {
-    label: 'Students',
-    value: summary.metrics.studentCount.toLocaleString(),
-    icon: <GraduationCap className="h-4 w-4 text-purple-500" />,
-  },
-  {
-    label: 'Institutions',
-    value: summary.metrics.institutionCount,
-    icon: <School className="h-4 w-4 text-purple-500" />,
-  },
-  {
-    label: 'Countries',
-    value: summary.metrics.countries.length,
-    icon: <MapPin className="h-4 w-4 text-purple-500" />,
-  },
-]
 
 export default function PartnerProgramDetailPage() {
   const router = useRouter()
@@ -308,10 +272,6 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
 
   const hostName = hostPartner?.partner?.organizationName ?? 'Host organisation'
   const supportingName = supportingPartner?.partner?.organizationName ?? '—'
-  const crcLabel = summary.program.crcFocus?.length
-    ? summary.program.crcFocus.map((article) => `Article ${article}`).join(', ')
-    : '—'
-
   return (
     <Tabs value={tab} onValueChange={(value) => setTab(value as typeof tab)} className="space-y-6">
       <TabsList>

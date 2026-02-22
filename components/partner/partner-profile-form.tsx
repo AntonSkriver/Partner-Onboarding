@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Upload, X, Globe, Mail, Phone, MapPin, Tag, Award } from 'lucide-react'
+import { Upload, X, Globe, Mail, MapPin, Tag, Award } from 'lucide-react'
 import { OrganizationAPI, SDG_OPTIONS, THEMATIC_TAGS } from '@/lib/api/organizations'
 import { Database } from '@/lib/types/database'
 
@@ -35,7 +35,7 @@ const profileSchema = z.object({
     email: z.string().email('Valid email is required'),
     phone: z.string().optional(),
     role: z.string().min(1, 'Role is required'),
-    isPrimary: z.boolean().default(false)
+    isPrimary: z.boolean()
   })).min(1, 'At least one contact is required')
 })
 
@@ -64,12 +64,11 @@ export function PartnerProfileForm({
     formState: { errors },
     setValue,
     watch,
-    control
   } = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema) as any,
+    resolver: zodResolver(profileSchema),
     defaultValues: {
       name: organization?.name || '',
-      organization_type: (organization?.organization_type || 'ngo') as any,
+      organization_type: (organization?.organization_type || 'ngo') as ProfileFormData['organization_type'],
       website: organization?.website || '',
       short_description: organization?.short_description || '',
       countries_of_operation: organization?.countries_of_operation || [],
@@ -78,7 +77,7 @@ export function PartnerProfileForm({
       sdg_tags: organization?.sdg_tags || [],
       thematic_tags: organization?.thematic_tags || [],
       primary_contacts: Array.isArray(organization?.primary_contacts) 
-        ? organization.primary_contacts as any[] 
+        ? (organization.primary_contacts as ProfileFormData['primary_contacts'])
         : [{ name: '', email: '', phone: '', role: '', isPrimary: true }]
     }
   })
@@ -133,28 +132,28 @@ export function PartnerProfileForm({
   const onSubmit = async (data: ProfileFormData) => {
     setIsSubmitting(true)
     try {
-      let logoUrl = organization?.logo ?? organization?.logo_url ?? null
+      const logoUrl = organization?.logo ?? organization?.logo_url ?? null
 
       // TODO: Upload logo to storage if logoFile exists
       if (logoFile) {
         // logoUrl = await uploadLogo(logoFile)
       }
 
-      const organizationData: OrganizationUpdate = {
+      const organizationData = {
         ...data,
         logo: logoUrl,
-      } as any
+      } as unknown as OrganizationUpdate
 
       let result: Organization | null = null
-      
+
       if (isEditing && organization) {
-        result = await OrganizationAPI.update(organization.id, organizationData as any)
+        result = await OrganizationAPI.update(organization.id, organizationData as unknown as Parameters<typeof OrganizationAPI.update>[1])
       } else {
         result = await OrganizationAPI.create({
           ...organizationData,
           verification_status: 'pending',
           is_active: true,
-        } as any)
+        } as unknown as Parameters<typeof OrganizationAPI.create>[0])
       }
 
       if (result) {
@@ -200,7 +199,7 @@ export function PartnerProfileForm({
           <div className="space-y-2">
             <Label htmlFor="organization_type">Organization Type *</Label>
             <Select 
-              onValueChange={(value) => setValue('organization_type', value as any)}
+              onValueChange={(value) => setValue('organization_type', value as ProfileFormData['organization_type'])}
               defaultValue={organization?.organization_type}
             >
               <SelectTrigger>

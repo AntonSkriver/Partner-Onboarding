@@ -270,7 +270,6 @@ export default function ParentEditProgramPage() {
     setIsSubmitting(true)
 
     try {
-      const now = new Date().toISOString()
       const hostName = hostPartner?.organizationName ?? 'Program Host'
       const displayTitle = program.displayTitle || `${hostName}: ${values.name}`
 

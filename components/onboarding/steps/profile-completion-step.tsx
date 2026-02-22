@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { createSession } from '@/lib/auth/session';
+import { Link } from '@/i18n/navigation';
 import { 
   CheckCircle, 
   Eye, 
@@ -104,7 +105,7 @@ export function ProfileCompletionStep({
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row gap-3 justify-center pt-0">
-            <a 
+            <Link
               href="/partner/profile/preview"
               style={{
                 display: 'inline-flex',
@@ -123,8 +124,8 @@ export function ProfileCompletionStep({
             >
               <Eye className="w-4 h-4" />
               Preview Profile
-            </a>
-            <a 
+            </Link>
+            <Link
               href="/partner/dashboard"
               style={{
                 display: 'inline-flex',
@@ -142,7 +143,7 @@ export function ProfileCompletionStep({
             >
               Start Collaborating
               <ArrowRight className="w-4 h-4" />
-            </a>
+            </Link>
           </CardContent>
         </Card>
       </div>

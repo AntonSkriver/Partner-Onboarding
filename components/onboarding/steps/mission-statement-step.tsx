@@ -18,7 +18,7 @@ interface MissionStatementStepProps {
   onBack: () => void;
   initialValue?: string;
   organizationName?: string;
-  aiPrefillData?: any;
+  aiPrefillData?: Record<string, string>;
 }
 
 export function MissionStatementStep({ 

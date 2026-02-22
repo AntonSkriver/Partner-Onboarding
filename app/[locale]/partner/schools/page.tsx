@@ -3,10 +3,9 @@
 import type { JSX } from 'react'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { 
   School, 
   Mail, 
@@ -235,7 +234,7 @@ export default function PartnerSchoolsPage() {
               <School className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No School Invitations Yet</h3>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Start building your school network by sending invitations to schools you'd like to collaborate with.
+                Start building your school network by sending invitations to schools you&apos;d like to collaborate with.
               </p>
               <Link href="/partner/schools/invite">
                 <Button className="bg-purple-600 hover:bg-purple-700">

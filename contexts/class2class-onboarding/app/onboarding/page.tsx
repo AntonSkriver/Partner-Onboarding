@@ -14,7 +14,6 @@ import { FinalScreen } from "./components/final-screen"
 import { ProgressBar } from "./components/progress-bar"
 import { ProfileFormProvider } from "./context/profile-form-context"
 import { ProfilePreview } from "./components/profile-preview"
-import Image from "next/image"
 
 export default function OnboardingPage() {
   return (

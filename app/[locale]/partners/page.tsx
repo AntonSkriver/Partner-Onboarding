@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { LanguageSwitcher } from '@/components/language-switcher'
 
 const partnerTypes = [
@@ -48,36 +48,6 @@ const partnerTypes = [
     icon: GraduationCap,
   }
 ]
-
-const stats = [
-  { value: "134", labelKey: "countries" as const, suffix: "+" },
-  { value: "4,542", labelKey: "globalTeachers" as const, suffix: "" },
-  { value: "47,500", labelKey: "studentsImpacted" as const, suffix: "+" },
-]
-
-function AnimatedCounter({ value, suffix }: { value: string, suffix: string }) {
-  const [isVisible, setIsVisible] = useState(false)
-  const ref = useRef<HTMLSpanElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [])
-
-  return (
-    <span ref={ref} className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-      {value}{suffix}
-    </span>
-  )
-}
 
 export default function PartnersPage() {
   const t = useTranslations('landing')

@@ -1,16 +1,13 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Link } from '@/i18n/navigation'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Layers, Globe, Users, ArrowRight } from 'lucide-react'
+import { Layers, Users } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { getCurrentSession } from '@/lib/auth/session'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
-import { getCountryDisplay } from '@/lib/countries'
 
 export default function CoordinatorProjectsPage() {
   const t = useTranslations('dashboard')
@@ -57,25 +54,15 @@ export default function CoordinatorProjectsPage() {
 
       {projects.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2">
-          {projects.map((project: any) => (
+          {projects.map((project) => (
             <Card key={project.id} className="transition-shadow hover:shadow-md">
               <CardContent className="p-5">
-                <h3 className="font-semibold text-gray-900">{project.title}</h3>
-                {project.description && (
-                  <p className="mt-1 line-clamp-2 text-sm text-gray-500">{project.description}</p>
-                )}
+                <h3 className="font-semibold text-gray-900">{project.title ?? ''}</h3>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {project.countries && project.countries.length > 0 && (
-                    <Badge variant="outline" className="text-xs">
-                      <Globe className="mr-1 h-3 w-3" />
-                      {project.countries.slice(0, 2).map(getCountryDisplay).join(', ')}
-                      {project.countries.length > 2 && ` +${project.countries.length - 2}`}
-                    </Badge>
-                  )}
-                  {project.studentsReached && (
+                  {project.participantIds && project.participantIds.length > 0 && (
                     <Badge variant="outline" className="text-xs">
                       <Users className="mr-1 h-3 w-3" />
-                      {project.studentsReached} {t('students')}
+                      {project.participantIds.length} {t('students')}
                     </Badge>
                   )}
                   {project.status && (

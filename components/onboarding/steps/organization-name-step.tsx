@@ -17,8 +17,16 @@ const nameSchema = z.object({
 
 type NameData = z.infer<typeof nameSchema>;
 
+interface AIPrefillData {
+  description?: string;
+  mission?: string;
+  country?: string;
+  languages?: string[];
+  sdgFocus?: string[];
+}
+
 interface OrganizationNameStepProps {
-  onNext: (data: { organizationName: string; website?: string; aiPrefillData?: any }) => void;
+  onNext: (data: { organizationName: string; website?: string; aiPrefillData?: AIPrefillData }) => void;
   onBack: () => void;
   initialValue?: string;
   organizationType?: string;
@@ -31,7 +39,7 @@ export function OrganizationNameStep({
   organizationType 
 }: OrganizationNameStepProps) {
   const [isLoadingAI, setIsLoadingAI] = useState(false);
-  const [aiPrefillData, setAiPrefillData] = useState<any>(null);
+  const [aiPrefillData, setAiPrefillData] = useState<AIPrefillData | null>(null);
   const [showAIPrefill, setShowAIPrefill] = useState(false);
 
   const form = useForm<NameData>({
@@ -43,7 +51,7 @@ export function OrganizationNameStep({
   });
 
   // AI prefill function (simulated for demo)
-  const fetchOrganizationData = async (orgName: string, website?: string) => {
+  const fetchOrganizationData = async (orgName: string, _website?: string) => {
     setIsLoadingAI(true);
     try {
       // Simulate API call delay
@@ -90,7 +98,7 @@ export function OrganizationNameStep({
     onNext({
       organizationName: data.organizationName,
       website: data.website,
-      aiPrefillData: aiPrefillData
+      aiPrefillData: aiPrefillData ?? undefined
     });
   };
 
@@ -117,20 +125,6 @@ export function OrganizationNameStep({
     }
   };
 
-  const getTypeLabel = () => {
-    switch (organizationType) {
-      case 'ngo':
-        return 'NGO';
-      case 'government':
-        return 'Government Agency';
-      case 'school_network':
-        return 'School Network';
-      case 'commercial':
-        return 'Commercial Partner';
-      default:
-        return 'Organization';
-    }
-  };
 
   return (
     <div className="max-w-lg mx-auto">
@@ -237,7 +231,7 @@ export function OrganizationNameStep({
                 </div>
                 <div>
                   <strong className="text-green-900">Languages:</strong>
-                  <span className="text-green-800 ml-2">{aiPrefillData.languages.join(', ')}</span>
+                  <span className="text-green-800 ml-2">{aiPrefillData.languages?.join(', ')}</span>
                 </div>
                 <p className="text-green-700 text-xs mt-3">
                   ✅ This information will be pre-filled in the next steps. You can review and edit it before continuing.

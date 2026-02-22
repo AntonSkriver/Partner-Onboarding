@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
-  Upload, FileText, Share2, Download, Eye, Edit3, 
-  Globe, Facebook, Twitter, Instagram, Mail, 
+  Upload, FileText, Share2, Download, Edit3,
+  Globe, Facebook, Twitter, Instagram, Mail,
   School, Users, Target, Sparkles, ArrowLeft
 } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
@@ -284,7 +284,7 @@ The Class 7A Teaching Team`
                   AI-Powered Content Generation
                 </CardTitle>
                 <CardDescription>
-                  Choose what type of marketing content you'd like to generate from your project
+                  Choose what type of marketing content you&apos;d like to generate from your project
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -420,7 +420,7 @@ The Class 7A Teaching Team`
                         <Globe className="h-8 w-8 text-green-600" />
                         <div>
                           <CardTitle className="text-lg">School Website</CardTitle>
-                          <CardDescription>Add to your school's news section</CardDescription>
+                          <CardDescription>Add to your school&apos;s news section</CardDescription>
                         </div>
                       </div>
                     </CardHeader>

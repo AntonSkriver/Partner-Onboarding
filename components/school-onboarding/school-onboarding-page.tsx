@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import React, { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { SchoolWelcomeScreen } from "./school-welcome-screen"
@@ -54,7 +54,8 @@ function SchoolOnboardingContent() {
   ]
 
   const currentStep = Math.min(Math.max(initialStep, 0), steps.length - 1)
-  const CurrentStepComponent = steps[currentStep].component
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic step component with varying prop shapes
+  const CurrentStepComponent = steps[currentStep].component as React.ComponentType<any>
   const isFinal = currentStep === steps.length - 1
   const isWelcome = currentStep === 0
   const showPreview = !isWelcome && isDesktop
@@ -96,7 +97,8 @@ function SchoolOnboardingContent() {
   }
 
   // Build common props for step components
-  const stepProps: any = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const stepProps: Record<string, any> = {
     onNext: goToNextStep,
     onPrevious: goToPreviousStep,
     onGoToStep: goToStep,

@@ -108,9 +108,9 @@ export function SchoolFinalScreen({ onPrevious }: SchoolFinalScreenProps) {
             {t('finalEmailSupport')}
           </a>
           <span className="text-gray-200">|</span>
-          <a href="/help" className="text-purple-600 hover:underline">
+          <Link href="/help" className="text-purple-600 hover:underline">
             {t('finalHelpCenter')}
-          </a>
+          </Link>
         </div>
       </div>
     </div>

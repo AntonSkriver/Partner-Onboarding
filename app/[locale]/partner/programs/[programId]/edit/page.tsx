@@ -102,7 +102,7 @@ export default function EditProgramPage() {
     }
   }, [session, router])
 
-  const { partnerRecord } = useMemo(
+  const _partnerContext = useMemo(
     () => resolvePartnerContext(session, database ?? null),
     [database, session],
   )
@@ -156,7 +156,6 @@ export default function EditProgramPage() {
     setIsSubmitting(true)
 
     try {
-      const now = new Date().toISOString()
       const updated = updateRecord('programs', program.id, {
         name: values.name,
         description: values.description,

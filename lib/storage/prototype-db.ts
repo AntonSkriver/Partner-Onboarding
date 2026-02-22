@@ -90,7 +90,7 @@ const mergeWithDefaults = (data: unknown): PrototypeDatabase => {
 
   for (const key of Object.keys(safe) as (keyof PrototypeDatabase)[]) {
     if (Array.isArray(safe[key])) {
-      (safe as any)[key] = Array.isArray(parsed[key])
+      (safe as unknown as Record<string, unknown>)[key] = Array.isArray(parsed[key])
         ? clone(parsed[key])
         : []
     } else if (key === 'metadata') {
@@ -176,7 +176,7 @@ export const getById = <K extends PrototypeTableKey>(
   id: string,
 ): PrototypeRecord<K> | undefined => {
   const db = loadPrototypeDb()
-  return clone((db[table] as any[]).find((item: any) => item.id === id)) as PrototypeRecord<K> | undefined
+  return clone((db[table] as Array<Record<string, unknown>>).find((item) => item.id === id)) as PrototypeRecord<K> | undefined
 }
 
 export const createRecord = <K extends PrototypeTableKey>(
@@ -187,8 +187,8 @@ export const createRecord = <K extends PrototypeTableKey>(
   const collection = db[table] as PrototypeRecord<K>[]
 
   const nextRecord = stampRecord({
-    ...(data as any),
-    id: (data as any).id ?? ensureId(),
+    ...(data as Record<string, unknown>),
+    id: (data as Record<string, unknown>).id ?? ensureId(),
   }) as PrototypeRecord<K>
 
   collection.push(nextRecord)
@@ -204,7 +204,7 @@ export const updateRecord = <K extends PrototypeTableKey>(
 ): PrototypeRecord<K> | undefined => {
   const db = loadPrototypeDb()
   const collection = db[table] as PrototypeRecord<K>[]
-  const index = collection.findIndex((item) => (item as any).id === id)
+  const index = collection.findIndex((item) => (item as Record<string, unknown>).id === id)
 
   if (index === -1) {
     return undefined
@@ -212,10 +212,10 @@ export const updateRecord = <K extends PrototypeTableKey>(
 
   const current = collection[index]
   const nextRecord = stampRecord({
-    ...(current as any),
-    ...(updates as any),
+    ...(current as Record<string, unknown>),
+    ...(updates as Record<string, unknown>),
     id,
-  } as any) as PrototypeRecord<K>
+  } as Record<string, unknown>) as PrototypeRecord<K>
 
   collection[index] = nextRecord
   persistPrototypeDb(db)
@@ -231,7 +231,7 @@ export const deleteRecord = <K extends PrototypeTableKey>(
   const collection = db[table] as PrototypeRecord<K>[]
   const initialLength = collection.length
 
-  ;(db as any)[table] = (collection as any[]).filter((item: any) => item.id !== id)
+  ;(db as unknown as Record<string, unknown>)[table] = (collection as Array<Record<string, unknown>>).filter((item) => item.id !== id)
   const didDelete = collection.length !== initialLength
 
   if (didDelete) {

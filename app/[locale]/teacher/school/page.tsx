@@ -59,7 +59,6 @@ function getAgeRange(gradeLevel?: string): string {
 export default function TeacherSchoolPage() {
   const t = useTranslations('teacher')
   const tc = useTranslations('common')
-  const tn = useTranslations('nav')
   const { ready, myInstitutions, database, membershipIds } = useTeacherContext()
 
   // Get the first institution (primary school)

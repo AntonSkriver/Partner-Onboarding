@@ -189,7 +189,7 @@ export default function SchoolInvitePage() {
             <Mail className="h-10 w-10 text-blue-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            You're Invited to Join Class2Class!
+            You&apos;re Invited to Join Class2Class!
           </h1>
           <p className="text-xl text-gray-600">
             Connect your school with global educational opportunities
@@ -204,7 +204,7 @@ export default function SchoolInvitePage() {
               Invitation from {invitation.partnerName}
             </CardTitle>
             <CardDescription>
-              You've been invited to join the Class2Class global education network
+              You&apos;ve been invited to join the Class2Class global education network
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -327,7 +327,7 @@ export default function SchoolInvitePage() {
 
           <div className="text-center">
             <p className="text-sm text-gray-600 mb-4">
-              By accepting, you'll be taken to complete your school registration
+              By accepting, you&apos;ll be taken to complete your school registration
             </p>
             <Link href="/" className="text-blue-600 hover:text-blue-700 text-sm">
               Learn more about Class2Class

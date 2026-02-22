@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
-import { ArrowLeft, Search, Sparkles, Users, Globe2, Users2, Clock, Languages } from 'lucide-react'
+import { ArrowLeft, Search, Globe2, Users2, Clock, Languages } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 import { Card, CardContent } from '@/components/ui/card'
@@ -40,9 +40,8 @@ const finishedStatuses = new Set(['completed', 'archived'])
 
 export default function TeacherProjectsPage() {
   const t = useTranslations('teacher')
-  const tc = useTranslations('common')
   const tn = useTranslations('nav')
-  const { ready, database, programSummaries, membershipIds, session } = useTeacherContext()
+  const { ready, database, programSummaries, membershipIds } = useTeacherContext()
   const [activeTab, setActiveTab] = useState<'in-progress' | 'finished'>('in-progress')
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -105,8 +104,6 @@ export default function TeacherProjectsPage() {
       return projectTitle.includes(query) || programName.includes(query)
     })
   }, [finishedProjects, searchTerm])
-
-  const activeProjectsCount = decoratedProjects.filter(({ project }) => project.status === 'active').length
 
   if (!ready) {
     return (
@@ -262,10 +259,6 @@ function ProjectCard({ item, membershipIds }: { item: DecoratedProject; membersh
 
   const primaryProjectTypeKey = pickPrimaryProjectType(program?.program.projectTypes ?? [])
   const projectTypeLabel = formatProjectType(primaryProjectTypeKey)
-
-  const startingMonthLabel =
-    template?.recommendedStartMonth ??
-    new Intl.DateTimeFormat(undefined, { month: 'long' }).format(createdDate)
 
   const projectTitle = template?.title ?? project.projectId
   const ageRangeLabel = `Ages ${getProjectAgeGroup(projectTitle)} years`
@@ -557,23 +550,6 @@ function formatProjectType(value?: string): string {
     .split('_')
     .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
     .join(' ')
-}
-
-function formatAgeRange(range?: string): string {
-  if (!range) {
-    return 'All ages'
-  }
-
-  if (range === '18+') {
-    return 'Ages 18+'
-  }
-
-  const [start, end] = range.split('-')
-  if (!end) {
-    return `Ages ${start}`
-  }
-
-  return `Ages ${start} - ${end} years`
 }
 
 // Helper for consistent age group calculation based on project name hash

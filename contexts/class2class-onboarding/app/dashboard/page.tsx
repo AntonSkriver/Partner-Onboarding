@@ -1,3 +1,5 @@
+import Link from "next/link"
+
 export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-8">
@@ -31,9 +33,9 @@ export default function DashboardPage() {
               Your profile is incomplete. Complete it to get the most out of Class2Class and connect with other
               educators.
             </p>
-            <a href="/onboarding" className="text-amber-800 font-medium text-sm mt-2 inline-block hover:underline">
+            <Link href="/onboarding" className="text-amber-800 font-medium text-sm mt-2 inline-block hover:underline">
               Complete profile now
-            </a>
+            </Link>
           </div>
         </div>
       </div>

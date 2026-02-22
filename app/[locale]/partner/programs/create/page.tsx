@@ -22,7 +22,6 @@ import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
 import {
   Select,
@@ -38,7 +37,6 @@ import { Badge } from '@/components/ui/badge'
 import { SDGIcon, SDG_DATA } from '@/components/sdg-icons'
 import {
   AGE_RANGE_VALUES,
-  COUNTRY_OPTIONS,
   SDG_OPTIONS,
   STATUS_VALUES,
   COLLABORATION_TYPE_VALUES,

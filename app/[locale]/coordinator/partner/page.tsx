@@ -7,11 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import {
   Building2,
   Globe,
-  Layers,
-  School,
-  Users,
   FileText,
-  BookOpen,
   MapPin,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'

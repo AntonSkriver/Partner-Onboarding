@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Globe2, Users, Target, Zap, ChevronRight } from "lucide-react"
+import { ArrowRight, Globe2, Users, Target, Zap } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 interface PartnerWelcomeScreenProps {

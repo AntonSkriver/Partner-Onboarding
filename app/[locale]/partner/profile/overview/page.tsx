@@ -76,7 +76,7 @@ const parseContacts = (rawContacts: Organization['primary_contacts'] | null | un
     return []
   }
 
-  return (rawContacts as any[])
+  return (rawContacts as Record<string, unknown>[])
     .filter((entry) => typeof entry === 'object' && entry !== null)
     .map((entry) => ({
       name: typeof entry.name === 'string' ? entry.name : undefined,
@@ -100,7 +100,6 @@ const extractChildRightsFocus = (org: Organization | null): string[] => {
 
 export default function PartnerOverviewPage() {
   const t = useTranslations('profile.overview')
-  const tc = useTranslations('common')
   const tCrc = useTranslations('crc')
   const tDashboard = useTranslations('dashboard')
   const [organization, setOrganization] = useState<Organization | null>(null)

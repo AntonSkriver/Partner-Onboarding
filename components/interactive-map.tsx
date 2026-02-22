@@ -170,7 +170,7 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
           container._leaflet_id = String(mapContainerId)
         }
         map.remove()
-      } catch (err) {
+      } catch {
         if (container) {
           container._leaflet_id = null
           container.innerHTML = ''

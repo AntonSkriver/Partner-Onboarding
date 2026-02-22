@@ -204,7 +204,7 @@ export default function InviteSchoolsPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span>You'll be notified when schools accept and can start collaborative projects immediately</span>
+                  <span>You&apos;ll be notified when schools accept and can start collaborative projects immediately</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -216,7 +216,7 @@ export default function InviteSchoolsPage() {
             <div className="space-y-3 mb-6">
               <h4 className="font-semibold text-gray-900">Invited Schools:</h4>
               <div className="space-y-2">
-                {recentInvitations.map((invitation: any, index: number) => (
+                {recentInvitations.map((invitation: { schoolName: string; contactEmail: string; programName?: string }, index: number) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
                       <p className="font-medium text-gray-900">{invitation.schoolName}</p>

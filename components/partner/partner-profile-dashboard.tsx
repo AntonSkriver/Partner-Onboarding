@@ -1,13 +1,10 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
-import Image from 'next/image'
 import { useState, useEffect, useMemo } from 'react'
-import { useRouter } from '@/i18n/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Building2,
@@ -21,19 +18,11 @@ import {
   BookOpen,
   BarChart3,
   Edit,
-  Shield,
   CheckCircle,
-  Clock,
-  XCircle,
-  TrendingUp,
   School,
   GraduationCap,
-  ChevronUp,
-  ChevronDown,
   Plus,
   Target,
-  CalendarDays,
-  PenTool,
   LogOut,
   UserPlus,
   Send,
@@ -43,7 +32,6 @@ import {
 import { SDG_DATA } from '@/components/sdg-icons'
 import { SDGIcon } from '../sdg-icons'
 import { SDG_OPTIONS } from '../../contexts/partner-onboarding-context'
-import { OrganizationAPI } from '@/lib/api/organizations'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import {
   buildProgramSummariesForPartner,
@@ -52,7 +40,6 @@ import {
   type ProgramSummary,
 } from '@/lib/programs/selectors'
 import { Database } from '@/lib/types/database'
-import { startTeacherPreviewSession } from '@/lib/auth/session'
 import { ProgramCatalogCard } from '../program/program-catalog-card'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
@@ -70,11 +57,9 @@ export function PartnerProfileDashboard({
   isOwnProfile = false,
   initialTab = 'overview',
 }: PartnerProfileDashboardProps) {
-  const router = useRouter()
-  const [analytics, setAnalytics] = useState<any[]>([])
-  const [resources, setResources] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
-  const [expandedPrograms, setExpandedPrograms] = useState(new Set())
+  const [analytics, setAnalytics] = useState<Array<{ id: string; period: string; metrics: { schoolsOnboarded: number; studentsReached: number; teachersActive: number; projectsThisQuarter: number } }>>([])
+  const [resources, setResources] = useState<Array<{ id: string; title: string; description: string; type: string; category: string; ageRange: string; sdgAlignment: number[]; language: string; heroImageUrl: string; updated_at: string }>>([])
+  const [, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState(initialTab)
   const [countryCoordinators, setCountryCoordinators] = useState<Array<{id: string, name: string, country: string, email: string}>>([])
   const [educationalInstitutions, setEducationalInstitutions] = useState<Array<{id: string, name: string, country: string, category: string, pointOfContact: string, email: string}>>([])
@@ -129,16 +114,6 @@ export function PartnerProfileDashboard({
   useEffect(() => {
     loadOrganizationData()
   }, [organization.id])
-
-  const toggleProgramDetails = (programId: string) => {
-    const newExpanded = new Set(expandedPrograms)
-    if (newExpanded.has(programId)) {
-      newExpanded.delete(programId)
-    } else {
-      newExpanded.add(programId)
-    }
-    setExpandedPrograms(newExpanded)
-  }
 
   const loadOrganizationData = async () => {
     setLoading(true)
@@ -262,35 +237,13 @@ export function PartnerProfileDashboard({
     }
   }
 
-  const getVerificationStatusIcon = (status: Organization['verification_status']) => {
-    switch (status) {
-      case 'verified':
-        return <CheckCircle className="w-4 h-4 text-green-600" />
-      case 'pending':
-        return <Clock className="w-4 h-4 text-yellow-600" />
-      case 'rejected':
-        return <XCircle className="w-4 h-4 text-red-600" />
-      default:
-        return <Clock className="w-4 h-4 text-gray-400" />
-    }
-  }
-
-  const getVerificationStatusColor = (status: Organization['verification_status']) => {
-    switch (status) {
-      case 'verified': return 'bg-green-100 text-green-800'
-      case 'pending': return 'bg-yellow-100 text-yellow-800'
-      case 'rejected': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
-
   const getLatestMetrics = () => {
     if (analytics.length === 0) return null
     return analytics[0].metrics
   }
 
-  const primaryContacts = Array.isArray(organization.primary_contacts) 
-    ? organization.primary_contacts as any[] 
+  const primaryContacts = Array.isArray(organization.primary_contacts)
+    ? organization.primary_contacts
     : []
 
   const primaryContact = primaryContacts.find(contact => contact.isPrimary) || primaryContacts[0]
@@ -303,22 +256,6 @@ export function PartnerProfileDashboard({
 
   const sdgFocus = normalizedSdgTags.length > 0 ? normalizedSdgTags : [4] // Default to SDG 4 (Quality Education)
   const programDataLoading = !prototypeReady || !partnerRecord
-
-  const formatDate = (value?: string | null) => {
-    if (!value) return '—'
-    const date = new Date(value)
-    if (Number.isNaN(date.getTime())) return value
-    return date.toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }
-
-  const handleTeacherPreview = () => {
-    startTeacherPreviewSession()
-    router.push('/teacher/dashboard')
-  }
 
   return (
     <div className="space-y-6">
@@ -485,22 +422,25 @@ export function PartnerProfileDashboard({
                   </div>
                 </div>
                 
-                {getLatestMetrics() && (
+                {(() => {
+                  const metrics = getLatestMetrics()
+                  return metrics ? (
                   <div className="grid grid-cols-2 gap-4 pt-2 border-t">
                     <div>
                       <div className="text-xl font-bold text-purple-600">
-                        {getLatestMetrics().schoolsOnboarded || 0}
+                        {metrics.schoolsOnboarded || 0}
                       </div>
                       <div className="text-sm text-gray-600">Schools</div>
                     </div>
                     <div>
                       <div className="text-xl font-bold text-orange-600">
-                        {getLatestMetrics().studentsReached || 0}
+                        {metrics.studentsReached || 0}
                       </div>
                       <div className="text-sm text-gray-600">Students</div>
                     </div>
                   </div>
-                )}
+                  ) : null
+                })()}
               </CardContent>
             </Card>
           </div>
@@ -515,9 +455,9 @@ export function PartnerProfileDashboard({
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 leading-relaxed">
-                UNICEF Danmark works to secure all children's rights through fundraising, education and
+                UNICEF Danmark works to secure all children&apos;s rights through fundraising, education and
                 advocacy in Denmark. We collaborate with schools, organizations and communities to create
-                awareness about children's global situation and mobilize resources for UNICEF's work
+                awareness about children&apos;s global situation and mobilize resources for UNICEF&apos;s work
                 worldwide.
               </p>
             </CardContent>
@@ -746,7 +686,7 @@ export function PartnerProfileDashboard({
                 <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="font-medium text-gray-900 mb-2">No Resources Yet</h3>
                 <p className="text-gray-500">
-                  This organization hasn't shared any resources yet.
+                  This organization hasn&apos;t shared any resources yet.
                 </p>
               </CardContent>
             </Card>
@@ -874,7 +814,7 @@ export function PartnerProfileDashboard({
                       Country Coordinators
                     </CardTitle>
                     <CardDescription>
-                      Manage your organization's country coordinators
+                      Manage your organization&apos;s country coordinators
                     </CardDescription>
                   </div>
                   <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowInviteCoordinatorDialog(true)}>
@@ -924,7 +864,7 @@ export function PartnerProfileDashboard({
                     <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="font-medium text-gray-900 mb-2">No Country Coordinators</h3>
                     <p className="text-gray-500 mb-4">
-                      Invite country coordinators to help manage your organization's regional presence.
+                      Invite country coordinators to help manage your organization&apos;s regional presence.
                     </p>
                     <Button onClick={() => setShowInviteCoordinatorDialog(true)}>
                       <UserPlus className="w-4 h-4 mr-2" />

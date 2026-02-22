@@ -373,9 +373,6 @@ export default function PartnerDashboard() {
       ? `${partnerUser.firstName ?? ''} ${partnerUser.lastName ?? ''}`.trim() || partnerUser.email
       : session.name?.trim()) || 'Partner User'
 
-  const organizationName =
-    partnerRecord?.organizationName ?? session.organization ?? 'Partner Organization'
-
   const organizationTypeLabel = partnerRecord
     ? toStartCase(partnerRecord.organizationType)
     : 'Partner'

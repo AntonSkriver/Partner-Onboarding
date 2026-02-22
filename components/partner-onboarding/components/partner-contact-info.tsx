@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { usePartnerOnboarding, getOrganizationTypeLabel, type ContactRole } from "../../../contexts/partner-onboarding-context"
+import { usePartnerOnboarding, type ContactRole } from "../../../contexts/partner-onboarding-context"
 import { User, Mail, Phone, Shield, AlertCircle, CheckCircle2, Briefcase } from "lucide-react"
 import { useState } from "react"
 import { useTranslations } from "next-intl"
@@ -135,8 +135,6 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
   }
 
   const canProceed = isStepComplete(4) && Object.keys(errors).length === 0
-  const orgTypeLabel = getOrganizationTypeLabel(formData.organizationType).toLowerCase()
-
   const isFieldValid = (field: string, value: string | null | undefined) => {
     return value && value.trim() && !errors[field]
   }

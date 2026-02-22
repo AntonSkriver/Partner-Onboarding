@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useProfileForm, type SchoolType } from "../context/profile-form-context"
-import { Building, BuildingIcon as BuildingCommunity, Search, Plus } from "lucide-react"
+import { Search, Plus } from "lucide-react"
 
 interface SchoolInfoProps {
   onNext: () => void
@@ -68,16 +68,12 @@ const schoolsDatabase = [
 ]
 
 // Type definitions for location data
-type Country = typeof countries[number]
-type Region = string
-type City = string
-
 interface LocationData {
-  [key: string]: Region[]
+  [key: string]: string[]
 }
 
 interface CityData {
-  [key: string]: City[]
+  [key: string]: string[]
 }
 
 // Countries database
@@ -212,7 +208,7 @@ const citiesByRegion: CityData = {
   "Campania": ["Naples", "Salerno", "Torre del Greco", "Giugliano in Campania", "Casoria", "Castellammare di Stabia"]
 }
 
-export function SchoolInfo({ onNext, onPrevious }: SchoolInfoProps) {
+export function SchoolInfo({ onNext, onPrevious, onGoToStep: _onGoToStep }: SchoolInfoProps) {
   const { formData, updateFormData, isStepComplete } = useProfileForm()
   const [searchTerm, setSearchTerm] = useState("")
   const [searchResults, setSearchResults] = useState<typeof schoolsDatabase>([])
@@ -408,7 +404,7 @@ export function SchoolInfo({ onNext, onPrevious }: SchoolInfoProps) {
                 onClick={handleAddNewSchool}
               >
                 <Plus className="mr-2 h-5 w-5 flex-shrink-0" />
-                <span className="truncate">Add "{searchTerm}" as a new school</span>
+                <span className="truncate">Add &quot;{searchTerm}&quot; as a new school</span>
               </Button>
             </div>
           )}

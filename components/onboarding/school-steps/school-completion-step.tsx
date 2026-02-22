@@ -257,9 +257,9 @@ export function SchoolCompletionStep({ onboardingData, currentStep, totalSteps }
         {/* Next Steps */}
         <Card className="border-green-200 bg-green-50">
           <CardHeader>
-            <CardTitle className="text-green-900">What's Next?</CardTitle>
+            <CardTitle className="text-green-900">What&apos;s Next?</CardTitle>
             <CardDescription className="text-green-700">
-              Here's what you can do once your account is created:
+              Here&apos;s what you can do once your account is created:
             </CardDescription>
           </CardHeader>
           <CardContent>

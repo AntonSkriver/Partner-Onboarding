@@ -44,7 +44,6 @@ export function PartnerPreview({ currentStep }: PartnerPreviewProps) {
   const sectionClass = (section: 'header' | 'sdg' | 'contact') =>
     isHighlighted(section) ? 'border-l-2 border-purple-500 pl-3 -ml-3' : ''
 
-  const hasOrgInfo = formData.organizationName || formData.organizationType
   const hasSDGs = formData.sdgFocus.length > 0
   const hasContact = formData.contactName || formData.contactEmail
 

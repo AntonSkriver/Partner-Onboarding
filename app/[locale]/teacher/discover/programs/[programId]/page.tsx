@@ -2,28 +2,22 @@
 
 import { Link } from '@/i18n/navigation'
 import { useParams } from 'next/navigation'
-import { useRouter } from '@/i18n/navigation'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState } from 'react'
 import {
   ArrowLeft,
   CalendarDays,
-  CheckCircle,
-  GraduationCap,
   Layers,
   MapPin,
   School,
   Users,
   FolderOpen,
   FileText,
-  MoreVertical,
-  Plus,
   Globe2,
   Users2,
   Clock,
   Languages,
 } from 'lucide-react'
 import Image from 'next/image'
-import { cn } from '@/lib/utils'
 import { getCountryDisplay } from '@/lib/countries'
 
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
@@ -71,24 +65,7 @@ function getTeacherAvatar(teacherName: string): string | null {
   return TEACHER_AVATARS[teacherName] || null
 }
 
-const COUNTRY_LABELS: Record<string, string> = {
-  DK: 'Denmark',
-  UK: 'United Kingdom',
-  MX: 'Mexico',
-  IT: 'Italy',
-  BD: 'Bangladesh',
-  KE: 'Kenya',
-  BR: 'Brazil',
-  US: 'United States',
-  CA: 'Canada',
-  FI: 'Finland',
-  JP: 'Japan',
-  ZA: 'South Africa',
-  IN: 'India',
-}
-
 export default function TeacherDiscoverProgramDetailPage() {
-  const router = useRouter()
   const params = useParams<{ programId: string }>()
   const { ready, database } = usePrototypeDb()
 

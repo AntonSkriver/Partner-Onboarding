@@ -12,14 +12,11 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   BarChart3,
   BookOpen,
-  CalendarDays,
   CheckCircle,
-  Download,
   Edit,
   FileText,
   Globe,
@@ -31,11 +28,8 @@ import {
   School,
   Tag,
   Target,
-  TrendingUp,
   Users,
   UserPlus,
-  ChevronDown,
-  ChevronUp,
   GraduationCap,
   MoreVertical,
 } from 'lucide-react'
@@ -124,22 +118,6 @@ type SchoolProjectEntry = {
   coverImageUrl?: string
 }
 
-const monthFormatter = new Intl.DateTimeFormat(undefined, {
-  month: 'short',
-  year: 'numeric',
-})
-
-const formatDateRange = (start?: string, end?: string) => {
-  if (!start && !end) return 'Timeline coming soon'
-  if (start && !end) return `${monthFormatter.format(new Date(start))} onwards`
-  if (!start && end) return `Ends ${monthFormatter.format(new Date(end))}`
-  try {
-    return `${monthFormatter.format(new Date(start!))} – ${monthFormatter.format(new Date(end!))}`
-  } catch {
-    return `${start} – ${end}`
-  }
-}
-
 export function SchoolProfileDashboard({
   school,
   onEdit,
@@ -149,8 +127,6 @@ export function SchoolProfileDashboard({
   const [activeTab, setActiveTab] = useState(initialTab)
   const [showInviteTeacherDialog, setShowInviteTeacherDialog] = useState(false)
   const [showInviteSchoolDialog, setShowInviteSchoolDialog] = useState(false)
-  const [expandedPrograms, setExpandedPrograms] = useState<Set<string>>(new Set())
-
   useEffect(() => {
     setActiveTab(initialTab)
   }, [initialTab])
@@ -453,21 +429,6 @@ export function SchoolProfileDashboard({
     ]
   }, [prototypeReady, database, programSummaries])
 
-  const projectStats = useMemo(() => {
-    const stats: Record<ProjectStatus, number> = {
-      draft: 0,
-      active: 0,
-      completed: 0,
-      archived: 0,
-    }
-
-    projects.forEach((project) => {
-      stats[project.status] = (stats[project.status] ?? 0) + 1
-    })
-
-    return stats
-  }, [projects])
-
   const projectStatusClasses: Record<ProjectStatus, string> = {
     draft: 'bg-yellow-100 text-yellow-700',
     active: 'bg-green-100 text-green-700',
@@ -482,9 +443,6 @@ export function SchoolProfileDashboard({
     archived: 'Archived',
   }
 
-  const finishedProjectCount = projectStats.completed + projectStats.archived
-  const totalProjects = projects.length
-
   const handleTabChange = (value: string) => {
     setActiveTab(value as typeof activeTab)
     if (typeof window !== 'undefined') {
@@ -492,18 +450,6 @@ export function SchoolProfileDashboard({
       url.searchParams.set('tab', value)
       window.history.pushState({}, '', url.toString())
     }
-  }
-
-  const toggleProgramExpansion = (programId: string) => {
-    setExpandedPrograms((prev) => {
-      const next = new Set(prev)
-      if (next.has(programId)) {
-        next.delete(programId)
-      } else {
-        next.add(programId)
-      }
-      return next
-    })
   }
 
   return (

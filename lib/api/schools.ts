@@ -1,6 +1,6 @@
 import { createSessionClient } from '../session-storage'
 const supabase = createSessionClient()
-const supabaseAdmin = supabase
+const _supabaseAdmin = supabase
 
 // Temporary types for session storage (replace database types)
 type School = {
@@ -8,13 +8,13 @@ type School = {
   name: string
   school_type: 'public' | 'private' | 'charter' | 'international' | 'other'
   contact_email: string
-  address: any
-  grade_range: any
+  address: Record<string, unknown>
+  grade_range: Record<string, unknown>
   languages: string[]
   is_active: boolean
   created_at: string
   updated_at: string
-  safeguarding_settings?: any
+  safeguarding_settings?: Record<string, unknown>
 }
 
 type SchoolInsert = Omit<School, 'id' | 'created_at' | 'updated_at'>
@@ -49,7 +49,7 @@ export class SchoolAPI {
       return null
     }
 
-    return data
+    return data as unknown as School | null
   }
 
   // Get schools by country
@@ -100,15 +100,16 @@ export class SchoolAPI {
     }
 
     // Log activity
-    if (data) {
-      await this.logActivity('create', 'school', data.id, {
-        schoolName: data.name,
-        schoolType: data.school_type,
-        country: (data.address as any)?.country
+    const school = data as unknown as School
+    if (school) {
+      await this.logActivity('create', 'school', school.id, {
+        schoolName: school.name,
+        schoolType: school.school_type,
+        country: (school.address as Record<string, unknown>)?.country
       })
     }
 
-    return data
+    return school
   }
 
   // Update school
@@ -126,13 +127,14 @@ export class SchoolAPI {
     }
 
     // Log activity
-    if (data) {
-      await this.logActivity('update', 'school', data.id, {
+    const school = data as unknown as School
+    if (school) {
+      await this.logActivity('update', 'school', school.id, {
         updatedFields: Object.keys(updates)
       })
     }
 
-    return data
+    return school
   }
 
   // Search schools
@@ -189,7 +191,7 @@ export class SchoolAPI {
       return []
     }
 
-    return data || []
+    return (data || []) as unknown as Teacher[]
   }
 
   // Add teacher to school
@@ -206,15 +208,16 @@ export class SchoolAPI {
     }
 
     // Log activity
-    if (data) {
-      await this.logActivity('add_teacher', 'school', data.school_id, {
-        teacherName: `${data.first_name} ${data.last_name}`,
-        teacherEmail: data.email,
-        role: data.role
+    const teacher = data as unknown as Teacher
+    if (teacher) {
+      await this.logActivity('add_teacher', 'school', teacher.school_id, {
+        teacherName: `${teacher.first_name} ${teacher.last_name}`,
+        teacherEmail: teacher.email,
+        role: teacher.role
       })
     }
 
-    return data
+    return teacher
   }
 
   // Update teacher
@@ -231,7 +234,7 @@ export class SchoolAPI {
       return null
     }
 
-    return data
+    return data as unknown as Teacher | null
   }
 
   // Remove teacher from school (soft delete)
@@ -239,7 +242,7 @@ export class SchoolAPI {
     const { error } = await (supabase
       .from('teachers')
       .update({ is_active: false })
-      .eq('id', teacherId) as any)
+      .eq('id', teacherId) as unknown as Promise<{ error: unknown }>)
 
     if (error) {
       console.error('Error removing teacher:', error)
@@ -250,7 +253,7 @@ export class SchoolAPI {
   }
 
   // Get school's program memberships
-  static async getProgramMemberships(schoolId: string) {
+  static async getProgramMemberships(_schoolId: string) {
     // This would join with collaboration_nodes and collaborations
     // For now, returning empty array as placeholder
     return []
@@ -277,13 +280,13 @@ export class SchoolAPI {
 
   // Update safeguarding settings
   static async updateSafeguardingSettings(
-    schoolId: string, 
-    safeguardingSettings: any
+    schoolId: string,
+    safeguardingSettings: Record<string, unknown>
   ): Promise<boolean> {
     const { error } = await (supabase
       .from('schools')
       .update({ safeguarding_settings: safeguardingSettings })
-      .eq('id', schoolId) as any)
+      .eq('id', schoolId) as unknown as Promise<{ error: unknown }>)
 
     if (error) {
       console.error('Error updating safeguarding settings:', error)
@@ -336,7 +339,7 @@ export class SchoolAPI {
         target_scope_id: collaborationId,
         message: message,
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
-      }) as any)
+      }) as unknown as { error: unknown })
 
     if (error) {
       console.error('Error creating school invitation:', error)
@@ -358,7 +361,7 @@ export class SchoolAPI {
     const { error } = await (supabase
       .from('schools')
       .update({ is_active: false })
-      .eq('id', id) as any)
+      .eq('id', id) as unknown as Promise<{ error: unknown }>)
 
     if (error) {
       console.error('Error deactivating school:', error)
@@ -369,7 +372,7 @@ export class SchoolAPI {
     await (supabase
       .from('teachers')
       .update({ is_active: false })
-      .eq('school_id', id) as any)
+      .eq('school_id', id) as unknown as Promise<{ error: unknown }>)
 
     // Log activity
     await this.logActivity('deactivate', 'school', id, {})
@@ -382,7 +385,7 @@ export class SchoolAPI {
     action: string,
     resourceType: string,
     resourceId: string,
-    metadata: Record<string, any>
+    metadata: Record<string, unknown>
   ) {
     try {
       await supabase.rpc('log_activity', {
@@ -417,7 +420,7 @@ export const validateSchoolData = (data: Partial<SchoolInsert>) => {
     errors.contact_email = 'Please enter a valid email address'
   }
 
-  const address = data.address as any
+  const address = data.address as Record<string, unknown> | undefined
   if (!address?.country) {
     errors['address.country'] = 'Country is required'
   }
@@ -426,7 +429,7 @@ export const validateSchoolData = (data: Partial<SchoolInsert>) => {
     errors['address.city'] = 'City is required'
   }
 
-  const gradeRange = data.grade_range as any
+  const gradeRange = data.grade_range as Record<string, number> | undefined
   if (!gradeRange?.min || !gradeRange?.max) {
     errors.grade_range = 'Grade range is required'
   } else if (gradeRange.min > gradeRange.max) {

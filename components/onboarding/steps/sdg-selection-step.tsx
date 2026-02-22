@@ -47,7 +47,7 @@ export function SDGSelectionStep({
   const t = useTranslations('schoolOnboarding');
   const [selectedSDGs, setSelectedSDGs] = useState<number[]>(
     // Parse any existing SDG data from formData
-    (formData as any).sdgFocus?.map((s: string | number) => typeof s === 'string' ? parseInt(s) : s) || []
+    formData.sdgFocus?.map((s: string) => parseInt(s)) || []
   );
 
   const handleSDGToggle = (sdgId: number) => {
@@ -60,7 +60,7 @@ export function SDGSelectionStep({
 
   const handleContinue = () => {
     // Save SDGs to context as string array for compatibility
-    updateFormData({ sdgFocus: selectedSDGs.map(String) } as any);
+    updateFormData({ sdgFocus: selectedSDGs.map(String) });
     onNext();
   };
 

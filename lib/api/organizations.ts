@@ -36,7 +36,7 @@ export class OrganizationAPI {
       return null
     }
 
-    return data
+    return data as unknown as Organization | null
   }
 
   // Get organizations by type
@@ -87,14 +87,15 @@ export class OrganizationAPI {
     }
 
     // Log activity
-    if (data) {
-      await this.logActivity('create', 'organization', data.id, {
-        organizationName: data.name,
-        organizationType: data.organization_type
+    const org = data as unknown as Organization
+    if (org) {
+      await this.logActivity('create', 'organization', org.id, {
+        organizationName: org.name,
+        organizationType: org.organization_type
       })
     }
 
-    return data
+    return org
   }
 
   // Update organization
@@ -112,13 +113,14 @@ export class OrganizationAPI {
     }
 
     // Log activity
-    if (data) {
-      await this.logActivity('update', 'organization', data.id, {
+    const org = data as unknown as Organization
+    if (org) {
+      await this.logActivity('update', 'organization', org.id, {
         updatedFields: Object.keys(updates)
       })
     }
 
-    return data
+    return org
   }
 
   // Update verification status (admin only)
@@ -129,7 +131,7 @@ export class OrganizationAPI {
     const { error } = await (supabaseAdmin
       .from('organizations')
       .update({ verification_status: status })
-      .eq('id', id) as any)
+      .eq('id', id) as unknown as Promise<{ error: unknown }>)
 
     if (error) {
       console.error('Error updating verification status:', error)
@@ -237,7 +239,7 @@ export class OrganizationAPI {
   static async getResources(organizationId: string) {
     // Get collaborations where this organization is involved
     const collaborations = await this.getProgramMemberships(organizationId)
-    const collaborationIds = collaborations.map((c: any) => c.id)
+    const collaborationIds = (collaborations as Record<string, unknown>[]).map((c: Record<string, unknown>) => c.id)
 
     if (collaborationIds.length === 0) {
       return []
@@ -263,7 +265,7 @@ export class OrganizationAPI {
     const { error } = await (supabase
       .from('organizations')
       .update({ is_active: false })
-      .eq('id', id) as any)
+      .eq('id', id) as unknown as Promise<{ error: unknown }>)
 
     if (error) {
       console.error('Error deactivating organization:', error)
@@ -281,7 +283,7 @@ export class OrganizationAPI {
     action: string,
     resourceType: string,
     resourceId: string,
-    metadata: Record<string, any>
+    metadata: Record<string, unknown>
   ) {
     try {
       await supabase.rpc('log_activity', {

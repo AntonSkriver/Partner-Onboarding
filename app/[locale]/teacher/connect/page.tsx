@@ -113,13 +113,7 @@ function getAgeRange(gradeLevel?: string): string {
 export default function TeacherConnectPage() {
   const t = useTranslations('teacher')
   const tc = useTranslations('common')
-  const tn = useTranslations('nav')
   const { ready, database, membershipIds, myInstitutions } = useTeacherContext()
-
-  // Get user's institution IDs to identify colleagues
-  const myInstitutionIds = useMemo(() => {
-    return new Set(myInstitutions.map(inst => inst.id))
-  }, [myInstitutions])
   const [activeTab, setActiveTab] = useState<TabId>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [studentAge, setStudentAge] = useState<string>('any')
@@ -338,7 +332,7 @@ export default function TeacherConnectPage() {
 
           {/* Student's age */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700">Student's age</label>
+            <label className="text-sm font-medium text-gray-700">Student&apos;s age</label>
             <Select value={studentAge} onValueChange={setStudentAge}>
               <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Age" />

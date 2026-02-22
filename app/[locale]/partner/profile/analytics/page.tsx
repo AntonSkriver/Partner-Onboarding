@@ -222,7 +222,7 @@ export default function PartnerAnalyticsPage() {
     })
 
     return Array.from(schoolMap.values())
-      .map(({ _ids, ...school }) => {
+      .map(({ _ids: _, ...school }) => {
         let status: 'active' | 'partial' | 'onboarding' = 'onboarding'
         if (school.teachers > 0 && (school.projectCount || 0) > 1) {
           status = 'active'

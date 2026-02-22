@@ -254,7 +254,7 @@ export default function LoginPage() {
           {/* Testimonial Card */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl shadow-[#8157D9]/10">
             <p className="text-gray-700 text-lg leading-relaxed mb-6 italic">
-              "{testimonials[currentTestimonial].quote}"
+              &quot;{testimonials[currentTestimonial].quote}&quot;
             </p>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gradient-to-br from-[#8157D9] to-[#A78BFA] rounded-full flex items-center justify-center text-white font-bold text-lg">

@@ -1,10 +1,8 @@
 "use client"
 
-import { useProfileForm } from "../context/profile-form-context"
+import { useProfileForm, type ProfileFormData } from "../context/profile-form-context"
 import Image from "next/image"
-import { Users, School, Pencil } from "lucide-react"
-import { ProfileFormData } from "../context/profile-form-context"
-import { Button } from "@/components/ui/button"
+import { Users, School } from "lucide-react"
 
 // Helper function to get full language name
 const getLanguageName = (code: string) => {
@@ -166,11 +164,7 @@ const generateAboutMe = (formData: ProfileFormData) => {
   return aboutMe
 }
 
-interface ProfilePreviewProps {
-  onPrevious?: () => void
-}
-
-export function ProfilePreview({ onPrevious }: ProfilePreviewProps) {
+export function ProfilePreview() {
   const { formData } = useProfileForm()
   const aboutMeText = generateAboutMe(formData);
 

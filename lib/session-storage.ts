@@ -1,15 +1,28 @@
 // Session storage utility for temporary data persistence
 // This replaces Supabase database operations with in-memory session storage
 
+type StoredRecord = Record<string, unknown>
+
+interface SessionUser {
+  id: string
+  email: string
+  user_metadata: Record<string, unknown>
+}
+
 interface SessionData {
-  schools: any[]
-  organizations: any[]
-  teachers: any[]
-  collaborations: any[]
-  invitations: any[]
-  activities: any[]
-  user: any | null
+  schools: StoredRecord[]
+  organizations: StoredRecord[]
+  teachers: StoredRecord[]
+  collaborations: StoredRecord[]
+  invitations: StoredRecord[]
+  activities: StoredRecord[]
+  user: SessionUser | null
   currentSession: string | null
+}
+
+interface QueryResult<T = StoredRecord | StoredRecord[] | null> {
+  data: T
+  error: unknown
 }
 
 class SessionStorage {
@@ -40,7 +53,7 @@ class SessionStorage {
     } catch (error) {
       console.warn('Failed to load session data:', error)
     }
-    
+
     return this.getDefaultData()
   }
 
@@ -68,15 +81,15 @@ class SessionStorage {
   }
 
   // Generic CRUD operations
-  public insert(table: keyof SessionData, item: any): any {
+  public insert(table: keyof SessionData, item: StoredRecord): QueryResult<StoredRecord> {
     if (!Array.isArray(this.data[table])) {
       throw new Error(`Table ${table} is not a collection`)
     }
 
-    const collection = this.data[table] as any[]
-    const newItem = {
+    const collection = this.data[table] as StoredRecord[]
+    const newItem: StoredRecord = {
       ...item,
-      id: item.id || this.generateId(),
+      id: (item.id as string) || this.generateId(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
@@ -87,21 +100,21 @@ class SessionStorage {
   }
 
   public select(table: keyof SessionData, options: {
-    eq?: { field: string; value: any }
-    contains?: { field: string; value: any }
-    overlaps?: { field: string; value: any[] }
+    eq?: { field: string; value: unknown }
+    contains?: { field: string; value: unknown }
+    overlaps?: { field: string; value: unknown[] }
     ilike?: { field: string; value: string }
-    in?: { field: string; value: any[] }
+    in?: { field: string; value: unknown[] }
     or?: string
     order?: string
     limit?: number
     single?: boolean
-  } = {}): any {
+  } = {}): QueryResult {
     if (!Array.isArray(this.data[table])) {
-      return { data: this.data[table], error: null }
+      return { data: this.data[table] as StoredRecord | null, error: null }
     }
 
-    let collection = [...(this.data[table] as any[])]
+    let collection = [...(this.data[table] as StoredRecord[])]
 
     // Apply filters
     if (options.eq) {
@@ -139,7 +152,7 @@ class SessionStorage {
     }
 
     if (options.in) {
-      collection = collection.filter(item => 
+      collection = collection.filter(item =>
         options.in!.value.includes(item[options.in!.field])
       )
     }
@@ -165,13 +178,13 @@ class SessionStorage {
     if (options.order) {
       const orderField = options.order.replace(/\s+(asc|desc)$/i, '')
       const isDesc = /desc$/i.test(options.order)
-      
+
       collection.sort((a, b) => {
         const aVal = a[orderField]
         const bVal = b[orderField]
-        
-        if (aVal < bVal) return isDesc ? 1 : -1
-        if (aVal > bVal) return isDesc ? -1 : 1
+
+        if ((aVal as string) < (bVal as string)) return isDesc ? 1 : -1
+        if ((aVal as string) > (bVal as string)) return isDesc ? -1 : 1
         return 0
       })
     }
@@ -189,15 +202,15 @@ class SessionStorage {
     return { data: collection, error: null }
   }
 
-  public update(table: keyof SessionData, updates: any, options: {
-    eq?: { field: string; value: any }
-  }): any {
+  public update(table: keyof SessionData, updates: StoredRecord, options: {
+    eq?: { field: string; value: unknown }
+  }): QueryResult<StoredRecord | null> {
     if (!Array.isArray(this.data[table])) {
       throw new Error(`Table ${table} is not a collection`)
     }
 
-    const collection = this.data[table] as any[]
-    let updatedItem = null
+    const collection = this.data[table] as StoredRecord[]
+    let updatedItem: StoredRecord | null = null
 
     if (options.eq) {
       const index = collection.findIndex(item => item[options.eq!.field] === options.eq!.value)
@@ -216,13 +229,13 @@ class SessionStorage {
   }
 
   public delete(table: keyof SessionData, options: {
-    eq?: { field: string; value: any }
-  }): any {
+    eq?: { field: string; value: unknown }
+  }): QueryResult<null> {
     if (!Array.isArray(this.data[table])) {
       throw new Error(`Table ${table} is not a collection`)
     }
 
-    const collection = this.data[table] as any[]
+    const collection = this.data[table] as StoredRecord[]
 
     if (options.eq) {
       const index = collection.findIndex(item => item[options.eq!.field] === options.eq!.value)
@@ -236,7 +249,7 @@ class SessionStorage {
   }
 
   // RPC functions simulation
-  public rpc(functionName: string, params: any): any {
+  public rpc(functionName: string, params: unknown): Promise<QueryResult<null>> {
     console.log('RPC call simulated:', functionName, params)
     // Just return success for activity logging and other RPC calls
     return Promise.resolve({ data: null, error: null })
@@ -252,13 +265,13 @@ class SessionStorage {
     this.saveToStorage()
   }
 
-  public setUser(user: any): void {
+  public setUser(user: SessionUser): void {
     this.data.user = user
     this.data.currentSession = this.generateId()
     this.saveToStorage()
   }
 
-  public getUser(): any {
+  public getUser(): SessionUser | null {
     // Try to get user from existing session system
     if (typeof window !== 'undefined') {
       const sessionData = localStorage.getItem('class2class_session')
@@ -286,7 +299,7 @@ class SessionStorage {
     this.data.user = null
     this.data.currentSession = null
     this.saveToStorage()
-    
+
     // Also clear the existing session system
     if (typeof window !== 'undefined') {
       localStorage.removeItem('class2class_session')
@@ -295,17 +308,29 @@ class SessionStorage {
 }
 
 // Query builder class to handle chained operations
+interface QueryOptions {
+  eqFilters?: { field: string; value: unknown }[]
+  contains?: { field: string; value: unknown }
+  overlaps?: { field: string; value: unknown[] }
+  ilike?: { field: string; value: string }
+  in?: { field: string; value: unknown[] }
+  or?: string
+  order?: string
+  limit?: number
+  single?: boolean
+}
+
 class QueryBuilder {
   private storage: SessionStorage
   private table: string
-  private queryOptions: any = {}
+  private queryOptions: QueryOptions = {}
 
-  constructor(storage: SessionStorage, table: string, fields: string = '*') {
+  constructor(storage: SessionStorage, table: string, _fields: string = '*') {
     this.storage = storage
     this.table = table
   }
 
-  eq(field: string, value: any) {
+  eq(field: string, value: unknown) {
     // Support multiple eq calls by storing them as an array
     if (!this.queryOptions.eqFilters) {
       this.queryOptions.eqFilters = []
@@ -314,12 +339,12 @@ class QueryBuilder {
     return this
   }
 
-  contains(field: string, value: any) {
+  contains(field: string, value: unknown) {
     this.queryOptions.contains = { field, value }
     return this
   }
 
-  overlaps(field: string, value: any[]) {
+  overlaps(field: string, value: unknown[]) {
     this.queryOptions.overlaps = { field, value }
     return this
   }
@@ -334,7 +359,7 @@ class QueryBuilder {
     return this
   }
 
-  in(field: string, value: any[]) {
+  in(field: string, value: unknown[]) {
     this.queryOptions.in = { field, value }
     return this
   }
@@ -354,11 +379,11 @@ class QueryBuilder {
     return this.executeQuery()
   }
 
-  then(onResolve: (value: any) => any, onReject?: (reason: any) => any) {
+  then(onResolve: (value: QueryResult) => unknown, onReject?: (reason: unknown) => unknown) {
     return this.executeQuery().then(onResolve, onReject)
   }
 
-  private async executeQuery() {
+  private async executeQuery(): Promise<QueryResult> {
     // Apply multiple eq filters
     let collection = this.storage.select(this.table as keyof SessionData, {}).data
     if (!Array.isArray(collection)) {
@@ -367,8 +392,8 @@ class QueryBuilder {
 
     // Apply eq filters (multiple conditions with AND logic)
     if (this.queryOptions.eqFilters) {
-      collection = collection.filter((item: any) => {
-        return this.queryOptions.eqFilters.every((filter: any) => 
+      collection = collection.filter((item: StoredRecord) => {
+        return this.queryOptions.eqFilters!.every((filter) =>
           item[filter.field] === filter.value
         )
       })
@@ -377,7 +402,7 @@ class QueryBuilder {
     // Apply other filters
     if (this.queryOptions.contains) {
       const { field, value } = this.queryOptions.contains
-      collection = collection.filter((item: any) => {
+      collection = collection.filter((item: StoredRecord) => {
         const fieldValue = item[field]
         if (typeof fieldValue === 'object' && fieldValue !== null) {
           return JSON.stringify(fieldValue).includes(JSON.stringify(value))
@@ -388,10 +413,10 @@ class QueryBuilder {
 
     if (this.queryOptions.overlaps) {
       const { field, value } = this.queryOptions.overlaps
-      collection = collection.filter((item: any) => {
+      collection = collection.filter((item: StoredRecord) => {
         const fieldValue = item[field]
         if (Array.isArray(fieldValue)) {
-          return value.some((val: any) => fieldValue.includes(val))
+          return value.some((val: unknown) => fieldValue.includes(val))
         }
         return false
       })
@@ -399,7 +424,7 @@ class QueryBuilder {
 
     if (this.queryOptions.ilike) {
       const { field, value } = this.queryOptions.ilike
-      collection = collection.filter((item: any) => {
+      collection = collection.filter((item: StoredRecord) => {
         const fieldValue = item[field]
         if (typeof fieldValue === 'string') {
           return fieldValue.toLowerCase().includes(value.replace(/%/g, '').toLowerCase())
@@ -410,7 +435,7 @@ class QueryBuilder {
 
     if (this.queryOptions.in) {
       const { field, value } = this.queryOptions.in
-      collection = collection.filter((item: any) => 
+      collection = collection.filter((item: StoredRecord) =>
         value.includes(item[field])
       )
     }
@@ -418,7 +443,7 @@ class QueryBuilder {
     if (this.queryOptions.or) {
       // Simple OR implementation for name.ilike and description.ilike patterns
       const orConditions = this.queryOptions.or.split(',')
-      collection = collection.filter((item: any) => {
+      collection = collection.filter((item: StoredRecord) => {
         return orConditions.some((condition: string) => {
           const [field, operator, value] = condition.split('.')
           if (operator === 'ilike') {
@@ -436,13 +461,13 @@ class QueryBuilder {
     if (this.queryOptions.order) {
       const orderField = this.queryOptions.order.replace(/\s+(asc|desc)$/i, '')
       const isDesc = /desc$/i.test(this.queryOptions.order)
-      
-      collection.sort((a: any, b: any) => {
+
+      collection.sort((a: StoredRecord, b: StoredRecord) => {
         const aVal = a[orderField]
         const bVal = b[orderField]
-        
-        if (aVal < bVal) return isDesc ? 1 : -1
-        if (aVal > bVal) return isDesc ? -1 : 1
+
+        if ((aVal as string) < (bVal as string)) return isDesc ? 1 : -1
+        if ((aVal as string) > (bVal as string)) return isDesc ? -1 : 1
         return 0
       })
     }
@@ -468,20 +493,20 @@ export const createSessionClient = () => {
   return {
     from: (table: string) => ({
       select: (fields: string = '*') => new QueryBuilder(storage, table, fields),
-      insert: (data: any) => ({
+      insert: (data: StoredRecord) => ({
         select: () => ({
           single: () => storage.insert(table as keyof SessionData, data)
         })
       }),
-      update: (updates: any) => ({
-        eq: (field: string, value: any) => ({
+      update: (updates: StoredRecord) => ({
+        eq: (field: string, value: unknown) => ({
           select: () => ({
             single: () => storage.update(table as keyof SessionData, updates, { eq: { field, value } })
           })
         })
       })
     }),
-    rpc: (functionName: string, params?: any) => storage.rpc(functionName, params),
+    rpc: (functionName: string, params?: unknown) => storage.rpc(functionName, params),
     auth: {
       getUser: () => Promise.resolve({ data: { user: storage.getUser() }, error: null }),
       signOut: () => {

@@ -7,14 +7,14 @@ import { useMemo, useState } from 'react'
 import { Plus, Search, Globe2, Users2, Clock, Languages } from 'lucide-react'
 import { motion } from 'framer-motion'
 
-import { ProgramCatalogCard } from '@/components/program/program-catalog-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import { getCountryDisplay } from '@/lib/countries'
-import { buildProgramCatalog } from '@/lib/programs/selectors'
 import { cn } from '@/lib/utils'
+import type { PrototypeDatabase } from '@/lib/storage/prototype-db'
+import type { ProgramProject } from '@/lib/types/program'
 
 type DiscoverContentProps = {
   layout?: 'standalone' | 'embedded'
@@ -333,14 +333,14 @@ function timeAgo(dateString: string) {
 }
 
 const mapDbProjectToUi = (
-  project: any, // ProgramProject from DB
-  database: any // Full DB
+  project: ProgramProject,
+  database: PrototypeDatabase
 ): CollaborationProject => {
-  const program = database.programs.find((p: any) => p.id === project.programId)
-  const template = database.programTemplates.find((t: any) => t.id === project.templateId)
-  const teacher = database.institutionTeachers.find((t: any) => t.id === project.createdById)
-  const institution = teacher ? database.institutions.find((i: any) => i.id === teacher.institutionId) : null
-  const partner = program ? database.partners.find((p: any) => p.id === program.partnerId) : null
+  const program = database.programs.find((p) => p.id === project.programId)
+  const template = database.programTemplates.find((t) => t.id === project.templateId)
+  const teacher = database.institutionTeachers.find((t) => t.id === project.createdById)
+  const institution = teacher ? database.institutions.find((i) => i.id === teacher.institutionId) : null
+  const partner = program ? database.partners.find((p) => p.id === program.partnerId) : null
 
   let createdAt = project.createdAt || new Date().toISOString()
 
@@ -380,19 +380,15 @@ const mapDbProjectToUi = (
 
   // Logic moved to useMemo to cover mock projects as well
   return uiProject
-
-  return uiProject
 }
 
 
 export function DiscoverContent({
   layout = 'standalone',
-  discoverBasePath = '/discover',
 }: DiscoverContentProps) {
-  const tc = useTranslations('common')
   const [activeTab, setActiveTab] = useState('collaboration')
   const [searchQuery, setSearchQuery] = useState('')
-  const { ready: dataReady, database } = usePrototypeDb()
+  const { database } = usePrototypeDb()
 
   const allCollaborationProjects = useMemo(() => {
     // Modify mockProjects timestamps for consistent sorting if needed

@@ -13,7 +13,6 @@ import { getCurrentSession } from '@/lib/auth/session'
 
 export default function SchoolProgramsPage() {
   const t = useTranslations('programs')
-  const tc = useTranslations('common')
   const { ready: prototypeReady, database } = usePrototypeDb()
   const session = getCurrentSession()
   const normalizedSchoolName = session?.organization?.trim().toLowerCase() ?? ''

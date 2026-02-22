@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useRouter } from '@/i18n/navigation'
 import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
@@ -24,9 +23,6 @@ import {
   ArrowLeft,
   CheckCircle,
   Save,
-  X,
-  Plus,
-  Trash2
 } from 'lucide-react'
 
 // CRC Categories (same as partner edit)
@@ -147,9 +143,7 @@ type ProfileData = z.infer<typeof profileSchema>
 export default function ParentEditProfilePage() {
   const t = useTranslations('profile.edit')
   const tc = useTranslations('common')
-  const tSdg = useTranslations('sdg')
   const tCrc = useTranslations('crc')
-  const router = useRouter()
   const [saveComplete, setSaveComplete] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedSDGs, setSelectedSDGs] = useState<string[]>([])
@@ -263,7 +257,7 @@ export default function ParentEditProfilePage() {
           role: data.primaryContactRole,
           phone: data.primaryContactPhone || '',
         },
-      } as any)
+      } as Record<string, unknown>)
 
       // Simulate save delay
       await new Promise(resolve => setTimeout(resolve, 1000))
