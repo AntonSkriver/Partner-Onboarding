@@ -71,14 +71,13 @@ type ChildRightsEntry = {
   iconSrc: string
 }
 
-const parseContacts = (rawContacts: Organization['primary_contacts']): OrganizationContact[] => {
+const parseContacts = (rawContacts: Organization['primary_contacts'] | null | undefined): OrganizationContact[] => {
   if (!rawContacts || !Array.isArray(rawContacts)) {
     return []
   }
 
-  return rawContacts
-    .map((entry) => (typeof entry === 'object' && entry !== null ? entry : null))
-    .filter((entry): entry is Record<string, unknown> => entry !== null)
+  return (rawContacts as any[])
+    .filter((entry) => typeof entry === 'object' && entry !== null)
     .map((entry) => ({
       name: typeof entry.name === 'string' ? entry.name : undefined,
       email: typeof entry.email === 'string' ? entry.email : undefined,
@@ -243,7 +242,7 @@ export default function PartnerOverviewPage() {
       const sampleOrg: Organization = {
         id: matchedPartner?.id ?? 'demo-org-id',
         name: orgName,
-        organization_type: matchedPartner?.organizationType ?? 'ngo',
+        organization_type: (matchedPartner?.organizationType ?? 'ngo') as Organization['organization_type'],
         website: matchedPartner?.website ?? null,
         logo: matchedPartner?.logo ?? null,
         short_description: matchedPartner?.description ?? 'Partner organization on Class2Class.',
@@ -285,7 +284,7 @@ export default function PartnerOverviewPage() {
     }
   }
 
-  const primaryContacts = parseContacts(organization?.primary_contacts ?? null)
+  const primaryContacts = parseContacts(organization?.primary_contacts)
   const primaryContact = primaryContacts.find((contact) => contact.isPrimary) || primaryContacts[0]
 
   const sdgFocusDisplay = useMemo(() => {
@@ -436,9 +435,9 @@ export default function PartnerOverviewPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {organization.thematic_tags.length > 0 ? (
+            {(organization.thematic_tags ?? []).length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {organization.thematic_tags.map((tag) => (
+                {(organization.thematic_tags ?? []).map((tag) => (
                   <Badge key={tag} variant="outline">
                     {tag}
                   </Badge>

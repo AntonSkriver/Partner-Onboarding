@@ -165,7 +165,7 @@ export default function TeacherProgramsPage() {
                                         {partner?.logoUrl && (
                                             <img src={partner.logoUrl} alt="" className="h-4 w-4 rounded-full" />
                                         )}
-                                        {partner?.name ?? 'Partner'}
+                                        {partner?.organizationName ?? 'Partner'}
                                     </div>
                                 </div>
 

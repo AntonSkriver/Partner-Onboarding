@@ -1,7 +1,7 @@
 'use client'
 
 // Official UN SDG Colors and Data
-export const SDG_DATA = {
+export const SDG_DATA: Record<number, { title: string; color: string }> = {
   1: { title: 'No Poverty', color: '#E5243B' },
   2: { title: 'Zero Hunger', color: '#DDA63A' },
   3: { title: 'Good Health and Well-being', color: '#4C9F38' },

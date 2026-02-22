@@ -1,4 +1,6 @@
-import { supabase, supabaseAdmin } from '../supabase'
+import { createSessionClient } from '../session-storage'
+const supabase = createSessionClient()
+const supabaseAdmin = supabase
 
 // Temporary types for session storage (replace database types)
 type School = {
@@ -234,10 +236,10 @@ export class SchoolAPI {
 
   // Remove teacher from school (soft delete)
   static async removeTeacher(teacherId: string): Promise<boolean> {
-    const { error } = await supabase
+    const { error } = await (supabase
       .from('teachers')
       .update({ is_active: false })
-      .eq('id', teacherId)
+      .eq('id', teacherId) as any)
 
     if (error) {
       console.error('Error removing teacher:', error)
@@ -278,10 +280,10 @@ export class SchoolAPI {
     schoolId: string, 
     safeguardingSettings: any
   ): Promise<boolean> {
-    const { error } = await supabase
+    const { error } = await (supabase
       .from('schools')
       .update({ safeguarding_settings: safeguardingSettings })
-      .eq('id', schoolId)
+      .eq('id', schoolId) as any)
 
     if (error) {
       console.error('Error updating safeguarding settings:', error)
@@ -323,7 +325,7 @@ export class SchoolAPI {
     const school = await this.getById(schoolId)
     if (!school) return false
 
-    const { error } = await supabase
+    const { error } = await (supabase
       .from('invitations')
       .insert({
         type: 'school',
@@ -334,7 +336,7 @@ export class SchoolAPI {
         target_scope_id: collaborationId,
         message: message,
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
-      })
+      }) as any)
 
     if (error) {
       console.error('Error creating school invitation:', error)
@@ -353,10 +355,10 @@ export class SchoolAPI {
 
   // Deactivate school (soft delete)
   static async deactivate(id: string): Promise<boolean> {
-    const { error } = await supabase
+    const { error } = await (supabase
       .from('schools')
       .update({ is_active: false })
-      .eq('id', id)
+      .eq('id', id) as any)
 
     if (error) {
       console.error('Error deactivating school:', error)
@@ -364,10 +366,10 @@ export class SchoolAPI {
     }
 
     // Also deactivate all teachers
-    await supabase
+    await (supabase
       .from('teachers')
       .update({ is_active: false })
-      .eq('school_id', id)
+      .eq('school_id', id) as any)
 
     // Log activity
     await this.logActivity('deactivate', 'school', id, {})

@@ -342,7 +342,7 @@ export default function EditProfilePage() {
           phone: data.primaryContactPhone || '',
         },
         otherContacts: normalizedOtherContacts,
-      })
+      } as any)
 
       // Simulate save delay
       await new Promise(resolve => setTimeout(resolve, 1000))

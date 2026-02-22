@@ -139,18 +139,17 @@ export function SchoolProfileForm({
     try {
       const schoolData: SchoolUpdate = {
         ...data,
-        updated_at: new Date().toISOString()
-      }
+      } as any
 
       let result: School | null = null
       
       if (isEditing && school) {
-        result = await SchoolAPI.update(school.id, schoolData)
+        result = await SchoolAPI.update(school.id, schoolData as any)
       } else {
         result = await SchoolAPI.create({
           ...schoolData,
-          is_active: true
-        })
+          is_active: true,
+        } as any)
       }
 
       if (result) {

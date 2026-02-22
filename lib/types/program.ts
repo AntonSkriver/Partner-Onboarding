@@ -177,6 +177,8 @@ export type InstitutionType =
   | 'public_school'
   | 'private_school'
   | 'international_school'
+  | 'primary_school'
+  | 'secondary_school'
   | 'learning_center'
   | 'community_center'
   | 'library'
@@ -220,6 +222,7 @@ export interface ProgramProject {
   id: string;
   programId: string;
   projectId: string; // Reference to existing Project type
+  title?: string;
 
   // Creator tracking
   createdByType: 'partner' | 'coordinator' | 'teacher';
@@ -253,6 +256,7 @@ export interface ProgramProjectTemplate {
   sdgAlignment: number[];
   requiredMaterials?: string[];
   languageSupport: string[];
+  projectType?: ProjectType;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

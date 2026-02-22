@@ -189,7 +189,7 @@ export default function PartnerProgramDetailPage() {
       router.push('/partner/login')
       return
     }
-    const allowedRoles = new Set(['partner', 'parent', 'teacher', 'school'])
+    const allowedRoles = new Set<string>(['partner', 'parent', 'teacher', 'school'])
     if (!allowedRoles.has(session.role)) {
       router.push('/partner/login')
     }
@@ -245,7 +245,7 @@ export default function PartnerProgramDetailPage() {
       <div className="w-full max-w-5xl">
         <div className="mb-6 flex items-center justify-between">
           <Button variant="ghost" size="sm" asChild className="px-0 text-purple-600 hover:text-purple-700">
-            <Link href={session?.role === 'teacher' || session?.role === 'school' ? '/school/dashboard/programs' : '/partner/profile/programs'}>
+            <Link href={(session?.role as string) === 'teacher' || (session?.role as string) === 'school' ? '/school/dashboard/programs' : '/partner/profile/programs'}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to programs
             </Link>

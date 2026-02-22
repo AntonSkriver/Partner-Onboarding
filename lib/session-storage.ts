@@ -33,7 +33,7 @@ class SessionStorage {
     }
 
     try {
-      const stored = sessionStorage.getItem('partnerOnboardingData')
+      const stored = window.sessionStorage.getItem('partnerOnboardingData')
       if (stored) {
         return JSON.parse(stored)
       }
@@ -61,7 +61,7 @@ class SessionStorage {
     if (typeof window === 'undefined') return
 
     try {
-      sessionStorage.setItem('partnerOnboardingData', JSON.stringify(this.data))
+      window.sessionStorage.setItem('partnerOnboardingData', JSON.stringify(this.data))
     } catch (error) {
       console.warn('Failed to save session data:', error)
     }
@@ -354,7 +354,7 @@ class QueryBuilder {
     return this.executeQuery()
   }
 
-  then(onResolve: Function, onReject?: Function) {
+  then(onResolve: (value: any) => any, onReject?: (reason: any) => any) {
     return this.executeQuery().then(onResolve, onReject)
   }
 
@@ -492,4 +492,4 @@ export const createSessionClient = () => {
   }
 }
 
-export const sessionStorage = SessionStorage.getInstance()
+export const appSessionStorage = SessionStorage.getInstance()

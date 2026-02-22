@@ -16,7 +16,7 @@ import { Link } from '@/i18n/navigation'
 
 export default function MarketingCampaign() {
   const [activeTab, setActiveTab] = useState("upload")
-  const [uploadedProject, setUploadedProject] = useState(null)
+  const [uploadedProject, setUploadedProject] = useState<{ name: string; size: number; type: string; lastModified: number } | null>(null)
 
   const contentTypes = [
     {
@@ -100,8 +100,8 @@ The Class 7A Teaching Team`
     }
   }
 
-  const handleProjectUpload = (event) => {
-    const file = event.target.files[0]
+  const handleProjectUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
     if (file) {
       setUploadedProject({
         name: file.name,

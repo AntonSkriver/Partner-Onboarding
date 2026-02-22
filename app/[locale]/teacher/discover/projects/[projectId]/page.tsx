@@ -142,7 +142,7 @@ export default function ProjectDetailsPage() {
         ? 'ES' // Mock default
         : (db?.institution?.country ?? 'US')
 
-    const { flag, name: countryName } = getCountryDisplay(countryCode)
+    const { flag, name: countryName } = getCountryDisplay(countryCode ?? '')
 
     const programName = db?.program?.displayTitle ?? db?.program?.name
     const partnerName = db?.partner?.organizationName
@@ -183,7 +183,7 @@ export default function ProjectDetailsPage() {
 
         list.push({
             name: creatorName ?? 'Teacher',
-            initials: creatorInitials,
+            initials: creatorInitials ?? '',
             avatar: teacherAvatar,
             flag,
             countryName,

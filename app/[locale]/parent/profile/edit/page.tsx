@@ -262,8 +262,8 @@ export default function ParentEditProfilePage() {
           email: data.primaryContactEmail,
           role: data.primaryContactRole,
           phone: data.primaryContactPhone || '',
-        }
-      })
+        },
+      } as any)
 
       // Simulate save delay
       await new Promise(resolve => setTimeout(resolve, 1000))

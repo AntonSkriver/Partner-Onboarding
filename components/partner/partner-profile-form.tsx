@@ -56,7 +56,7 @@ export function PartnerProfileForm({
 }: PartnerProfileFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [logoFile, setLogoFile] = useState<File | null>(null)
-  const [logoPreview, setLogoPreview] = useState<string | null>(organization?.logo || null)
+  const [logoPreview, setLogoPreview] = useState<string | null>(organization?.logo ?? organization?.logo_url ?? null)
 
   const {
     register,
@@ -66,10 +66,10 @@ export function PartnerProfileForm({
     watch,
     control
   } = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
+    resolver: zodResolver(profileSchema) as any,
     defaultValues: {
       name: organization?.name || '',
-      organization_type: organization?.organization_type || 'ngo',
+      organization_type: (organization?.organization_type || 'ngo') as any,
       website: organization?.website || '',
       short_description: organization?.short_description || '',
       countries_of_operation: organization?.countries_of_operation || [],
@@ -133,7 +133,7 @@ export function PartnerProfileForm({
   const onSubmit = async (data: ProfileFormData) => {
     setIsSubmitting(true)
     try {
-      let logoUrl = organization?.logo || null
+      let logoUrl = organization?.logo ?? organization?.logo_url ?? null
 
       // TODO: Upload logo to storage if logoFile exists
       if (logoFile) {
@@ -143,19 +143,18 @@ export function PartnerProfileForm({
       const organizationData: OrganizationUpdate = {
         ...data,
         logo: logoUrl,
-        updated_at: new Date().toISOString()
-      }
+      } as any
 
       let result: Organization | null = null
       
       if (isEditing && organization) {
-        result = await OrganizationAPI.update(organization.id, organizationData)
+        result = await OrganizationAPI.update(organization.id, organizationData as any)
       } else {
         result = await OrganizationAPI.create({
           ...organizationData,
           verification_status: 'pending',
-          is_active: true
-        })
+          is_active: true,
+        } as any)
       }
 
       if (result) {

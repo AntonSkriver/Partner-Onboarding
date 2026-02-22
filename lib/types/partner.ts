@@ -3,8 +3,10 @@
 export interface Partner {
   id: string;
   organizationName: string;
-  organizationType: 'ngo' | 'government' | 'school_network' | 'commercial' | 'other';
+  organizationType: 'ngo' | 'government' | 'school_network' | 'commercial' | 'foundation' | 'other';
   logo?: string;
+  logoUrl?: string;
+  brandColor?: string;
   description: string;
   mission: string;
   website?: string;
@@ -13,6 +15,9 @@ export interface Partner {
   country: string;
   languages: string[];
   sdgFocus: string[]; // UN Sustainable Development Goals focus areas
+  thematicTags?: string[];
+  sdgTags?: number[];
+  childRightsFocus?: string[];
   createdAt: Date;
   updatedAt: Date;
   isActive: boolean;

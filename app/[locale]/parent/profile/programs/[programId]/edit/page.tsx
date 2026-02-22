@@ -142,9 +142,9 @@ const toFormValues = (program: Program): ProgramFormValues => ({
   name: program.name,
   description: program.description,
   learningGoals: program.learningGoals,
-  collaborationType: program.projectTypes?.[0] ?? COLLABORATION_TYPE_VALUES[0],
+  collaborationType: (program.projectTypes?.[0] ?? 'cultural_exchange') as typeof COLLABORATION_TYPE_VALUES[number],
   targetAgeRanges: program.targetAgeRanges ?? [],
-  languages: program.languages && program.languages.length > 0 ? program.languages : ['en'],
+  languages: (program.languages && program.languages.length > 0 ? program.languages : ['en']) as ("en" | "da")[],
   sdgFocus: program.sdgFocus ?? [],
   crcFocus: program.crcFocus ?? [],
   startDate: program.startDate,
@@ -257,7 +257,7 @@ export default function ParentEditProgramPage() {
       : [...selectedLanguages, code]
 
     setSelectedLanguages(newSelection)
-    form.setValue('languages', newSelection)
+    form.setValue('languages', newSelection as ("en" | "da")[])
   }
 
   const handleSubmit = async (values: ProgramFormValues) => {
@@ -289,7 +289,6 @@ export default function ParentEditProgramPage() {
         projectTypes: [values.collaborationType],
         languages: values.languages,
         displayTitle,
-        updatedAt: now,
       })
 
       if (!updated) {

@@ -349,7 +349,7 @@ export default function PartnerDashboard() {
     router.push('/partner/login')
   }
 
-  const toggleProjectDetails = (projectId) => {
+  const toggleProjectDetails = (projectId: string) => {
     const newExpanded = new Set(expandedProjects)
     if (newExpanded.has(projectId)) {
       newExpanded.delete(projectId)

@@ -231,7 +231,7 @@ function ProjectCard({ project }: { project: CollaborationProject }) {
   )
 }
 
-const mockProjects = {
+const mockProjects: { collaboration: CollaborationProject[]; ideas: { id: string; title: string; description: string; category: string }[]; community: { id: string; title: string; description: string; participants: number }[] } = {
   collaboration: [
     {
       id: '1',

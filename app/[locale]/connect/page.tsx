@@ -300,7 +300,7 @@ export default function ConnectPage() {
       <CardContent>
         <div className="mb-4">
           <div className="flex flex-wrap gap-1">
-            {teacher.subjects.map((subject, idx) => (
+            {teacher.subjects.map((subject: string, idx: number) => (
               <Badge key={idx} variant="outline" className="text-xs">
                 {subject}
               </Badge>
@@ -358,7 +358,7 @@ export default function ConnectPage() {
         <div className="mb-4">
           <div className="text-xs text-gray-600 mb-2">Programs</div>
           <div className="flex flex-wrap gap-1">
-            {school.programs.map((program, idx) => (
+            {school.programs.map((program: string, idx: number) => (
               <Badge key={idx} variant="outline" className="text-xs">
                 {program}
               </Badge>

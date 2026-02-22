@@ -31,7 +31,7 @@ export default function CoordinatorProjectsPage() {
   const projects = useMemo(() => {
     if (!database || coordinatorRecords.length === 0) return []
     const programIds = new Set(coordinatorRecords.map((c) => c.programId))
-    return database.projects.filter((p) => programIds.has(p.programId))
+    return database.programProjects.filter((p: { programId: string }) => programIds.has(p.programId))
   }, [database, coordinatorRecords])
 
   if (!ready || !database) {
@@ -57,7 +57,7 @@ export default function CoordinatorProjectsPage() {
 
       {projects.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2">
-          {projects.map((project) => (
+          {projects.map((project: any) => (
             <Card key={project.id} className="transition-shadow hover:shadow-md">
               <CardContent className="p-5">
                 <h3 className="font-semibold text-gray-900">{project.title}</h3>

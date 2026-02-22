@@ -568,9 +568,9 @@ export function PartnerProfileDashboard({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {organization.thematic_tags.length > 0 ? (
+                {(organization.thematic_tags ?? []).length > 0 ? (
                   <div className="flex flex-wrap gap-2">
-                    {organization.thematic_tags.map((tag) => (
+                    {(organization.thematic_tags ?? []).map((tag) => (
                       <Badge key={tag} variant="outline">
                         {tag}
                       </Badge>

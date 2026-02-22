@@ -166,8 +166,8 @@ export function InteractiveMap({ countries, onCountrySelect }: InteractiveMapPro
       const container = map.getContainer() as (HTMLElement & { _leaflet_id?: string | null }) | null
       try {
         const mapContainerId = (map as unknown as { _containerId?: number })._containerId
-        if (container && mapContainerId && container._leaflet_id !== mapContainerId) {
-          container._leaflet_id = mapContainerId
+        if (container && mapContainerId && container._leaflet_id !== String(mapContainerId)) {
+          container._leaflet_id = String(mapContainerId)
         }
         map.remove()
       } catch (err) {

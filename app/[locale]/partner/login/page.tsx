@@ -205,7 +205,7 @@ export default function PartnerLoginPage() {
 
     createSession({
       email: `demo+${option.id}@class2class.org`,
-      role: option.role,
+      role: option.role as 'coordinator' | 'teacher' | 'student' | 'partner' | 'parent',
       organization: option.organization,
       name: option.name,
     })

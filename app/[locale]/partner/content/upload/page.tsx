@@ -10,7 +10,7 @@ import { buildProgramSummariesForPartner, buildProgramSummary } from '@/lib/prog
 import { getCurrentSession } from '@/lib/auth/session'
 import { resolvePartnerContext } from '@/lib/auth/partner-context'
 import { getScopedParentPartnerIds, getScopedParentPartners } from '@/lib/parent/network'
-import type { ResourceType } from '@/lib/types/resource'
+import type { ResourceType, ResourceAvailabilityScope } from '@/lib/types/resource'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -380,7 +380,7 @@ export default function UploadContentPage() {
         createdBy: session?.email || 'unknown@class2class.org',
         programAssignment: data.programAssignment,
         specificProgramIds: data.programAssignment === 'specific' ? selectedPrograms : [],
-        availabilityScope: isParentUploader ? data.availabilityScope : 'organization',
+        availabilityScope: (isParentUploader ? data.availabilityScope : 'organization') as ResourceAvailabilityScope,
         targetPartnerIds:
           isParentUploader && data.availabilityScope === 'specific_partners'
             ? selectedTargetPartners

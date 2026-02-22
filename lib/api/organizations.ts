@@ -1,4 +1,6 @@
-import { supabase, supabaseAdmin } from '../supabase'
+import { createSessionClient } from '../session-storage'
+const supabase = createSessionClient()
+const supabaseAdmin = supabase
 
 // Temporary types for session storage (replace database types)
 type Organization = {
@@ -124,10 +126,10 @@ export class OrganizationAPI {
     id: string, 
     status: Organization['verification_status']
   ): Promise<boolean> {
-    const { error } = await supabaseAdmin
+    const { error } = await (supabaseAdmin
       .from('organizations')
       .update({ verification_status: status })
-      .eq('id', id)
+      .eq('id', id) as any)
 
     if (error) {
       console.error('Error updating verification status:', error)
@@ -235,7 +237,7 @@ export class OrganizationAPI {
   static async getResources(organizationId: string) {
     // Get collaborations where this organization is involved
     const collaborations = await this.getProgramMemberships(organizationId)
-    const collaborationIds = collaborations.map(c => c.id)
+    const collaborationIds = collaborations.map((c: any) => c.id)
 
     if (collaborationIds.length === 0) {
       return []
@@ -258,10 +260,10 @@ export class OrganizationAPI {
 
   // Deactivate organization (soft delete)
   static async deactivate(id: string): Promise<boolean> {
-    const { error } = await supabase
+    const { error } = await (supabase
       .from('organizations')
       .update({ is_active: false })
-      .eq('id', id)
+      .eq('id', id) as any)
 
     if (error) {
       console.error('Error deactivating organization:', error)

@@ -263,7 +263,7 @@ export default function CreateProgramPage() {
       : [...selectedLanguages, code]
 
     setSelectedLanguages(newSelection)
-    form.setValue('languages', newSelection)
+    form.setValue('languages', newSelection as ("en" | "da")[])
   }
 
   const handleSubmit = async (values: ProgramFormValues) => {

@@ -83,7 +83,7 @@ export default function CoordinatorConnectPage() {
                       {inst.country && (
                         <p className="mt-0.5 flex items-center gap-1 text-sm text-gray-500">
                           <MapPin className="h-3 w-3" />
-                          {getCountryDisplay(inst.country)}
+                          {getCountryDisplay(inst.country).name}
                         </p>
                       )}
                       <div className="mt-3 flex flex-wrap gap-2">

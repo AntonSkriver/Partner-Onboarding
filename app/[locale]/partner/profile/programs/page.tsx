@@ -19,7 +19,7 @@ type Organization = Database['public']['Tables']['organizations']['Row']
 export default function PartnerProgramsPage() {
   const t = useTranslations('programs')
   const tDashboard = useTranslations('dashboard')
-  const [sessionRole] = useState<'partner' | 'parent' | 'teacher' | 'student' | null>(
+  const [sessionRole] = useState<string | null>(
     () => getCurrentSession()?.role ?? null,
   )
   const [organization, setOrganization] = useState<Organization | null>(null)
