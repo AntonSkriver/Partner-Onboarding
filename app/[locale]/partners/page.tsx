@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { LanguageSwitcher } from '@/components/language-switcher'
 
 const partnerTypes = [
@@ -53,6 +53,27 @@ export default function PartnersPage() {
   const t = useTranslations('landing')
   const tn = useTranslations('nav')
   const [scrollY, setScrollY] = useState(0)
+
+  const HERO_VERBS = ['transform', 'elevate', 'evolve', 'revolutionize'] as const
+  const [verbIndex, setVerbIndex] = useState(0)
+  const [animState, setAnimState] = useState<'visible' | 'exiting' | 'entering'>('visible')
+  const intervalRef = useRef<ReturnType<typeof setInterval>>(null)
+
+  const cycleVerb = useCallback(() => {
+    setAnimState('exiting')
+    setTimeout(() => {
+      setVerbIndex((prev) => (prev + 1) % HERO_VERBS.length)
+      setAnimState('entering')
+      setTimeout(() => setAnimState('visible'), 50)
+    }, 300)
+  }, [HERO_VERBS.length])
+
+  useEffect(() => {
+    intervalRef.current = setInterval(cycleVerb, 2000)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [cycleVerb])
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY)
@@ -149,14 +170,23 @@ export default function PartnersPage() {
               </div>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#1a1a2e] leading-[1.15] tracking-tight">
-                {t.rich('heroTitle', {
-                  highlight: (chunks) => (
-                    <span className="relative inline-block">
-                      <span className="relative z-10 text-[#8B5CF6]">{chunks}</span>
-                      <span className="absolute bottom-1 left-0 right-0 h-2 bg-[#8B5CF6]/20 -z-10 -rotate-1 rounded" />
-                    </span>
-                  )
-                })}
+                Partner with us to{' '}
+                <span className="relative inline-block overflow-hidden align-bottom">
+                  <span
+                    className={`relative z-10 inline-block text-[#8B5CF6] transition-all duration-300 ease-in-out ${
+                      animState === 'exiting'
+                        ? 'translate-y-[110%] opacity-0'
+                        : animState === 'entering'
+                          ? '-translate-y-[110%] opacity-0'
+                          : 'translate-y-0 opacity-100'
+                    }`}
+                  >
+                    {HERO_VERBS[verbIndex]}
+                  </span>
+                  <span className="absolute bottom-1 left-0 right-0 h-2 bg-[#8B5CF6]/20 -z-10 -rotate-1 rounded" />
+                </span>
+                <br />
+                global education
               </h1>
 
               <p className="text-lg text-gray-600 leading-relaxed max-w-md">
