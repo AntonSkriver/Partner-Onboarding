@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { motion, useInView, useSpring, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { ProfilePageHeader } from '@/components/profile/profile-page-header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -13,13 +13,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-} from 'recharts'
-import {
   Target,
   Users,
   GraduationCap,
@@ -28,10 +21,7 @@ import {
   Map as MapIcon,
   ChevronRight,
   BookOpen,
-  TrendingUp,
-  MapPin,
 } from 'lucide-react'
-import Image from 'next/image'
 import { InteractiveMapWrapper, type CountryData } from '@/components/interactive-map-wrapper'
 import { Database } from '@/lib/types/database'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
@@ -41,116 +31,24 @@ import {
 } from '@/lib/programs/selectors'
 import { getCountryDisplay } from '@/lib/countries'
 import { getCurrentSession } from '@/lib/auth/session'
-import { SDGIcon } from '@/components/sdg-icons'
+import {
+  EXCLUDED_INSTITUTION_IDS,
+  TEACHER_AVATARS,
+  type SchoolDetail,
+  type ProjectDetail,
+  type EducatorDetail,
+} from '@/components/partner/analytics/shared'
+import { StudentMetricModal } from '@/components/partner/analytics/student-metric-modal'
+import { SchoolMetricModal } from '@/components/partner/analytics/school-metric-modal'
+import { ProjectMetricModal } from '@/components/partner/analytics/project-metric-modal'
+import { EducatorMetricModal } from '@/components/partner/analytics/educator-metric-modal'
+import { ProgramMetricModal } from '@/components/partner/analytics/program-metric-modal'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
-
-const EXCLUDED_INSTITUTION_IDS = new Set<string>()
-
-const TEACHER_AVATARS: Record<string, string> = {
-  'Ulla Jensen': '/images/avatars/ulla-new.jpg',
-  'Karin Albrectsen': '/images/avatars/karin-new.jpg',
-  'Maria Garcia': '/images/avatars/maria-new.jpg',
-  'Raj Patel': '/images/avatars/raj-new.jpg',
-  'Jonas Madsen': '/images/avatars/jonas-final.jpg',
-  'Anne Holm': '/images/avatars/anne-holm.png',
-  'Sofie Larsen': '/images/avatars/sofie-larsen.png',
-  'Sara Ricci': '/images/avatars/sara-ricci.png',
-  'Lucas Souza': '/images/avatars/lucas-souza.png',
-  'Peter Andersen': '/images/avatars/peter-andersen.png',
-}
-
-// Animated counter component for engaging number displays
-function AnimatedCounter({ value, duration = 1.5, className = '' }: { value: number; duration?: number; className?: string }) {
-  const ref = useRef<HTMLSpanElement>(null)
-  const isInView = useInView(ref, { once: true })
-  const spring = useSpring(0, { duration: duration * 1000 })
-  const display = useTransform(spring, (current) => Math.round(current).toLocaleString())
-
-  useEffect(() => {
-    if (isInView) {
-      spring.set(value)
-    }
-  }, [isInView, spring, value])
-
-  return <motion.span ref={ref} className={className}>{display}</motion.span>
-}
-
-// Chart color palettes
-const CHART_COLORS = {
-  purple: ['#9333ea', '#a855f7', '#c084fc', '#d8b4fe'],
-  blue: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd'],
-  emerald: ['#059669', '#10b981', '#34d399', '#6ee7b7'],
-  amber: ['#d97706', '#f59e0b', '#fbbf24', '#fcd34d'],
-  status: {
-    active: '#10b981',
-    partial: '#f59e0b',
-    onboarding: '#9ca3af',
-  },
-}
-
-// CRC Article titles
-const CRC_TITLES: Record<string, string> = {
-  '2': 'Non-discrimination',
-  '3': 'Best interests of child',
-  '4': 'Implementation of rights',
-  '6': 'Life, survival & development',
-  '12': 'Respect for views of child',
-  '13': 'Freedom of expression',
-  '17': 'Access to information',
-  '19': 'Protection from violence',
-  '24': 'Health services',
-  '28': 'Right to education',
-  '29': 'Goals of education',
-  '31': 'Leisure & play',
-}
-
-function getEducatorAvatar(name: string): string | null {
-  return TEACHER_AVATARS[name] || null
-}
-
-// Custom tooltip component for charts
-const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; payload: { fill?: string } }>; label?: string }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-lg">
-        <p className="text-sm font-medium text-gray-900">{label || payload[0].name}</p>
-        <p className="text-sm text-gray-600">{payload[0].value.toLocaleString()}</p>
-      </div>
-    )
-  }
-  return null
-}
-
-// Detailed breakdown data for interactive cards
-interface SchoolDetail {
-  name: string
-  originalName: string
-  country: string
-  flag: string
-  students: number
-  teachers: number
-  city?: string
-  schoolType?: 'primary' | 'secondary' | 'higher-ed'
-  status?: 'active' | 'partial' | 'onboarding'
-  projectCount?: number
-}
-
-interface ProjectDetail {
-  name: string
-  studentsReached: number
-  educatorsEngaged: number
-  status: 'active' | 'completed'
-  partnerSchool?: string
-  country?: string
-  flag?: string
-  ageGroup: string
-}
 
 export default function PartnerAnalyticsPage() {
   const t = useTranslations('profile.analytics')
   const tDashboard = useTranslations('dashboard')
-  const tPrograms = useTranslations('programs')
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null)
@@ -289,17 +187,7 @@ export default function PartnerAnalyticsPage() {
   const educatorDetails = useMemo(() => {
     if (programSummaries.length === 0) return []
 
-    const educatorMap = new Map<string, {
-      name: string
-      avatar?: string | null
-      subject: string
-      school: string
-      country: string
-      flag: string
-      projectCount: number
-      ageGroup: string
-      project: string | null
-    }>()
+    const educatorMap = new Map<string, EducatorDetail>()
 
     programSummaries.forEach(summary => {
       summary.teachers.forEach(teacher => {
@@ -570,7 +458,7 @@ export default function PartnerAnalyticsPage() {
 
   // Educators grouped by project for richer display
   const educatorsByProject = useMemo(() => {
-    const groups: Record<string, { educators: typeof educatorDetails; status: string; description: string }> = {}
+    const groups: Record<string, { educators: EducatorDetail[]; status: string; description: string }> = {}
 
     educatorDetails.forEach(educator => {
       const projectKey = educator.project || 'Onboarding'
@@ -791,741 +679,46 @@ export default function PartnerAnalyticsPage() {
     if (!selectedMetric) return null
 
     switch (selectedMetric) {
-      case 'students': {
-        const uniqueCountries = new Set<string>()
-        programSummaries.forEach(summary => {
-          summary.institutions
-            .filter(i => !EXCLUDED_INSTITUTION_IDS.has(i.id) && i.country)
-            .forEach(i => uniqueCountries.add(i.country))
-        })
-
-        // Age group distribution
-        const ageGroupData = [
-          { name: '12-14 years', value: Math.round(studentsTotal * 0.28), fill: '#8b5cf6' },
-          { name: '14-16 years', value: Math.round(studentsTotal * 0.38), fill: '#a78bfa' },
-          { name: '16-18 years', value: Math.round(studentsTotal * 0.34), fill: '#c4b5fd' },
-        ]
-
-        // Gender distribution
-        const genderData = [
-          { name: 'Female', value: Math.round(studentsTotal * 0.52), fill: '#ec4899' },
-          { name: 'Male', value: Math.round(studentsTotal * 0.47), fill: '#3b82f6' },
-          { name: 'Non-binary', value: Math.round(studentsTotal * 0.01), fill: '#8b5cf6' },
-        ]
-
-        // Country breakdown from countryImpact
-        const focusImpact = countryImpact.filter(e => focusCountries.includes(e.country))
-        const totalActiveStudents = focusImpact.reduce((sum, e) => sum + e.students, 0)
-
+      case 'students':
         return (
-          <div className="space-y-10">
-            {/* Hero stat with animated counter */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 p-8 text-white">
-              <div className="relative z-10">
-                <p className="text-sm font-medium text-purple-100">{t('totalStudentsReached')}</p>
-                <p className="mt-2 text-5xl font-bold">
-                  <AnimatedCounter value={studentsTotal} />
-                </p>
-                <div className="mt-4 flex items-center gap-2 text-purple-100">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="text-sm">Across {uniqueCountries.size} countries · {studentBreakdown.length} active programs</span>
-                </div>
-              </div>
-              <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white/10" />
-              <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-white/5" />
-            </div>
-
-            {/* Age and Gender distribution */}
-            <div className="grid gap-6 lg:grid-cols-2">
-              {/* Age Group Distribution */}
-              <motion.div
-                className="rounded-xl border border-gray-100 bg-gray-50/30 p-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-              >
-                <h4 className="mb-4 text-base font-semibold text-gray-900">{t('ageDistribution')}</h4>
-                <div className="flex items-center gap-6">
-                  <div className="h-36 w-36 flex-shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={ageGroupData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={40}
-                          outerRadius={65}
-                          paddingAngle={3}
-                          dataKey="value"
-                          animationBegin={100}
-                          animationDuration={600}
-                        >
-                          {ageGroupData.map((entry, index) => (
-                            <Cell key={`age-cell-${index}`} fill={entry.fill} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="flex-1 space-y-3">
-                    {ageGroupData.map((item) => {
-                      const percent = studentsTotal > 0 ? Math.round((item.value / studentsTotal) * 100) : 0
-                      return (
-                        <div key={item.name} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.fill }} />
-                            <span className="text-sm font-medium text-gray-700">{item.name}</span>
-                          </div>
-                          <span className="text-sm font-semibold text-gray-900">{percent}%</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Gender Distribution */}
-              <motion.div
-                className="rounded-xl border border-gray-100 bg-gray-50/30 p-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <h4 className="mb-4 text-base font-semibold text-gray-900">{t('genderDistribution')}</h4>
-                <div className="flex items-center gap-6">
-                  <div className="h-36 w-36 flex-shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={genderData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={40}
-                          outerRadius={65}
-                          paddingAngle={3}
-                          dataKey="value"
-                          animationBegin={150}
-                          animationDuration={600}
-                        >
-                          {genderData.map((entry, index) => (
-                            <Cell key={`gender-cell-${index}`} fill={entry.fill} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="flex-1 space-y-3">
-                    {genderData.map((item) => {
-                      const percent = studentsTotal > 0 ? Math.round((item.value / studentsTotal) * 100) : 0
-                      return (
-                        <div key={item.name} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.fill }} />
-                            <span className="text-sm font-medium text-gray-700">{item.name}</span>
-                          </div>
-                          <span className="text-sm font-semibold text-gray-900">{percent}%</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Students by Country and Program breakdown */}
-            <div className="grid gap-10 lg:grid-cols-2">
-              {/* Students by Country */}
-              <motion.div
-                className="rounded-xl border border-gray-100 bg-gray-50/30 p-6"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <h4 className="mb-6 text-base font-semibold text-gray-900">{t('studentsByCountry')}</h4>
-                <div className="space-y-6">
-                  {focusImpact.map((entry, idx) => {
-                    const percent = totalActiveStudents > 0 ? Math.round((entry.students / totalActiveStudents) * 100) : 0
-                    const colors = idx === 0 ? { bg: 'bg-purple-100', bar: 'from-purple-600 to-purple-400', text: 'text-purple-600' } :
-                                               { bg: 'bg-blue-100', bar: 'from-blue-600 to-blue-400', text: 'text-blue-600' }
-                    return (
-                      <div key={entry.country} className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className="text-2xl">{entry.flag}</span>
-                            <span className="font-semibold text-gray-900">{entry.countryLabel}</span>
-                          </div>
-                          <span className={`text-2xl font-bold ${colors.text}`}>{entry.students.toLocaleString()}</span>
-                        </div>
-                        <div className={`h-3 rounded-full ${colors.bg} overflow-hidden`}>
-                          <motion.div
-                            className={`h-3 rounded-full bg-gradient-to-r ${colors.bar}`}
-                            initial={{ width: 0 }}
-                            animate={{ width: `${percent}%` }}
-                            transition={{ duration: 0.8, delay: 0.3 + idx * 0.1 }}
-                          />
-                        </div>
-                        <p className="text-sm text-gray-500">{entry.institutions} schools · {percent}% of students</p>
-                      </div>
-                    )
-                  })}
-                </div>
-              </motion.div>
-
-              {/* Program breakdown list */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.25 }}
-              >
-                <h4 className="mb-6 text-base font-semibold text-gray-900">{t('programDetails')}</h4>
-                <div className="space-y-5">
-                  {studentBreakdown.map((item, idx) => {
-                    const percent = studentsTotal
-                      ? Math.round((item.students / studentsTotal) * 100)
-                      : 0
-                    return (
-                      <motion.div
-                        key={item.program}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 + idx * 0.05 }}
-                        className="group rounded-xl bg-purple-50/50 border-l-4 border-purple-500 p-6 transition-all hover:bg-purple-50/80 hover:shadow-md hover:-translate-y-0.5"
-                      >
-                        <div className="mb-5 flex items-start justify-between">
-                          <div className="flex items-center gap-4">
-                            <div
-                              className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm"
-                              style={{ backgroundColor: `${CHART_COLORS.purple[idx % CHART_COLORS.purple.length]}15` }}
-                            >
-                              <BookOpen
-                                className="h-6 w-6"
-                                style={{ color: CHART_COLORS.purple[idx % CHART_COLORS.purple.length] }}
-                              />
-                            </div>
-                            <div>
-                              <p className="font-semibold text-gray-900">{item.program}</p>
-                              <p className="mt-1.5 text-sm text-gray-500">
-                                {item.schools} schools · {item.countries} {item.countries === 1 ? 'country' : 'countries'}
-                              </p>
-                              {item.partners && (
-                                <p className="mt-2 text-sm text-gray-600">{item.partners}</p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent">{item.students.toLocaleString()}</p>
-                            <p className="mt-1 text-sm text-gray-500">{percent}% of total</p>
-                          </div>
-                        </div>
-                        <div className="h-2 rounded-full bg-purple-100 overflow-hidden">
-                          <motion.div
-                            className="h-2 rounded-full bg-gradient-to-r from-purple-600 to-purple-400"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${percent}%` }}
-                            transition={{ duration: 0.8, delay: 0.4 + idx * 0.1, ease: "easeOut" }}
-                          />
-                        </div>
-                      </motion.div>
-                    )
-                  })}
-                </div>
-              </motion.div>
-            </div>
-          </div>
+          <StudentMetricModal
+            programSummaries={programSummaries}
+            studentsTotal={studentsTotal}
+            countryImpact={countryImpact}
+            focusCountries={focusCountries}
+            studentBreakdown={studentBreakdown}
+          />
         )
-      }
-      case 'schools': {
-        const totalSchoolStudents = schoolDetails.reduce((sum, s) => sum + s.students, 0)
-        const totalActiveStudents = schoolDetails.reduce((sum, s) => sum + (activeStudentsBySchool.get(s.name) || 0), 0)
-        const uniqueCountries = new Set(schoolDetails.map(s => s.country)).size
-
+      case 'schools':
         return (
-          <div className="space-y-10">
-            {/* Hero stat with animated counter */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 p-8 text-white">
-              <div className="relative z-10">
-                <p className="text-sm font-medium text-blue-100">{t('partnerSchools')}</p>
-                <p className="mt-2 text-5xl font-bold">
-                  <AnimatedCounter value={filteredTotals.institutions} />
-                </p>
-                <div className="mt-4 flex flex-wrap items-center gap-4 text-blue-100">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    <span className="text-sm">{totalSchoolStudents.toLocaleString()} total students</span>
-                  </div>
-                  {totalActiveStudents > 0 && (
-                    <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1">
-                      <Users className="h-3.5 w-3.5" />
-                      <span className="text-sm">{totalActiveStudents.toLocaleString()} active in projects</span>
-                    </div>
-                  )}
-                  <span className="text-sm">{uniqueCountries} countries</span>
-                </div>
-              </div>
-              <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white/10" />
-              <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-white/5" />
-            </div>
-
-            {/* Schools list */}
-            <div>
-              <h4 className="mb-6 text-base font-semibold text-gray-900">{t('schoolsByReach')}</h4>
-              <div className="space-y-5">
-                {schoolDetails.map((school, idx) => {
-                  const activeStudents = activeStudentsBySchool.get(school.name) || 0
-                  const ageRanges = schoolAgeRanges.get(school.name)
-                  const ageRange = ageRanges ? Array.from(ageRanges).sort().join(', ') : null
-
-                  return (
-                    <motion.div
-                      key={school.name}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 + idx * 0.05 }}
-                      className="group rounded-xl bg-blue-50/50 border-l-4 border-blue-500 p-6 transition-all hover:bg-blue-50/80 hover:shadow-md hover:-translate-y-0.5"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-4">
-                          <div
-                            className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm"
-                            style={{ backgroundColor: `${CHART_COLORS.blue[idx % CHART_COLORS.blue.length]}15` }}
-                          >
-                            <School
-                              className="h-6 w-6"
-                              style={{ color: CHART_COLORS.blue[idx % CHART_COLORS.blue.length] }}
-                            />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900">{school.name}</p>
-                            <p className="mt-1.5 text-sm text-gray-500">
-                              {school.flag} {school.city}, {school.country}
-                            </p>
-                            <div className="mt-2 flex flex-wrap items-center gap-2">
-                              {ageRange && (
-                                <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700">
-                                  Ages {ageRange}
-                                </span>
-                              )}
-                              <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
-                                {school.teachers} educators
-                              </span>
-                              {school.projectCount && school.projectCount > 0 && (
-                                <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                                  {school.projectCount} {school.projectCount === 1 ? 'project' : 'projects'}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">{school.students.toLocaleString()}</p>
-                          <p className="text-sm text-gray-500">total students</p>
-                          {activeStudents > 0 ? (
-                            <p className="mt-1 text-sm font-medium text-emerald-600">{activeStudents} active</p>
-                          ) : (
-                            <p className="mt-1 text-sm text-gray-400">onboarding</p>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
+          <SchoolMetricModal
+            schoolDetails={schoolDetails}
+            activeStudentsBySchool={activeStudentsBySchool}
+            schoolAgeRanges={schoolAgeRanges}
+            filteredTotals={filteredTotals}
+          />
         )
-      }
-
-      case 'projects': {
-        const activeProjectCount = projectDetails.filter(p => p.status === 'active').length
-        const completedProjectCount = projectDetails.filter(p => p.status === 'completed').length
-        const totalProjectStudents = projectDetails.reduce((sum, p) => sum + p.studentsReached, 0)
-
+      case 'projects':
         return (
-          <div className="space-y-10">
-            {/* Hero stat with animated counter */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-8 text-white">
-              <div className="relative z-10">
-                <p className="text-sm font-medium text-emerald-100">{t('classProjects')}</p>
-                <p className="mt-2 text-5xl font-bold">
-                  <AnimatedCounter value={activeProjectCount + completedProjectCount} />
-                </p>
-                <div className="mt-4 flex items-center gap-4 text-emerald-100">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    <span className="text-sm">{totalProjectStudents.toLocaleString()} students</span>
-                  </div>
-                  {completedProjectCount > 0 && (
-                    <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1">
-                      <Target className="h-3.5 w-3.5" />
-                      <span className="text-sm">{completedProjectCount} completed</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white/10" />
-              <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-white/5" />
-            </div>
-
-            {/* Project Cards */}
-            <div>
-              <h4 className="mb-6 text-base font-semibold text-gray-900">{t('projectsByImpact')}</h4>
-              <div className="space-y-6">
-                {projectDetails.map((project, idx) => {
-                  const isCompleted = project.status === 'completed'
-
-                  return (
-                    <motion.div
-                      key={project.name}
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 + idx * 0.08 }}
-                      className={`group rounded-2xl border-2 overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 ${
-                        isCompleted
-                          ? 'border-gray-200 bg-gradient-to-br from-gray-50 to-slate-50'
-                          : 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50'
-                      }`}
-                    >
-                      {/* Project Header */}
-                      <div className={`px-6 py-4 ${isCompleted ? 'bg-gray-100/50' : 'bg-emerald-100/50'}`}>
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                              <h3 className="text-lg font-bold text-gray-900">{project.name}</h3>
-                              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-                                isCompleted
-                                  ? 'bg-gray-400 text-white'
-                                  : 'bg-emerald-500 text-white'
-                              }`}>
-                                {isCompleted ? (
-                                  'Completed'
-                                ) : (
-                                  <>
-                                    <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-                                    Active
-                                  </>
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Quick Stats */}
-                        <div className="flex items-center gap-6 mt-4">
-                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${isCompleted ? 'bg-gray-200/50' : 'bg-emerald-200/50'}`}>
-                            <GraduationCap className={`h-4 w-4 ${isCompleted ? 'text-gray-700' : 'text-emerald-700'}`} />
-                            <span className={`text-sm font-semibold ${isCompleted ? 'text-gray-800' : 'text-emerald-800'}`}>
-                              {project.studentsReached.toLocaleString()} students
-                            </span>
-                          </div>
-                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${isCompleted ? 'bg-gray-200/50' : 'bg-emerald-200/50'}`}>
-                            <Users className={`h-4 w-4 ${isCompleted ? 'text-gray-700' : 'text-emerald-700'}`} />
-                            <span className={`text-sm font-semibold ${isCompleted ? 'text-gray-800' : 'text-emerald-800'}`}>
-                              {project.educatorsEngaged} educators
-                            </span>
-                          </div>
-                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${isCompleted ? 'bg-gray-200/50' : 'bg-emerald-200/50'}`}>
-                            <BookOpen className={`h-4 w-4 ${isCompleted ? 'text-gray-700' : 'text-emerald-700'}`} />
-                            <span className={`text-sm font-semibold ${isCompleted ? 'text-gray-800' : 'text-emerald-800'}`}>
-                              Ages {project.ageGroup}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* School Info */}
-                      {project.partnerSchool && (
-                        <div className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg flex-shrink-0 ${isCompleted ? 'bg-gray-100' : 'bg-emerald-100'}`}>
-                              <School className={`h-5 w-5 ${isCompleted ? 'text-gray-600' : 'text-emerald-600'}`} />
-                            </div>
-                            <div>
-                              <p className="font-semibold text-gray-900">{project.partnerSchool}</p>
-                              <div className="flex items-center gap-1.5 mt-1 text-sm text-gray-500">
-                                {project.flag && <span>{project.flag}</span>}
-                                {project.country && (
-                                  <>
-                                    <MapPin className="h-3 w-3" />
-                                    <span>{project.country}</span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </motion.div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
+          <ProjectMetricModal
+            projectDetails={projectDetails}
+          />
         )
-      }
-
-      case 'educators': {
-        const uniqueSchools = new Set(educatorDetails.map(e => e.school)).size
-        const uniqueCountries = new Set(educatorDetails.map(e => e.country)).size
-        const activeEducators = educatorDetails.filter(e => e.project).length
-
-        const projectColors = [
-          '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4',
-        ]
-
+      case 'educators':
         return (
-          <div className="space-y-10">
-            {/* Hero stat with animated counter */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 p-8 text-white">
-              <div className="relative z-10">
-                <p className="text-sm font-medium text-amber-100">Engaged Educators</p>
-                <p className="mt-2 text-5xl font-bold">
-                  <AnimatedCounter value={educatorDetails.length} />
-                </p>
-                <div className="mt-4 flex flex-wrap items-center gap-4 text-amber-100">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    <span className="text-sm">{activeEducators} in active projects</span>
-                  </div>
-                  <span className="text-sm">{uniqueSchools} schools · {uniqueCountries} countries</span>
-                </div>
-              </div>
-              <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white/10" />
-              <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-white/5" />
-            </div>
-
-            {/* Educators grouped by project */}
-            <div>
-              <h4 className="mb-6 text-base font-semibold text-gray-900">{t('educatorsByProject')}</h4>
-              <div className="space-y-6">
-                {Object.entries(educatorsByProject).map(([project, data], idx) => {
-                  const color = projectColors[idx % projectColors.length]
-                  return (
-                    <motion.div
-                      key={project}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 + idx * 0.08 }}
-                      className="rounded-xl border-2 overflow-hidden transition-all hover:shadow-lg"
-                      style={{ borderColor: `${color}40` }}
-                    >
-                      {/* Project header */}
-                      <div
-                        className="px-6 py-4"
-                        style={{ backgroundColor: `${color}10` }}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <div className="flex items-center gap-3">
-                              <h3 className="text-lg font-bold text-gray-900">{project}</h3>
-                              <span
-                                className="rounded-full px-2.5 py-0.5 text-xs font-medium"
-                                style={{
-                                  backgroundColor: data.status === 'active' ? '#dcfce7' : '#f3f4f6',
-                                  color: data.status === 'active' ? '#166534' : '#4b5563',
-                                }}
-                              >
-                                {data.status}
-                              </span>
-                            </div>
-                            <p className="mt-1 text-sm text-gray-600">{data.description}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold" style={{ color }}>{data.educators.length}</p>
-                            <p className="text-xs text-gray-500">educators</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Educator cards */}
-                      <div className="p-6 bg-white">
-                        <div className="flex flex-wrap gap-3">
-                          {data.educators.map((educator, educatorIdx) => (
-                            <motion.div
-                              key={educator.name}
-                              initial={{ opacity: 0, scale: 0.9 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ delay: 0.3 + idx * 0.05 + educatorIdx * 0.02 }}
-                              className="flex items-center gap-3 rounded-lg bg-gray-50 border px-4 py-3 shadow-sm transition-all hover:bg-white hover:shadow-md"
-                              style={{ borderColor: `${color}30` }}
-                            >
-                              {getEducatorAvatar(educator.name) ? (
-                                <img
-                                  src={getEducatorAvatar(educator.name)!}
-                                  alt={educator.name}
-                                  className="h-10 w-10 rounded-full object-cover shadow-sm ring-2"
-                                  style={{ '--tw-ring-color': `${color}40` } as React.CSSProperties}
-                                />
-                              ) : (
-                                <div
-                                  className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold shadow-sm"
-                                  style={{
-                                    background: `linear-gradient(135deg, ${color}20, ${color}40)`,
-                                    color,
-                                  }}
-                                >
-                                  {educator.name.split(' ').map(n => n[0]).join('')}
-                                </div>
-                              )}
-                              <div className="flex flex-col">
-                                <span className="text-sm font-semibold text-gray-800">{educator.name}</span>
-                                <span className="text-xs text-gray-500">{educator.subject} · Ages {educator.ageGroup}</span>
-                                <span className="text-xs text-gray-400">{educator.flag} {educator.school}</span>
-                              </div>
-                            </motion.div>
-                          ))}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
+          <EducatorMetricModal
+            educatorDetails={educatorDetails}
+            educatorsByProject={educatorsByProject}
+          />
         )
-      }
-
-      case 'programs': {
-        const totalStudents = studentBreakdown.reduce((sum, p) => sum + p.students, 0)
-        const totalSchools = studentBreakdown.reduce((sum, p) => sum + p.schools, 0)
-
-        // Collect all SDGs from programs
-        const allSdgs = new Set<number>()
-        programSummaries.forEach(s => {
-          (s.program.sdgFocus || []).forEach((sdg: number | string) => allSdgs.add(typeof sdg === 'number' ? sdg : parseInt(sdg)))
-        })
-
-        // Collect all CRC articles from programs
-        const allCrcArticles = new Set<number>()
-        programSummaries.forEach(s => {
-          (s.program.crcFocus || []).forEach((article: string) => allCrcArticles.add(parseInt(article)))
-        })
-
+      case 'programs':
         return (
-          <div className="space-y-10">
-            {/* Hero stat with animated counter */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 p-8 text-white">
-              <div className="relative z-10">
-                <p className="text-sm font-medium text-indigo-100">{t('activePrograms')}</p>
-                <p className="mt-2 text-5xl font-bold">
-                  <AnimatedCounter value={programSummaries.length} />
-                </p>
-                <div className="mt-4 flex items-center gap-2 text-indigo-100">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="text-sm">{totalStudents.toLocaleString()} students · {totalSchools} schools · {countryImpact.length} countries</span>
-                </div>
-              </div>
-              <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-white/10" />
-              <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-white/5" />
-            </div>
-
-            {/* Programs List */}
-            <div>
-              <h4 className="mb-6 text-base font-semibold text-gray-900">{tPrograms('programOverview')}</h4>
-              <div className="space-y-5">
-                {studentBreakdown.map((program, idx) => {
-                  const percent = totalStudents > 0 ? Math.round((program.students / totalStudents) * 100) : 0
-                  return (
-                    <motion.div
-                      key={program.program}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 + idx * 0.05 }}
-                      className="group rounded-xl bg-indigo-50/50 border-l-4 border-indigo-500 p-6 transition-all hover:bg-indigo-50/80 hover:shadow-md hover:-translate-y-0.5"
-                    >
-                      <div className="mb-5 flex items-start justify-between">
-                        <div className="flex items-center gap-4">
-                          <div
-                            className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm"
-                            style={{ backgroundColor: `${CHART_COLORS.purple[idx % CHART_COLORS.purple.length]}15` }}
-                          >
-                            <BookOpen
-                              className="h-6 w-6"
-                              style={{ color: CHART_COLORS.purple[idx % CHART_COLORS.purple.length] }}
-                            />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900">{program.program}</p>
-                            <p className="mt-1.5 text-sm text-gray-500">
-                              {program.schools} schools · {program.countries} {program.countries === 1 ? 'country' : 'countries'}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-500 bg-clip-text text-transparent">{program.students.toLocaleString()}</p>
-                          <p className="mt-1 text-sm text-gray-500">students</p>
-                        </div>
-                      </div>
-                      <div className="h-2 rounded-full bg-indigo-100 overflow-hidden">
-                        <motion.div
-                          className="h-2 rounded-full bg-gradient-to-r from-indigo-600 to-indigo-400"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${percent}%` }}
-                          transition={{ duration: 0.8, delay: 0.4 + idx * 0.1, ease: "easeOut" }}
-                        />
-                      </div>
-                    </motion.div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* SDG Focus Areas */}
-            {allSdgs.size > 0 && (
-              <div className="rounded-xl border border-gray-100 bg-gray-50/30 p-6">
-                <h4 className="mb-6 text-base font-semibold text-gray-900">{t('sdgFocusAreas')}</h4>
-                <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-5">
-                  {Array.from(allSdgs).sort((a, b) => a - b).map((sdg) => (
-                    <SDGIcon
-                      key={sdg}
-                      number={sdg}
-                      size="lg"
-                      showTitle={true}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* CRC Focus Areas */}
-            {allCrcArticles.size > 0 && (
-              <div className="rounded-xl border border-gray-100 bg-gray-50/30 p-6">
-                <h4 className="mb-6 text-base font-semibold text-gray-900">{t('crcFocusAreas')}</h4>
-                <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
-                  {Array.from(allCrcArticles).sort((a, b) => a - b).map((article) => {
-                    const paddedNum = article.toString().padStart(2, '0')
-                    const imageUrl = `/crc/icons/article-${paddedNum}.png`
-                    const articleTitle = CRC_TITLES[article.toString()] ?? `Article ${article}`
-
-                    return (
-                      <div key={article} className="flex flex-col items-center gap-2 text-center">
-                        <div className="relative w-20 h-20">
-                          <Image
-                            src={imageUrl}
-                            alt={`CRC Article ${article}: ${articleTitle}`}
-                            fill
-                            sizes="80px"
-                            className="rounded object-contain"
-                          />
-                        </div>
-                        <div className="max-w-[100px]">
-                          <p className="text-sm font-medium text-gray-900 leading-tight">
-                            Article {article}
-                          </p>
-                          <p className="text-xs text-gray-600 leading-tight mt-0.5">
-                            {articleTitle}
-                          </p>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
+          <ProgramMetricModal
+            programSummaries={programSummaries}
+            studentBreakdown={studentBreakdown}
+            countryImpact={countryImpact}
+          />
         )
-      }
       default:
         return null
     }

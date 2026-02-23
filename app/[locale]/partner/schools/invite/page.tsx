@@ -109,9 +109,6 @@ export default function InviteSchoolsPage() {
   const handleSubmit = async (data: SchoolInviteData) => {
     setIsLoading(true)
     try {
-      // Enhanced invitation sending with tracking
-      console.log('Sending invitations with enhanced email flow:', data)
-      
       const countryCodeMap: Record<string, string> = {
         Denmark: 'DK',
         Sweden: 'SE',

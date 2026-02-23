@@ -36,9 +36,6 @@ export function SchoolCompletionStep({ }: SchoolCompletionStepProps) {
       // Simulate saving the profile
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // In a real app, you would save the data here
-      console.log('School profile data:', formData)
-      
       // Reset the form
       resetForm()
       

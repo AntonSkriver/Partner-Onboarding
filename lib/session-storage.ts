@@ -249,8 +249,7 @@ class SessionStorage {
   }
 
   // RPC functions simulation
-  public rpc(functionName: string, params: unknown): Promise<QueryResult<null>> {
-    console.log('RPC call simulated:', functionName, params)
+  public rpc(_functionName: string, _params: unknown): Promise<QueryResult<null>> {
     // Just return success for activity logging and other RPC calls
     return Promise.resolve({ data: null, error: null })
   }

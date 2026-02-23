@@ -1,6 +1,5 @@
 import type {
   PrototypeDatabase,
-  PrototypeTableKey,
   StoredPartner,
 } from '@/lib/storage/prototype-db'
 import type {
@@ -443,67 +442,3 @@ export const buildProgramCatalog = (
   })
 }
 
-export const cascadeDeleteProgram = (
-  database: PrototypeDatabase | null,
-  programId: string,
-  deleteRecord: <K extends PrototypeTableKey>(table: K, id: string) => boolean,
-): void => {
-  if (!database) return
-
-  const tablesToClean: Array<[PrototypeTableKey, string[]]> = [
-    [
-      'programPartners',
-      database.programPartners
-        .filter((record) => record.programId === programId)
-        .map((record) => record.id),
-    ],
-    [
-      'coordinators',
-      database.coordinators
-        .filter((record) => record.programId === programId)
-        .map((record) => record.id),
-    ],
-    [
-      'institutions',
-      database.institutions
-        .filter((record) => record.programId === programId)
-        .map((record) => record.id),
-    ],
-    [
-      'institutionTeachers',
-      database.institutionTeachers
-        .filter((record) => record.programId === programId)
-        .map((record) => record.id),
-    ],
-    [
-      'programProjects',
-      database.programProjects
-        .filter((record) => record.programId === programId)
-        .map((record) => record.id),
-    ],
-    [
-      'programTemplates',
-      database.programTemplates
-        .filter((record) => record.programId === programId)
-        .map((record) => record.id),
-    ],
-    [
-      'invitations',
-      database.invitations
-        .filter((record) => record.programId === programId)
-        .map((record) => record.id),
-    ],
-    [
-      'activities',
-      database.activities
-        .filter((record) => record.programId === programId)
-        .map((record) => record.id),
-    ],
-  ]
-
-  for (const [table, ids] of tablesToClean) {
-    ids.forEach((id) => deleteRecord(table, id))
-  }
-
-  deleteRecord('programs', programId)
-}
