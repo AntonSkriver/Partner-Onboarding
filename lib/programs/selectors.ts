@@ -144,7 +144,7 @@ const computeMetrics = (
   }
 }
 
-const dedupePrograms = (programs: Program[]): Program[] => {
+const dedupeAndSortProgramsByDate = (programs: Program[]): Program[] => {
   const map = new Map<string, Program>()
   for (const program of programs) {
     map.set(program.id, program)
@@ -162,7 +162,7 @@ export const getProgramsForPartner = (
   const ownedPrograms = database.programs.filter((program) => program.partnerId === partnerId)
 
   if (!options.includeRelatedPrograms) {
-    return dedupePrograms(ownedPrograms)
+    return dedupeAndSortProgramsByDate(ownedPrograms)
   }
 
   const relatedProgramIds = new Set(
@@ -175,7 +175,7 @@ export const getProgramsForPartner = (
     relatedProgramIds.has(program.id),
   )
 
-  return dedupePrograms([...ownedPrograms, ...relatedPrograms])
+  return dedupeAndSortProgramsByDate([...ownedPrograms, ...relatedPrograms])
 }
 
 export const buildProgramSummary = (

@@ -76,11 +76,11 @@ const DEFAULT_DB: PrototypeDatabase = {
 const isBrowser = (): boolean =>
   typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
 
-const clone = <T>(value: T): T =>
+const deepCloneJSON = <T>(value: T): T =>
   JSON.parse(JSON.stringify(value)) as T
 
-const mergeWithDefaults = (data: unknown): PrototypeDatabase => {
-  const safe = clone(DEFAULT_DB)
+const mergeAndValidateDatabase = (data: unknown): PrototypeDatabase => {
+  const safe = deepCloneJSON(DEFAULT_DB)
 
   if (!data || typeof data !== 'object') {
     return safe
@@ -91,7 +91,7 @@ const mergeWithDefaults = (data: unknown): PrototypeDatabase => {
   for (const key of Object.keys(safe) as (keyof PrototypeDatabase)[]) {
     if (Array.isArray(safe[key])) {
       (safe as unknown as Record<string, unknown>)[key] = Array.isArray(parsed[key])
-        ? clone(parsed[key])
+        ? deepCloneJSON(parsed[key])
         : []
     } else if (key === 'metadata') {
       safe.metadata = {
@@ -108,20 +108,20 @@ const mergeWithDefaults = (data: unknown): PrototypeDatabase => {
 
 export const loadPrototypeDb = (): PrototypeDatabase => {
   if (!isBrowser()) {
-    return clone(DEFAULT_DB)
+    return deepCloneJSON(DEFAULT_DB)
   }
 
   try {
     const raw = window.localStorage.getItem(PROTOTYPE_STORAGE_KEY)
     if (!raw) {
-      return clone(DEFAULT_DB)
+      return deepCloneJSON(DEFAULT_DB)
     }
 
     const parsed = JSON.parse(raw)
-    return mergeWithDefaults(parsed)
+    return mergeAndValidateDatabase(parsed)
   } catch (error) {
     console.warn('Failed to load prototype database:', error)
-    return clone(DEFAULT_DB)
+    return deepCloneJSON(DEFAULT_DB)
   }
 }
 
@@ -137,7 +137,7 @@ export const persistPrototypeDb = (db: PrototypeDatabase): void => {
   }
 }
 
-const ensureId = (): string => {
+const generateUniqueId = (): string => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID()
   }
@@ -145,7 +145,7 @@ const ensureId = (): string => {
   return `id_${Math.random().toString(36).slice(2, 10)}`
 }
 
-const stampRecord = <T extends Record<string, unknown>>(record: T): T => {
+const applyTimestamps = <T extends Record<string, unknown>>(record: T): T => {
   const now = new Date().toISOString()
 
   if (!('createdAt' in record) || record.createdAt === undefined || record.createdAt === null) {
@@ -168,7 +168,7 @@ export type UpdateInput<K extends PrototypeTableKey> = Partial<
 
 export const getAll = <K extends PrototypeTableKey>(table: K): PrototypeRecord<K>[] => {
   const db = loadPrototypeDb()
-  return clone(db[table]) as PrototypeRecord<K>[]
+  return deepCloneJSON(db[table]) as PrototypeRecord<K>[]
 }
 
 export const getById = <K extends PrototypeTableKey>(
@@ -176,7 +176,7 @@ export const getById = <K extends PrototypeTableKey>(
   id: string,
 ): PrototypeRecord<K> | undefined => {
   const db = loadPrototypeDb()
-  return clone((db[table] as Array<Record<string, unknown>>).find((item) => item.id === id)) as PrototypeRecord<K> | undefined
+  return deepCloneJSON((db[table] as Array<Record<string, unknown>>).find((item) => item.id === id)) as PrototypeRecord<K> | undefined
 }
 
 export const createRecord = <K extends PrototypeTableKey>(
@@ -186,15 +186,15 @@ export const createRecord = <K extends PrototypeTableKey>(
   const db = loadPrototypeDb()
   const collection = db[table] as PrototypeRecord<K>[]
 
-  const nextRecord = stampRecord({
+  const nextRecord = applyTimestamps({
     ...(data as Record<string, unknown>),
-    id: (data as Record<string, unknown>).id ?? ensureId(),
+    id: (data as Record<string, unknown>).id ?? generateUniqueId(),
   }) as PrototypeRecord<K>
 
   collection.push(nextRecord)
   persistPrototypeDb(db)
 
-  return clone(nextRecord)
+  return deepCloneJSON(nextRecord)
 }
 
 export const updateRecord = <K extends PrototypeTableKey>(
@@ -211,7 +211,7 @@ export const updateRecord = <K extends PrototypeTableKey>(
   }
 
   const current = collection[index]
-  const nextRecord = stampRecord({
+  const nextRecord = applyTimestamps({
     ...(current as Record<string, unknown>),
     ...(updates as Record<string, unknown>),
     id,
@@ -220,7 +220,7 @@ export const updateRecord = <K extends PrototypeTableKey>(
   collection[index] = nextRecord
   persistPrototypeDb(db)
 
-  return clone(nextRecord)
+  return deepCloneJSON(nextRecord)
 }
 
 export const deleteRecord = <K extends PrototypeTableKey>(
@@ -242,7 +242,7 @@ export const deleteRecord = <K extends PrototypeTableKey>(
 }
 
 export const resetPrototypeDb = (): void => {
-  persistPrototypeDb(clone(DEFAULT_DB))
+  persistPrototypeDb(deepCloneJSON(DEFAULT_DB))
 }
 
 export const touchSeedMetadata = (): void => {

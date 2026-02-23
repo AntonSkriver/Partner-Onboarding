@@ -11,14 +11,14 @@ interface PartnerContext {
   partnerUser: StoredPartnerUser | null
 }
 
-const normalize = (value: string | undefined | null): string | null => {
+const normalizeToLowerCase = (value: string | undefined | null): string | null => {
   if (!value) return null
   const trimmed = value.trim()
   return trimmed.length > 0 ? trimmed.toLowerCase() : null
 }
 
 const normalizeOrganizationKey = (value: string | undefined | null): string | null => {
-  const normalized = normalize(value)
+  const normalized = normalizeToLowerCase(value)
   if (!normalized) return null
 
   return normalized

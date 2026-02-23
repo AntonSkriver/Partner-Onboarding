@@ -1,6 +1,6 @@
 import type { ProgramResource } from '@/lib/types/resource'
 
-const parseTimestamp = (value: string | undefined): number => {
+const parseTimestampOrZero = (value: string | undefined): number => {
   if (!value) return 0
   const time = Date.parse(value)
   return Number.isNaN(time) ? 0 : time
@@ -8,8 +8,8 @@ const parseTimestamp = (value: string | undefined): number => {
 
 const sortByUpdatedDesc = (resources: ProgramResource[]): ProgramResource[] =>
   [...resources].sort((a, b) => {
-    const aTime = parseTimestamp(a.updatedAt ?? a.createdAt)
-    const bTime = parseTimestamp(b.updatedAt ?? b.createdAt)
+    const aTime = parseTimestampOrZero(a.updatedAt ?? a.createdAt)
+    const bTime = parseTimestampOrZero(b.updatedAt ?? b.createdAt)
     return bTime - aTime
   })
 

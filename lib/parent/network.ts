@@ -21,11 +21,11 @@ interface ParentOrganizationPreset {
   mission: string
 }
 
-const normalize = (value: string | undefined | null): string =>
+const normalizeToLowerCase = (value: string | undefined | null): string =>
   value?.trim().toLowerCase() ?? ''
 
 const resolveParentNetwork = (organizationName: string | undefined | null): ParentNetwork => {
-  const normalized = normalize(organizationName)
+  const normalized = normalizeToLowerCase(organizationName)
 
   if (normalized.includes('save the children') || normalized.includes('stc')) {
     return 'stc'
@@ -39,12 +39,12 @@ const resolveParentNetwork = (organizationName: string | undefined | null): Pare
 }
 
 const isStcCountryPartner = (partner: StoredPartner): boolean => {
-  const name = normalize(partner.organizationName)
+  const name = normalizeToLowerCase(partner.organizationName)
   return name.startsWith('save the children ') && !name.includes('international')
 }
 
 const isUnicefCountryPartner = (partner: StoredPartner): boolean =>
-  normalize(partner.organizationName).includes('unicef')
+  normalizeToLowerCase(partner.organizationName).includes('unicef')
 
 export const getScopedParentPartners = (
   database: PrototypeDatabase,

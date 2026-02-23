@@ -41,28 +41,28 @@ const COUNTRIES: CountryMetadata[] = [
 
 const LOOKUP = new Map<string, CountryMetadata>()
 
-const registerCountry = (country: CountryMetadata) => {
+const addCountryToLookup = (country: CountryMetadata) => {
   LOOKUP.set(country.code.toLowerCase(), country)
   LOOKUP.set(country.name.toLowerCase(), country)
 }
 
-COUNTRIES.forEach(registerCountry)
+COUNTRIES.forEach(addCountryToLookup)
 
-const alias = (value: string, code: CountryMetadata['code']) => {
+const addCountryAlias = (value: string, code: CountryMetadata['code']) => {
   const country = COUNTRIES.find((entry) => entry.code === code)
   if (country) {
     LOOKUP.set(value.toLowerCase(), country)
   }
 }
 
-alias('usa', 'US')
-alias('u.s.a.', 'US')
-alias('u.s.', 'US')
-alias('united states of america', 'US')
-alias('america', 'US')
-alias('uk', 'GB')
-alias('u.k.', 'GB')
-alias('great britain', 'GB')
+addCountryAlias('usa', 'US')
+addCountryAlias('u.s.a.', 'US')
+addCountryAlias('u.s.', 'US')
+addCountryAlias('united states of america', 'US')
+addCountryAlias('america', 'US')
+addCountryAlias('uk', 'GB')
+addCountryAlias('u.k.', 'GB')
+addCountryAlias('great britain', 'GB')
 
 export const getCountryDisplay = (value?: string | null): { flag: string; name: string } => {
   if (!value) {
