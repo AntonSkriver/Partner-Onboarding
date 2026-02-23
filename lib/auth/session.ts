@@ -12,10 +12,10 @@ export interface UserSession {
 export const SESSION_KEY = 'class2class_session'
 export const SESSION_BACKUP_KEY = 'class2class_session_backup'
 
-const isBrowser = () => typeof window !== 'undefined'
+import { isBrowserEnvironment } from '@/lib/utils'
 
 const readSessionFromStorage = (key: string): UserSession | null => {
-  if (!isBrowser()) return null
+  if (!isBrowserEnvironment()) return null
 
   try {
     const sessionData = window.localStorage.getItem(key)
@@ -28,7 +28,7 @@ const readSessionFromStorage = (key: string): UserSession | null => {
 }
 
 const writeSessionToStorage = (key: string, session: UserSession | null) => {
-  if (!isBrowser()) return
+  if (!isBrowserEnvironment()) return
 
   if (!session) {
     window.localStorage.removeItem(key)
@@ -40,7 +40,7 @@ const writeSessionToStorage = (key: string, session: UserSession | null) => {
 
 // Get current user session
 export function getCurrentSession(): UserSession | null {
-  if (!isBrowser()) return null
+  if (!isBrowserEnvironment()) return null
 
   const session = readSessionFromStorage(SESSION_KEY)
   if (!session) return null
@@ -59,7 +59,7 @@ export function getCurrentSession(): UserSession | null {
 
 // Create new user session
 export function createSession(sessionData: Omit<UserSession, 'loginTime'>): void {
-  if (!isBrowser()) return
+  if (!isBrowserEnvironment()) return
 
   const session: UserSession = {
     ...sessionData,
@@ -71,7 +71,7 @@ export function createSession(sessionData: Omit<UserSession, 'loginTime'>): void
 
 // Clear current session (logout)
 export function clearSession(): void {
-  if (!isBrowser()) return
+  if (!isBrowserEnvironment()) return
 
   window.localStorage.removeItem(SESSION_KEY)
   window.localStorage.removeItem('partner_session') // Legacy cleanup
@@ -110,7 +110,7 @@ export function setSessionBackup(session: UserSession): void {
 }
 
 export function ensureSessionBackup(): void {
-  if (!isBrowser()) return
+  if (!isBrowserEnvironment()) return
   if (hasSessionBackup()) return
 
   const current = getCurrentSession()
@@ -120,12 +120,12 @@ export function ensureSessionBackup(): void {
 }
 
 export function clearSessionBackup(): void {
-  if (!isBrowser()) return
+  if (!isBrowserEnvironment()) return
   window.localStorage.removeItem(SESSION_BACKUP_KEY)
 }
 
 export function restoreSessionFromBackup(): UserSession | null {
-  if (!isBrowser()) return null
+  if (!isBrowserEnvironment()) return null
 
   const backup = getSessionBackup()
   if (!backup) return null
@@ -136,14 +136,14 @@ export function restoreSessionFromBackup(): UserSession | null {
 }
 
 export function switchToPreviewSession(sessionData: Omit<UserSession, 'loginTime'>): void {
-  if (!isBrowser()) return
+  if (!isBrowserEnvironment()) return
   ensureSessionBackup()
   createSession(sessionData)
 }
 
 // Session event handlers for login/logout
 export function onSessionChange(callback: (session: UserSession | null) => void): () => void {
-  if (!isBrowser()) return () => {}
+  if (!isBrowserEnvironment()) return () => {}
   
   const handleStorageChange = (e: StorageEvent) => {
     if (e.key === SESSION_KEY) {
@@ -162,7 +162,7 @@ export function onSessionChange(callback: (session: UserSession | null) => void)
 
 // Redirect user based on their role
 export function redirectBasedOnRole(defaultPath = '/'): void {
-  if (!isBrowser()) return
+  if (!isBrowserEnvironment()) return
   
   const session = getCurrentSession()
   if (!session) {

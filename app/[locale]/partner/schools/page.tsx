@@ -1,6 +1,7 @@
 'use client'
 
 import type { JSX } from 'react'
+import { capitalize } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -343,7 +344,7 @@ function InvitationsList({
                   <h3 className="text-lg font-semibold text-gray-900">{invitation.schoolName}</h3>
                   <Badge className={`${getStatusColor(invitation.status)} flex items-center gap-1`}>
                     {getStatusIcon(invitation.status)}
-                    {invitation.status.charAt(0).toUpperCase() + invitation.status.slice(1)}
+                    {capitalize(invitation.status)}
                   </Badge>
                 </div>
 

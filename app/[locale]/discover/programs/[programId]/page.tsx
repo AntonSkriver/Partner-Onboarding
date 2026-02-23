@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
+import { friendlyLabel } from '@/lib/utils'
 import { Link } from '@/i18n/navigation'
 import { useParams } from 'next/navigation'
 import { useRouter } from '@/i18n/navigation'
@@ -28,12 +29,6 @@ type ProgramDetailPageProps = {
   basePath?: string
 }
 
-const friendlyLabel = (value: string): string =>
-  value
-    .split(/[_\s-]+/)
-    .filter(Boolean)
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join(' ')
 
 const formatRelative = (isoDate: string | undefined): string | null => {
   if (!isoDate) return null

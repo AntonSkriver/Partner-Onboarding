@@ -2,6 +2,7 @@ import type {
   PrototypeDatabase,
   StoredPartner,
 } from '@/lib/storage/prototype-db'
+import { capitalize } from '@/lib/utils'
 import type {
   Program,
   ProgramPartner,
@@ -338,8 +339,7 @@ const toMonthLabel = (value?: string): string | undefined => {
   }
 
   const monthOnly = trimmed.replace(/\s+/g, ' ')
-  const capitalised = monthOnly.charAt(0).toUpperCase() + monthOnly.slice(1)
-  return capitalised
+  return capitalize(monthOnly)
 }
 
 const formatMonthFromDate = (isoDate?: string): string | undefined => {

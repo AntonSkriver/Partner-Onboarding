@@ -98,8 +98,4 @@ export const programSchema = z
 
 export type ProgramFormValues = z.infer<typeof programSchema>
 
-export const friendlyLabel = (value: string) =>
-  value
-    .split('_')
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join(' ')
+export { friendlyLabel } from '@/lib/utils'

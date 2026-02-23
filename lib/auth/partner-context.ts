@@ -4,17 +4,12 @@ import type {
   StoredPartner,
   StoredPartnerUser,
 } from '@/lib/storage/prototype-db'
+import { normalizeToLowerCase } from '@/lib/utils'
 
 interface PartnerContext {
   partnerId: string | null
   partnerRecord: StoredPartner | null
   partnerUser: StoredPartnerUser | null
-}
-
-const normalizeToLowerCase = (value: string | undefined | null): string | null => {
-  if (!value) return null
-  const trimmed = value.trim()
-  return trimmed.length > 0 ? trimmed.toLowerCase() : null
 }
 
 const normalizeOrganizationKey = (value: string | undefined | null): string | null => {
@@ -62,7 +57,7 @@ export const resolvePartnerIdFromSession = (
     return partnerByOrganization.id
   }
 
-  const normalizedEmail = normalize(session.email)
+  const normalizedEmail = normalizeToLowerCase(session.email)
   if (normalizedEmail) {
     if (normalizedEmail.includes('lego')) return 'partner-lego-foundation'
     if (

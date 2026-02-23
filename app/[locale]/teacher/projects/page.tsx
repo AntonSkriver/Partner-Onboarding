@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { friendlyLabel } from '@/lib/utils'
 import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
 import { ArrowLeft, Search, Globe2, Users2, Clock, Languages } from 'lucide-react'
@@ -546,10 +547,7 @@ function formatProjectType(value?: string): string {
     return 'Cultural Exchange'
   }
 
-  return value
-    .split('_')
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join(' ')
+  return friendlyLabel(value)
 }
 
 // Helper for consistent age group calculation based on project name hash

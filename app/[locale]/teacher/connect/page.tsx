@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { capitalize } from '@/lib/utils'
 import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -170,7 +171,7 @@ export default function TeacherConnectPage() {
   const activeFilters = useMemo(() => {
     const filters: { key: string; label: string }[] = []
     if (language !== 'any' && language !== 'all') {
-      filters.push({ key: 'language', label: language.charAt(0).toUpperCase() + language.slice(1) })
+      filters.push({ key: 'language', label: capitalize(language) })
     }
     return filters
   }, [language])

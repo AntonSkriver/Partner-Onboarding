@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { capitalize } from '@/lib/utils'
 import { BookOpen, Building2, FileText, MoreVertical } from 'lucide-react'
 import type { ReactNode } from 'react'
 
@@ -26,7 +27,7 @@ const availabilityScopeLabel: Record<ResourceAvailabilityScope, string> = {
 }
 
 const formatResourceType = (type: ProgramResource['type']): string =>
-  type.charAt(0).toUpperCase() + type.slice(1)
+  capitalize(type)
 
 export function ProfileResourceCatalog({
   resources,

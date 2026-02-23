@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { friendlyLabel } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { getCurrentSession, clearSession } from '@/lib/auth/session'
 import { useRouter } from '@/i18n/navigation'
@@ -28,16 +29,10 @@ import {
 import { Link } from '@/i18n/navigation'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 
-const toStartCase = (value: string): string =>
-  value
-    .split(/[_\s-]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
 
 const formatProjectName = (projectId: string): string => {
   const normalized = projectId.replace(/^project[-_]/, '')
-  return toStartCase(normalized || projectId)
+  return friendlyLabel(normalized || projectId)
 }
 
 const formatRelativeTime = (timestamp: string): string => {
@@ -374,10 +369,10 @@ export default function PartnerDashboard() {
       : session.name?.trim()) || 'Partner User'
 
   const organizationTypeLabel = partnerRecord
-    ? toStartCase(partnerRecord.organizationType)
+    ? friendlyLabel(partnerRecord.organizationType)
     : 'Partner'
 
-  const partnerRoleLabel = partnerUser?.role ? toStartCase(partnerUser.role) : 'Partner Team'
+  const partnerRoleLabel = partnerUser?.role ? friendlyLabel(partnerUser.role) : 'Partner Team'
 
   const keyMetrics = [
     { id: 'programs', label: 'Programs', value: partnerMetrics.totalPrograms },

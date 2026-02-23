@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { capitalize } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -534,7 +535,7 @@ export default function ConnectPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {activeMainTab.charAt(0).toUpperCase() + activeMainTab.slice(1)} Connections
+              {capitalize(activeMainTab)} Connections
             </h1>
             <p className="text-gray-600">
               Connect and network with {activeMainTab} from around the world

@@ -21,8 +21,7 @@ interface ParentOrganizationPreset {
   mission: string
 }
 
-const normalizeToLowerCase = (value: string | undefined | null): string =>
-  value?.trim().toLowerCase() ?? ''
+import { normalizeToLowerCase } from '@/lib/utils'
 
 const resolveParentNetwork = (organizationName: string | undefined | null): ParentNetwork => {
   const normalized = normalizeToLowerCase(organizationName)

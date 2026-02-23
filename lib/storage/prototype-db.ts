@@ -73,8 +73,7 @@ const DEFAULT_DB: PrototypeDatabase = {
   },
 }
 
-const isBrowser = (): boolean =>
-  typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+import { isBrowserEnvironment } from '@/lib/utils'
 
 const deepCloneJSON = <T>(value: T): T =>
   JSON.parse(JSON.stringify(value)) as T
@@ -107,7 +106,7 @@ const mergeAndValidateDatabase = (data: unknown): PrototypeDatabase => {
 }
 
 export const loadPrototypeDb = (): PrototypeDatabase => {
-  if (!isBrowser()) {
+  if (!isBrowserEnvironment()) {
     return deepCloneJSON(DEFAULT_DB)
   }
 
@@ -126,7 +125,7 @@ export const loadPrototypeDb = (): PrototypeDatabase => {
 }
 
 export const persistPrototypeDb = (db: PrototypeDatabase): void => {
-  if (!isBrowser()) {
+  if (!isBrowserEnvironment()) {
     return
   }
 
