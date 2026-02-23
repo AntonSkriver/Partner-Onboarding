@@ -440,9 +440,9 @@ export default function PartnerDashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       {/* Sidebar Navigation */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+      <div className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-col">
         <div className="p-6">
           <div className="flex items-center gap-2 mb-8">
             <div className="w-8 h-8 c2c-purple-bg rounded-full flex items-center justify-center">
@@ -478,18 +478,42 @@ export default function PartnerDashboard() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile Navigation */}
+        <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+          <div className="w-8 h-8 c2c-purple-bg rounded-full flex items-center justify-center shrink-0">
+            <span className="text-white text-sm font-bold">C2C</span>
+          </div>
+          <nav className="flex gap-2">
+            <button
+              onClick={() => setActiveTab("overview")}
+              className={`px-4 py-2 rounded-lg text-sm border border-gray-200 ${
+                activeTab === "overview" ? "bg-gray-100 text-gray-800 font-medium" : "text-gray-500"
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab("projects")}
+              className={`px-4 py-2 rounded-lg text-sm border border-gray-200 ${
+                activeTab === "projects" ? "bg-gray-100 text-gray-800 font-medium" : "text-gray-500"
+              }`}
+            >
+              Projects
+            </button>
+          </nav>
+        </div>
         {/* Header Section - More Prominent */}
-        <div className="bg-white border-b-2 border-gray-200 px-6 py-6 shadow-sm">
-          <div className="flex items-center justify-between">
+        <div className="bg-white border-b-2 border-gray-200 px-4 sm:px-6 py-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="heading-primary text-2xl font-bold text-gray-800 mb-1">{t('hi', { name: greetingName })}</h1>
+              <h1 className="heading-primary text-xl sm:text-2xl font-bold text-gray-800 mb-1">{t('hi', { name: greetingName })}</h1>
               <p className="text-base text-c2c-purple font-semibold">{partnerRoleLabel}</p>
               <p className="text-sm text-gray-600 mt-2">
                 {t('welcomeMessage', { type: organizationTypeLabel })}
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               <Link 
                 href="/"
                 className="px-5 py-2.5 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 text-gray-700 shadow-sm"

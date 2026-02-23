@@ -1,0 +1,54 @@
+[     293ms] Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RenderFromTemplateContext>
+      <ScrollAndFocusHandler segmentPath={[...]}>
+        <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>
+          <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+            <LoadingBoundary name="dashboard/" loading={null}>
+              <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+                <RedirectBoundary>
+                  <RedirectErrorBoundary router={{...}}>
+                    <InnerLayoutRouter url="/en/partne..." tree={[...]} params={{locale:"en"}} ...>
+                      <SegmentViewNode type="page" pagePath="/Partner-O...">
+                        <SegmentTrieNode>
+                        <ClientPageRoot Component={function PartnerDashboard} serverProvidedParams={{...}}>
+                          <PartnerDashboard params={Promise} searchParams={Promise}>
+                            <div
++                             className="min-h-screen bg-gray-50 flex flex-col lg:flex-row"
+-                             className="min-h-screen bg-gray-50 flex items-center justify-center"
+                            >
+                              <div
++                               className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-col"
+-                               className="text-center"
+                              >
+                                <div
++                                 className="p-6"
+-                                 className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"
+                                >
++                                 <div className="flex items-center gap-2 mb-8">
+                                  ...
+                              ...
+                      ...
+                    ...
+          ...
+
+    at throwOnHydrationMismatch (http://localhost:3000/_next/static/chunks/d0cdd_next_dist_compiled_react-dom_eb95f510._.js:3342:56)
+    at beginWork (http://localhost:3000/_next/static/chunks/d0cdd_next_dist_compiled_react-dom_eb95f510._.js:6769:918)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/d0cdd_next_dist_compiled_react-dom_eb95f510._.js:959:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/d0cdd_next_dist_compiled_react-dom_eb95f510._.js:9556:97)
+    at workLoopConcurrentByScheduler (http://localhost:3000/_next/static/chunks/d0cdd_next_dist_compiled_react-dom_eb95f510._.js:9552:58)
+    at renderRootConcurrent (http://localhost:3000/_next/static/chunks/d0cdd_next_dist_compiled_react-dom_eb95f510._.js:9535:71)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/d0cdd_next_dist_compiled_react-dom_eb95f510._.js:9062:150)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3000/_next/static/chunks/d0cdd_next_dist_compiled_react-dom_eb95f510._.js:10224:9)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3000/_next/static/chunks/d0cdd_next_dist_compiled_12add5d0._.js:2647:64)

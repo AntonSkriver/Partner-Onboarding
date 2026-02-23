@@ -1,13 +1,15 @@
 'use client'
 
+import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Menu, X } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
 import { LanguageSwitcher } from '@/components/language-switcher'
 
 export default function Home() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const t = useTranslations('home')
   const tn = useTranslations('nav')
   return (
@@ -38,7 +40,7 @@ export default function Home() {
         </Link>
 
         {/* Navigation - Centered */}
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden lg:flex items-center space-x-8">
           <Link href="#" className="text-gray-900 font-medium hover:text-gray-700">{tn('howItWorks')}</Link>
           <Link href="#" className="text-gray-900 font-medium hover:text-gray-700">{tn('platform')}</Link>
           <Link href="#" className="text-gray-900 font-medium hover:text-gray-700">{tn('exploreProjects')}</Link>
@@ -49,7 +51,7 @@ export default function Home() {
         </nav>
 
         {/* User Profile / Right Nav */}
-        <div className="hidden md:flex items-center space-x-4">
+        <div className="hidden lg:flex items-center space-x-4">
           <LanguageSwitcher />
           <Link href="/sign-in">
             <Button variant="outline" className="border-[#8B5CF6] text-[#8B5CF6] hover:bg-purple-50">
@@ -66,16 +68,47 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* Mobile Menu Icon Placeholder */}
-        <div className="md:hidden">
-          {/* Simple Hamburger */}
-          <div className="space-y-1">
-            <div className="w-6 h-0.5 bg-gray-900"></div>
-            <div className="w-6 h-0.5 bg-gray-900"></div>
-            <div className="w-6 h-0.5 bg-gray-900"></div>
+        {/* Mobile Menu Toggle */}
+        <button
+          type="button"
+          className="lg:hidden p-2 -mr-2 text-gray-900"
+          onClick={() => setMobileMenuOpen((prev) => !prev)}
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </header>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="relative z-10 lg:hidden bg-white/95 backdrop-blur-md border-b border-white/20 px-6 py-4 space-y-3">
+          <Link href="#" className="block text-gray-900 font-medium py-2">{tn('howItWorks')}</Link>
+          <Link href="#" className="block text-gray-900 font-medium py-2">{tn('platform')}</Link>
+          <Link href="#" className="block text-gray-900 font-medium py-2">{tn('exploreProjects')}</Link>
+          <Link href="#" className="block text-gray-900 font-medium py-2">{tn('aboutUs')}</Link>
+          <Link href="#" className="block text-gray-900 font-medium py-2">{tn('resources')}</Link>
+          <div className="border-t border-gray-200 pt-3 flex flex-col gap-2">
+            <Link href="/sign-in">
+              <Button variant="outline" className="w-full border-[#8B5CF6] text-[#8B5CF6] hover:bg-purple-50">
+                {t('login')}
+              </Button>
+            </Link>
+            <Link href="/signup">
+              <Button className="w-full bg-[#8B5CF6] hover:bg-[#7c4dff] text-white">
+                {t('signUp')}
+              </Button>
+            </Link>
+            <Link href="/partners">
+              <Button variant="outline" className="w-full border-blue-600 text-blue-600 hover:bg-blue-50">
+                {t('partners')}
+              </Button>
+            </Link>
+          </div>
+          <div className="pt-2">
+            <LanguageSwitcher />
           </div>
         </div>
-      </header>
+      )}
 
       {/* Hero Section */}
       <main className="relative z-10 flex flex-col items-start justify-center px-6 md:px-24 h-[85vh] max-w-7xl">
@@ -101,6 +134,15 @@ export default function Home() {
             >
               {t('learnMore')}
             </Button>
+            <Link href="/partners">
+              <Button
+                size="lg"
+                variant="secondary"
+                className="bg-white hover:bg-blue-50 text-blue-600 border border-blue-600 font-semibold text-lg px-8 py-6 rounded-md shadow-sm w-full"
+              >
+                {t('partners')}
+              </Button>
+            </Link>
           </div>
         </div>
 

@@ -206,50 +206,50 @@ export default function PartnersPage() {
                 </svg>
 
                 {/* Floating Cards */}
-                <div className="absolute top-4 left-0 bg-white rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-4 w-40 transform -rotate-6 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#F4EBFF] rounded-xl flex items-center justify-center">
-                      <Globe2 className="w-5 h-5 text-[#8B5CF6]" />
+                <div className="absolute top-0 md:top-4 left-0 md:left-0 bg-white rounded-xl md:rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-2.5 md:p-4 w-[130px] md:w-40 transform -rotate-6 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10 z-10">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-[#F4EBFF] rounded-lg md:rounded-xl flex items-center justify-center shrink-0">
+                      <Globe2 className="w-4 h-4 md:w-5 md:h-5 text-[#8B5CF6]" />
                     </div>
-                    <div>
-                      <div className="text-xs text-gray-500">{t('countries')}</div>
-                      <div className="font-bold text-[#1a1a2e]">{t('countriesValue')}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute top-1/4 right-0 bg-white rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-4 w-44 transform rotate-3 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#F4EBFF] rounded-xl flex items-center justify-center">
-                      <GraduationCap className="w-5 h-5 text-[#8B5CF6]" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500">{t('globalTeachers')}</div>
-                      <div className="font-bold text-[#1a1a2e]">{t('globalTeachersValue')}</div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] md:text-xs text-gray-500 truncate">{t('countries')}</div>
+                      <div className="text-sm md:text-base font-bold text-[#1a1a2e] leading-tight">{t('countriesValue')}</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="absolute top-1/2 left-4 bg-white rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-4 w-44 transform -rotate-2 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#F4EBFF] rounded-xl flex items-center justify-center">
-                      <Users className="w-5 h-5 text-[#8B5CF6]" />
+                <div className="absolute top-1/4 right-0 bg-white rounded-xl md:rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-2.5 md:p-4 w-[145px] md:w-44 transform rotate-3 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10 z-10">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-[#F4EBFF] rounded-lg md:rounded-xl flex items-center justify-center shrink-0">
+                      <GraduationCap className="w-4 h-4 md:w-5 md:h-5 text-[#8B5CF6]" />
                     </div>
-                    <div>
-                      <div className="text-xs text-gray-500">{t('studentsImpacted')}</div>
-                      <div className="font-bold text-[#1a1a2e]">{t('studentsImpactedValue')}</div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] md:text-xs text-gray-500 truncate">{t('globalTeachers')}</div>
+                      <div className="text-sm md:text-base font-bold text-[#1a1a2e] leading-tight">{t('globalTeachersValue')}</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="absolute bottom-12 right-8 bg-white rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-4 w-44 transform rotate-2 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#F4EBFF] rounded-xl flex items-center justify-center">
-                      <Target className="w-5 h-5 text-[#8B5CF6]" />
+                <div className="absolute top-1/2 left-0 md:left-4 bg-white rounded-xl md:rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-2.5 md:p-4 w-[145px] md:w-44 transform -rotate-2 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10 z-10">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-[#F4EBFF] rounded-lg md:rounded-xl flex items-center justify-center shrink-0">
+                      <Users className="w-4 h-4 md:w-5 md:h-5 text-[#8B5CF6]" />
                     </div>
-                    <div>
-                      <div className="text-xs text-gray-500">{t('connections')}</div>
-                      <div className="font-bold text-[#1a1a2e]">{t('connectionsValue')}</div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] md:text-xs text-gray-500 truncate">{t('studentsImpacted')}</div>
+                      <div className="text-sm md:text-base font-bold text-[#1a1a2e] leading-tight">{t('studentsImpactedValue')}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute bottom-4 md:bottom-12 right-0 md:right-8 bg-white rounded-xl md:rounded-2xl shadow-xl shadow-[#8B5CF6]/10 p-2.5 md:p-4 w-[145px] md:w-44 transform rotate-2 hover:rotate-0 transition-transform duration-500 border border-[#8B5CF6]/10 z-10">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-[#F4EBFF] rounded-lg md:rounded-xl flex items-center justify-center shrink-0">
+                      <Target className="w-4 h-4 md:w-5 md:h-5 text-[#8B5CF6]" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] md:text-xs text-gray-500 truncate">{t('connections')}</div>
+                      <div className="text-sm md:text-base font-bold text-[#1a1a2e] leading-tight">{t('connectionsValue')}</div>
                     </div>
                   </div>
                 </div>
