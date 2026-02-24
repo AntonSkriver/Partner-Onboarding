@@ -68,15 +68,15 @@ export function TeacherShell({ children }: TeacherShellProps) {
   const handleReturnToPartner = () => {
     const restored = restoreSessionFromBackup()
     if (restored) {
-      router.push(restored.role === 'partner' ? '/partner/profile?tab=programs' : '/partner/login')
+      router.push(restored.role === 'partner' ? '/partner/profile?tab=programs' : '/partners')
     } else {
-      router.push('/partner/login')
+      router.push('/partners')
     }
   }
 
   const handleTeacherLogout = () => {
     clearSession()
-    router.push('/partner/login')
+    router.push('/partners')
   }
 
   return (

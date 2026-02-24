@@ -197,13 +197,8 @@ export default function PartnersPage() {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link href="/partner/onboarding">
                     <Button size="lg" className="bg-[#8157D9] hover:bg-[#7048C6] text-white px-7 py-5 text-base font-semibold rounded-full shadow-lg shadow-[#8157D9]/25 hover:shadow-xl hover:shadow-[#8157D9]/30 transition-all hover:-translate-y-0.5 group">
-                      {t('becomePartner')}
+                      {t('getStarted')}
                       <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                  <Link href="/school/onboarding">
-                    <Button size="lg" variant="outline" className="border-[#8157D9] text-[#8157D9] hover:bg-white hover:text-[#7048C6] px-7 py-5 text-base font-medium rounded-full bg-white">
-                      {t('joinAsSchool')}
                     </Button>
                   </Link>
                 </div>
@@ -567,13 +562,8 @@ export default function PartnersPage() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/partner/onboarding">
                 <Button size="lg" className="bg-[#8157D9] text-white hover:bg-[#7048C6] px-10 py-6 text-lg font-semibold rounded-full shadow-xl shadow-[#8157D9]/25 transition-all hover:-translate-y-1 group">
-                  {t('startPartnership')}
+                  {t('getStarted')}
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-              <Link href="/school/onboarding">
-                <Button size="lg" variant="outline" className="border-[#8157D9] text-[#8157D9] hover:bg-white hover:text-[#7048C6] px-10 py-6 text-lg font-medium rounded-full bg-white">
-                  {t('joinAsSchool')}
                 </Button>
               </Link>
             </div>

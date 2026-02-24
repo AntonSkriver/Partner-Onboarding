@@ -8,21 +8,21 @@ export type ContactRole = "ceo" | "program_manager" | "education_director" | "pa
 export interface PartnerFormData {
   // Step 1: Organization Type
   organizationType: PartnerType | null
-  
+
   // Step 2: Organization Details
   organizationName: string
   organizationWebsite: string
-  
+
   // Step 3: Mission & SDG Focus
   missionStatement: string
   sdgFocus: number[]
-  
+
   // Step 4: Contact Information
   contactName: string
   contactEmail: string
   contactPhone: string
   contactRole: ContactRole | null
-  
+
   // Additional fields for profile
   primaryLanguage: string | null
   operatingCountries: string[]
@@ -33,6 +33,9 @@ export interface PartnerFormData {
   numberOfTeachers: number | null
   gradeLevels: string[]
   schoolType: string | null
+  country: string
+  city: string
+  languages: string[]
 }
 
 interface PartnerFormContextType {
@@ -60,6 +63,9 @@ const initialFormData: PartnerFormData = {
   numberOfTeachers: null,
   gradeLevels: [],
   schoolType: null,
+  country: "",
+  city: "",
+  languages: [],
 }
 
 const PartnerFormContext = createContext<PartnerFormContextType | undefined>(undefined)
@@ -75,16 +81,30 @@ export function PartnerOnboardingProvider({ children }: { children: ReactNode })
     setFormData(initialFormData)
   }
 
+  const isSchool = formData.organizationType === 'school'
+
   const isStepComplete = (step: number): boolean => {
     switch (step) {
       case 0: // Welcome screen is always complete
         return true
       case 1: // Organization type selection
         return formData.organizationType !== null
-      case 2: // Organization details
+      case 2: // Organization details OR School details
+        if (isSchool) {
+          return (
+            formData.organizationName.trim() !== "" &&
+            formData.schoolType !== null &&
+            formData.country.trim() !== "" &&
+            formData.city.trim() !== "" &&
+            (formData.numberOfStudents ?? 0) > 0 &&
+            (formData.numberOfTeachers ?? 0) > 0 &&
+            formData.gradeLevels.length > 0 &&
+            formData.languages.length > 0
+          )
+        }
         return (
           formData.organizationName.trim() !== "" &&
-          (formData.organizationWebsite === "" || 
+          (formData.organizationWebsite === "" ||
            /^https?:\/\/.+\..+/.test(formData.organizationWebsite))
         )
       case 3: // SDG Focus

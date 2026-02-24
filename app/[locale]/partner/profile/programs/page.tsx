@@ -35,7 +35,7 @@ export default function PartnerProgramsPage() {
       )
       if (match) return match
     }
-    return database.partners.length > 0 ? database.partners[0] : null
+    return null
   }, [database, organization?.name])
 
   const programCatalog = useMemo(() => {
@@ -69,46 +69,27 @@ export default function PartnerProgramsPage() {
     setLoading(true)
     try {
       const session = getCurrentSession()
-      const organizationName =
-        session?.organization ??
-        database?.partners.find((partner) =>
-          partner.organizationName.toLowerCase().includes('save the children italy'),
-        )?.organizationName ??
-        database?.partners[0]?.organizationName ??
-        'Partner Organization'
-      const matchedPartner = database?.partners.find(
-        (partner) => partner.organizationName.toLowerCase() === organizationName.toLowerCase(),
-      )
+      const organizationName = session?.organization ?? 'Partner Organization'
 
-      // For demo purposes - sample organization data
-      const sampleOrg: Organization = {
-        id: 'demo-org-id',
+      setOrganization({
+        id: 'session-org',
         name: organizationName,
         organization_type: 'ngo',
-        website: matchedPartner?.website ?? 'https://class2class.org',
+        website: null,
         logo: null,
-        short_description:
-          matchedPartner?.description ??
-          'Connecting classrooms worldwide through collaborative learning experiences.',
+        short_description: null,
         primary_contacts: [],
-        regions_of_operation: ['Europe', 'Africa', 'Asia-Pacific'],
-        countries_of_operation: ['Denmark', 'Mexico', 'Italy', 'Germany', 'Brazil', 'Finland'],
-        languages: matchedPartner?.languages ?? ['English', 'Italian', 'Spanish'],
-        sdg_tags: matchedPartner?.sdgFocus?.map((sdg) => sdg.replace('SDG ', '')) ?? ['4', '10', '16', '17'],
-        thematic_tags: [
-          "Children's Rights",
-          'Global Citizenship',
-          'Cultural Exchange',
-          'Human Rights Education',
-        ],
-        verification_status: 'verified',
+        regions_of_operation: [],
+        countries_of_operation: [],
+        languages: [],
+        sdg_tags: [],
+        thematic_tags: [],
+        verification_status: 'pending',
         brand_settings: null,
-        created_at: '2024-01-15T10:00:00Z',
-        updated_at: '2024-03-10T15:30:00Z',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         is_active: true,
-      }
-
-      setOrganization(sampleOrg)
+      })
     } catch (err) {
       console.error('Error loading organization profile:', err)
     } finally {

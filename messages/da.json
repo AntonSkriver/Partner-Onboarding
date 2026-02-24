@@ -159,7 +159,8 @@
     "ctaSubtitle": "Bliv en del af vores voksende netværk af partnere, der skaber reel indflydelse i klasseværelser over hele verden. Jeres mission, forstærket globalt.",
     "startPartnership": "Start jeres partnerskab",
     "scheduleCall": "Book et opkald",
-    "copyright": "© 2025 Class2Class. Forbinder klasseværelser for en bedre verden."
+    "copyright": "© 2025 Class2Class. Forbinder klasseværelser for en bedre verden.",
+    "getStarted": "Kom i gang"
   },
   "auth": {
     "partnerLogin": "Partner login",
@@ -226,7 +227,8 @@
     "demoStcItaly": "Administrer italienske Punti Luce og programmer.",
     "demoStcMexico": "Administrer Mexicos programmer og skolepartnerskaber.",
     "testimonialQuote": "Class2Class hjælper vores britiske skoler med at følge fremskridt og holde sig synkroniseret med partnere i udlandet. Det holder koordinatorer og lærere på linje uden ekstra besvær.",
-    "testimonialRole": "Programdirektør · Save the Children Mexico"
+    "testimonialRole": "Programdirektør · Save the Children Mexico",
+    "signUpNew": "Opret konto"
   },
   "dashboard": {
     "hi": "Hej, {name}",
@@ -477,7 +479,39 @@
     "previewTipsTitle": "Profiltips",
     "previewTipOrgName": "Et tydeligt organisationsnavn hjælper skoler med at finde og genkende jer",
     "previewTipSdg": "Relevante verdensmål forbedrer matchningen med ligesindede skoler",
-    "previewTipContact": "Fuldstændige kontaktoplysninger skaber tillid hos undervisere"
+    "previewTipContact": "Fuldstændige kontaktoplysninger skaber tillid hos undervisere",
+
+    "schoolDetailsStepName": "Skoleoplysninger",
+    "schoolDetailsStepLabel": "Trin 2 af 5",
+    "schoolDetailsStepTitle": "Fortæl os om jeres skole",
+    "schoolDetailsStepSubtitle": "Hjælp os med at finde de rette partnere og projekter til jeres skole.",
+    "schoolDetailsName": "Skolenavn",
+    "schoolDetailsNamePlaceholder": "f.eks. Østerbro Skole",
+    "schoolDetailsType": "Skoletype",
+    "schoolDetailsTypePlaceholder": "Vælg skoletype",
+    "schoolDetailsTypePublic": "Folkeskole",
+    "schoolDetailsTypePrivate": "Privatskole",
+    "schoolDetailsTypeInternational": "International skole",
+    "schoolDetailsTypeCharter": "Friskole",
+    "schoolDetailsTypeOther": "Anden",
+    "schoolDetailsLocation": "Placering",
+    "schoolDetailsCountryPlaceholder": "Vælg land",
+    "schoolDetailsCityPlaceholder": "f.eks. København",
+    "schoolDetailsSize": "Skolestørrelse",
+    "schoolDetailsStudents": "Elever",
+    "schoolDetailsStudentsPlaceholder": "f.eks. 450",
+    "schoolDetailsTeachers": "Lærere",
+    "schoolDetailsTeachersPlaceholder": "f.eks. 25",
+    "schoolDetailsGradeLevels": "Klassetrin",
+    "schoolDetailsSelectAll": "Vælg alle der passer",
+    "schoolDetailsLanguages": "Undervisningssprog",
+    "schoolDetailsValidationNameRequired": "Skolenavn er påkrævet",
+    "schoolDetailsValidationTypeRequired": "Vælg venligst en skoletype",
+    "schoolDetailsValidationCountryRequired": "Vælg venligst et land",
+    "schoolDetailsValidationCityRequired": "By er påkrævet",
+    "summarySchool": "Skole",
+    "summaryStudents": "elever",
+    "summaryTeachers": "lærere"
   },
   "sdg": {
     "title": "Hvilke FN verdensmål fokuserer I på?",
@@ -611,7 +645,21 @@
     "generateWithAI": "Generer med AI",
     "generating": "Genererer...",
     "selectedSDGs": "Valgte verdensmål:",
-    "subtitle": "Projekter oprettet af lærere på din skole på tværs af alle programmer."
+    "subtitle": "Projekter oprettet af lærere på din skole på tværs af alle programmer.",
+    "createProject": "Opret projekt",
+    "createProjectTitle": "Opret et nyt projekt",
+    "createProjectDesc": "Design et klassesamarbejde inden for dette program.",
+    "projectDetails": "Projektdetaljer",
+    "projectDetailsDesc": "Giv dit projekt en klar titel og beskrivelse for lærere og elever.",
+    "projectTitlePlaceholder": "f.eks., Børns rettigheder på tværs af kulturer",
+    "projectDescPlaceholder": "Beskriv hvad eleverne skal lave, hvad de vil lære, og hvordan de samarbejder...",
+    "collaborationThemeDesc": "Vælg den type samarbejde dette projekt fokuserer på.",
+    "sdgAlignment": "Verdensmålstilpasning",
+    "sdgAlignmentDesc": "Arvet fra det overordnede program.",
+    "projectCreated": "Projekt oprettet!",
+    "projectCreatedDesc": "Dit projekt er blevet tilføjet til programmet.",
+    "backToProgram": "Tilbage til program",
+    "noProjectsPartner": "Ingen projekter endnu. Opret dit første projekt for at begynde samarbejdet med skoler."
   },
   "programs": {
     "title": "Programmer",
@@ -728,7 +776,9 @@
       "lookingForPartner": "Søger partner",
       "connectSchool": "Tilknyt en skole for at begynde samarbejdet",
       "schoolConnections": "Skoleforbindelser",
-      "countriesConnected": "Lande forbundet gennem projekter"
+      "countriesConnected": "Lande forbundet gennem projekter",
+      "noAnalyticsTitle": "Ingen analyser endnu",
+      "noAnalyticsDesc": "Start programmer og forbind med skoler for at se dine effektdata her."
     },
     "network": {
       "title": "Netværk",

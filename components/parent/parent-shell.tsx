@@ -54,7 +54,7 @@ export function ParentShell({ children }: ParentShellProps) {
 
   const handleLogout = () => {
     clearSession()
-    router.push('/partner/login')
+    router.push('/partners')
   }
 
   return (

@@ -89,7 +89,7 @@ export const resolvePartnerIdFromSession = (
     if (normalizedEmail.includes('partner')) return 'partner-save-the-children'
   }
 
-  return database.partners.length > 0 ? database.partners[0].id : null
+  return null
 }
 
 export const resolvePartnerContext = (

@@ -61,7 +61,7 @@ export function CoordinatorShell({ children }: CoordinatorShellProps) {
 
   const handleLogout = () => {
     clearSession()
-    router.push('/sign-in')
+    router.push('/partners')
   }
 
   return (

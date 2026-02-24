@@ -159,7 +159,8 @@
     "ctaSubtitle": "Join our growing network of partners making real impact in classrooms around the world. Your mission, amplified globally.",
     "startPartnership": "Start Your Partnership",
     "scheduleCall": "Schedule a call",
-    "copyright": "© 2025 Class2Class. Connecting classrooms for a better world."
+    "copyright": "© 2025 Class2Class. Connecting classrooms for a better world.",
+    "getStarted": "Get Started"
   },
   "auth": {
     "partnerLogin": "Partner login",
@@ -226,7 +227,8 @@
     "demoStcItaly": "Manage Italian Punti Luce and programs.",
     "demoStcMexico": "Manage Mexico programs and school partnerships.",
     "testimonialQuote": "Class2Class helps our UK schools see progress and stay in sync with partners abroad. It keeps coordinators and teachers aligned without extra overhead.",
-    "testimonialRole": "Program Director · Save the Children Mexico"
+    "testimonialRole": "Program Director · Save the Children Mexico",
+    "signUpNew": "Sign Up"
   },
   "dashboard": {
     "hi": "Hi, {name}",
@@ -477,7 +479,39 @@
     "previewTipsTitle": "Profile Tips",
     "previewTipOrgName": "A clear organization name helps schools find and recognize you",
     "previewTipSdg": "Selecting relevant SDGs improves matching with aligned schools",
-    "previewTipContact": "Complete contact information builds trust with educators"
+    "previewTipContact": "Complete contact information builds trust with educators",
+
+    "schoolDetailsStepName": "School Details",
+    "schoolDetailsStepLabel": "Step 2 of 5",
+    "schoolDetailsStepTitle": "Tell us about your school",
+    "schoolDetailsStepSubtitle": "Help us find the right partners and projects for your school.",
+    "schoolDetailsName": "School Name",
+    "schoolDetailsNamePlaceholder": "e.g., Lincoln Elementary School",
+    "schoolDetailsType": "School Type",
+    "schoolDetailsTypePlaceholder": "Select school type",
+    "schoolDetailsTypePublic": "Public School",
+    "schoolDetailsTypePrivate": "Private School",
+    "schoolDetailsTypeInternational": "International School",
+    "schoolDetailsTypeCharter": "Charter School",
+    "schoolDetailsTypeOther": "Other",
+    "schoolDetailsLocation": "Location",
+    "schoolDetailsCountryPlaceholder": "Select country",
+    "schoolDetailsCityPlaceholder": "e.g., Copenhagen",
+    "schoolDetailsSize": "School Size",
+    "schoolDetailsStudents": "Students",
+    "schoolDetailsStudentsPlaceholder": "e.g., 450",
+    "schoolDetailsTeachers": "Teachers",
+    "schoolDetailsTeachersPlaceholder": "e.g., 25",
+    "schoolDetailsGradeLevels": "Grade Levels",
+    "schoolDetailsSelectAll": "Select all that apply",
+    "schoolDetailsLanguages": "Languages Used in Teaching",
+    "schoolDetailsValidationNameRequired": "School name is required",
+    "schoolDetailsValidationTypeRequired": "Please select a school type",
+    "schoolDetailsValidationCountryRequired": "Please select a country",
+    "schoolDetailsValidationCityRequired": "City is required",
+    "summarySchool": "School",
+    "summaryStudents": "students",
+    "summaryTeachers": "teachers"
   },
   "sdg": {
     "title": "Which UN SDGs do you focus on?",
@@ -611,7 +645,21 @@
     "generateWithAI": "Generate with AI",
     "generating": "Generating...",
     "selectedSDGs": "Selected SDGs:",
-    "subtitle": "Projects created by teachers at your school across all programs."
+    "subtitle": "Projects created by teachers at your school across all programs.",
+    "createProject": "Create Project",
+    "createProjectTitle": "Create a new project",
+    "createProjectDesc": "Design a classroom collaboration within this program.",
+    "projectDetails": "Project details",
+    "projectDetailsDesc": "Give your project a clear title and description for teachers and students.",
+    "projectTitlePlaceholder": "e.g., Children's Rights Across Cultures",
+    "projectDescPlaceholder": "Describe what students will do, what they will learn, and how they will collaborate...",
+    "collaborationThemeDesc": "Choose the type of collaboration this project focuses on.",
+    "sdgAlignment": "SDG alignment",
+    "sdgAlignmentDesc": "Inherited from the parent program.",
+    "projectCreated": "Project created!",
+    "projectCreatedDesc": "Your project has been added to the program.",
+    "backToProgram": "Back to program",
+    "noProjectsPartner": "No projects yet. Create your first project to start collaborating with schools."
   },
   "programs": {
     "title": "Programs",
@@ -728,7 +776,9 @@
       "lookingForPartner": "Looking for Partner",
       "connectSchool": "Connect a school to start collaborating",
       "schoolConnections": "School connections",
-      "countriesConnected": "Countries connected through projects"
+      "countriesConnected": "Countries connected through projects",
+      "noAnalyticsTitle": "No analytics yet",
+      "noAnalyticsDesc": "Start programs and connect with schools to see your impact data here."
     },
     "network": {
       "title": "Network",

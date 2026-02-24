@@ -172,13 +172,13 @@ export function redirectBasedOnRole(defaultPath = '/'): void {
   
   switch (session.role) {
     case 'partner':
-      window.location.href = '/partner/dashboard'
+      window.location.href = '/partner/profile/dashboard'
       break
     case 'parent':
       window.location.href = '/parent/profile/overview'
       break
     case 'teacher':
-      window.location.href = '/dashboard'
+      window.location.href = '/teacher/dashboard'
       break
     case 'student':
       window.location.href = '/student/dashboard'

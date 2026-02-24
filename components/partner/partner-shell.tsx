@@ -59,7 +59,7 @@ export function PartnerShell({ children }: PartnerShellProps) {
 
   const handleLogout = () => {
     clearSession()
-    router.push('/partner/login')
+    router.push('/partners')
   }
 
   return (

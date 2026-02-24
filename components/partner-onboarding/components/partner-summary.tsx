@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { usePartnerOnboarding, getOrganizationTypeLabel, getContactRoleLabel, SDG_OPTIONS } from "../../../contexts/partner-onboarding-context"
-import { Building2, Globe, Mail, Phone, User, Pencil, CheckCircle2, Target, Rocket } from "lucide-react"
+import { Building2, Globe, Mail, Phone, User, Pencil, CheckCircle2, Target, Rocket, School, MapPin, Users } from "lucide-react"
 import { SDGIcon } from "../../sdg-icons"
 import { useTranslations } from "next-intl"
 
@@ -15,6 +15,7 @@ interface PartnerSummaryProps {
 export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummaryProps) {
   const { formData } = usePartnerOnboarding()
   const t = useTranslations('onboarding')
+  const isSchool = formData.organizationType === 'school'
 
   const getSelectedSDGs = () => {
     return formData.sdgFocus.map(id => SDG_OPTIONS.find(sdg => sdg.id === id)).filter(Boolean)
@@ -55,21 +56,40 @@ export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummar
           </div>
         </div>
 
-        {/* Organization Details */}
+        {/* Organization / School Details */}
         <div className="group relative bg-white rounded-2xl p-5 border border-gray-100 hover:border-[#8157D9]/20 hover:shadow-md transition-all duration-300">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4 flex-1">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0">
-                <Globe className="w-5 h-5 text-blue-500" />
+                {isSchool ? <School className="w-5 h-5 text-blue-500" /> : <Globe className="w-5 h-5 text-blue-500" />}
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">{t('summaryOrganization')}</p>
+                <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">
+                  {isSchool ? t('summarySchool') : t('summaryOrganization')}
+                </p>
                 <p className="font-semibold text-gray-900">{formData.organizationName || t('summaryNotSpecified')}</p>
-                {formData.organizationWebsite && (
-                  <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
-                    <Globe className="w-3 h-3" />
-                    {formData.organizationWebsite.replace(/^https?:\/\//, '')}
-                  </p>
+                {isSchool ? (
+                  <div className="space-y-1 mt-1">
+                    {formData.country && formData.city && (
+                      <p className="text-sm text-gray-500 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {formData.city}, {formData.country}
+                      </p>
+                    )}
+                    {(formData.numberOfStudents || formData.numberOfTeachers) && (
+                      <p className="text-sm text-gray-500 flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        {formData.numberOfStudents} {t('summaryStudents')} · {formData.numberOfTeachers} {t('summaryTeachers')}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  formData.organizationWebsite && (
+                    <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                      <Globe className="w-3 h-3" />
+                      {formData.organizationWebsite.replace(/^https?:\/\//, '')}
+                    </p>
+                  )
                 )}
               </div>
             </div>

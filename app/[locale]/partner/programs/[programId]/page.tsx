@@ -150,12 +150,12 @@ export default function PartnerProgramDetailPage() {
 
   useEffect(() => {
     if (!session) {
-      router.push('/partner/login')
+      router.push('/partners')
       return
     }
     const allowedRoles = new Set<string>(['partner', 'parent', 'teacher', 'school'])
     if (!allowedRoles.has(session.role)) {
-      router.push('/partner/login')
+      router.push('/partners')
     }
   }, [router, session])
 
@@ -257,13 +257,13 @@ export default function PartnerProgramDetailPage() {
           </CardContent>
         </Card>
 
-        <ProgramTabs summary={summary} />
+        <ProgramTabs summary={summary} programId={params.programId} />
       </div>
     </div>
   )
 }
 
-function ProgramTabs({ summary }: { summary: ProgramSummary }) {
+function ProgramTabs({ summary, programId }: { summary: ProgramSummary; programId: string }) {
   const [tab, setTab] = useState<'overview' | 'participants' | 'projects' | 'resources'>('overview')
   const hostPartner = summary.coPartners.find(({ relationship }) => relationship.role === 'host')
   const supportingPartner = summary.program.supportingPartnerId
@@ -459,11 +459,25 @@ function ProgramTabs({ summary }: { summary: ProgramSummary }) {
               Track active and completed classroom collaborations within this program.
             </p>
           </div>
+          <Button className="bg-purple-600 hover:bg-purple-700" asChild>
+            <Link href={`/partner/programs/${programId}/projects/create`}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Project
+            </Link>
+          </Button>
         </div>
         {summary.projects.length === 0 ? (
           <Card>
             <CardContent className="py-12">
-              <EmptyState icon={<Layers className="h-6 w-6 text-purple-500" />} title="No projects yet" description="Once teachers launch projects they will appear here." />
+              <EmptyState icon={<Layers className="h-6 w-6 text-purple-500" />} title="No projects yet" description="Create your first project to start collaborating with schools." />
+              <div className="mt-4 flex justify-center">
+                <Button className="bg-purple-600 hover:bg-purple-700" asChild>
+                  <Link href={`/partner/programs/${programId}/projects/create`}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Project
+                  </Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ) : (

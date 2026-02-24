@@ -788,7 +788,7 @@ export default function CreateProgramPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => router.push('/partner/dashboard')}
+                    onClick={() => router.push('/parent/profile/programs')}
                   >
                     Cancel
                   </Button>

@@ -66,7 +66,7 @@ export default function PartnerAnalyticsPage() {
       )
       if (match) return match
     }
-    return database.partners.length > 0 ? database.partners[0] : null
+    return null
   }, [database, normalizedOrganizationName])
 
   const programSummaries = useMemo<ProgramSummary[]>(() => {
@@ -627,45 +627,27 @@ export default function PartnerAnalyticsPage() {
     setLoading(true)
     try {
       const session = getCurrentSession()
-      const organizationName =
-        session?.organization ??
-        database?.partners.find((partner) =>
-          partner.organizationName.toLowerCase().includes('save the children italy'),
-        )?.organizationName ??
-        database?.partners[0]?.organizationName ??
-        'Partner Organization'
-      const matchedPartner = database?.partners.find(
-        (partner) => partner.organizationName.toLowerCase() === organizationName.toLowerCase(),
-      )
+      const organizationName = session?.organization ?? 'Partner Organization'
 
-      const sampleOrg: Organization = {
-        id: 'demo-org-id',
+      setOrganization({
+        id: 'session-org',
         name: organizationName,
         organization_type: 'ngo',
-        website: matchedPartner?.website ?? 'https://class2class.org',
+        website: null,
         logo: null,
-        short_description:
-          matchedPartner?.description ??
-          'Connecting classrooms worldwide through collaborative learning experiences.',
+        short_description: null,
         primary_contacts: [],
-        regions_of_operation: ['Europe', 'Africa', 'Asia-Pacific'],
-        countries_of_operation: ['Denmark', 'Mexico', 'Italy', 'Germany', 'Brazil', 'Finland'],
-        languages: matchedPartner?.languages ?? ['English', 'Italian', 'Spanish'],
-        sdg_tags: matchedPartner?.sdgFocus?.map((sdg) => sdg.replace('SDG ', '')) ?? ['4', '10', '16', '17'],
-        thematic_tags: [
-          "Children's Rights",
-          'Global Citizenship',
-          'Cultural Exchange',
-          'Human Rights Education',
-        ],
-        verification_status: 'verified',
+        regions_of_operation: [],
+        countries_of_operation: [],
+        languages: [],
+        sdg_tags: [],
+        thematic_tags: [],
+        verification_status: 'pending',
         brand_settings: null,
-        created_at: '2024-01-15T10:00:00Z',
-        updated_at: '2024-03-10T15:30:00Z',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         is_active: true,
-      }
-
-      setOrganization(sampleOrg)
+      })
     } catch (err) {
       console.error('Error loading organization profile:', err)
     } finally {
@@ -758,6 +740,16 @@ export default function PartnerAnalyticsPage() {
         description={t('subtitle')}
         className="space-y-2"
       />
+
+      {programSummaries.length === 0 && (
+        <Card>
+          <CardContent className="space-y-4 p-10 text-center">
+            <Target className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="text-lg font-medium text-gray-900">{t('noAnalyticsTitle')}</h3>
+            <p className="text-gray-500">{t('noAnalyticsDesc')}</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Headline Metrics - Clickable Cards */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">

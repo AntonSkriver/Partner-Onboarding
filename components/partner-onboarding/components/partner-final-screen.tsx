@@ -21,14 +21,33 @@ export function PartnerFinalScreen({ onPrevious }: PartnerFinalScreenProps) {
 
   const handleComplete = () => {
     if (typeof window !== 'undefined') {
+      // Save core identity
       localStorage.setItem('organizationType', formData.organizationType || '')
       localStorage.setItem('organizationName', formData.organizationName)
+      localStorage.setItem('organizationWebsite', formData.organizationWebsite || '')
+
+      // Save contact info
+      localStorage.setItem('onboarding_contactName', formData.contactName)
+      localStorage.setItem('onboarding_contactEmail', formData.contactEmail)
+      localStorage.setItem('onboarding_contactPhone', formData.contactPhone || '')
+      localStorage.setItem('onboarding_contactRole', formData.contactRole || '')
+
+      // Save SDG focus and mission
+      localStorage.setItem('onboarding_sdgFocus', JSON.stringify(formData.sdgFocus))
+      localStorage.setItem('onboarding_missionStatement', formData.missionStatement || '')
+
+      // Mark as fresh onboarding (not demo login)
+      localStorage.setItem('onboarding_completed', 'true')
+
       if (isSchool) {
         localStorage.setItem('schoolData', JSON.stringify({
           numberOfStudents: formData.numberOfStudents,
           numberOfTeachers: formData.numberOfTeachers,
           gradeLevels: formData.gradeLevels,
           schoolType: formData.schoolType,
+          country: formData.country,
+          city: formData.city,
+          languages: formData.languages,
         }))
       }
     }

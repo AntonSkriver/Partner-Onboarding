@@ -135,7 +135,42 @@ export default function SchoolOverviewPage() {
       const primaryInstitution = matchingInstitutions[0]
 
       if (!primaryInstitution) {
-        setSchool(null)
+        // Fresh onboarding user: try localStorage schoolData
+        const rawSchoolData = typeof window !== 'undefined' ? localStorage.getItem('schoolData') : null
+        const orgName = session.organization ?? localStorage.getItem('organizationName') ?? 'My School'
+        const storedContactName = localStorage.getItem('onboarding_contactName') ?? ''
+        const storedContactEmail = localStorage.getItem('onboarding_contactEmail') ?? ''
+        const storedContactPhone = localStorage.getItem('onboarding_contactPhone') ?? undefined
+        const storedSdgFocus = localStorage.getItem('onboarding_sdgFocus')
+        const storedMission = localStorage.getItem('onboarding_missionStatement') ?? ''
+        const sdgFocusArray: number[] = storedSdgFocus ? JSON.parse(storedSdgFocus) : []
+
+        if (rawSchoolData) {
+          const schoolData = JSON.parse(rawSchoolData)
+          setSchool({
+            id: 'onboarding-school',
+            name: orgName,
+            type: schoolData.schoolType ?? 'School',
+            location: [schoolData.city, schoolData.country].filter(Boolean).join(', ') || 'Location pending',
+            city: schoolData.city ?? '',
+            country: schoolData.country ?? '',
+            studentCount: schoolData.numberOfStudents ?? 0,
+            teacherCount: schoolData.numberOfTeachers ?? 0,
+            languages: schoolData.languages ?? [],
+            contactName: storedContactName || session.name || 'School lead',
+            contactEmail: storedContactEmail || session.email,
+            contactPhone: storedContactPhone,
+            interests: [],
+            sdgFocus: sdgFocusArray.map(String),
+            childRightsFocus: [],
+            description: '',
+            mission: storedMission,
+            gradeLevels: schoolData.gradeLevels ?? [],
+            schoolType: schoolData.schoolType ?? '',
+          })
+        } else {
+          setSchool(null)
+        }
         return
       }
 

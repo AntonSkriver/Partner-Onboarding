@@ -159,7 +159,8 @@
     "ctaSubtitle": "Si unisca alla nostra crescente rete di partner che generano un impatto reale nelle classi di tutto il mondo. La Sua missione, amplificata a livello globale.",
     "startPartnership": "Avvia la Sua partnership",
     "scheduleCall": "Prenoti una chiamata",
-    "copyright": "© 2025 Class2Class. Connettiamo le classi per un mondo migliore."
+    "copyright": "© 2025 Class2Class. Connettiamo le classi per un mondo migliore.",
+    "getStarted": "Inizia"
   },
   "auth": {
     "partnerLogin": "Accesso partner",
@@ -226,7 +227,8 @@
     "demoStcItaly": "Gestisci i Punti Luce italiani e i programmi.",
     "demoStcMexico": "Gestisci i programmi del Messico e le partnership scolastiche.",
     "testimonialQuote": "Class2Class aiuta le nostre scuole del Regno Unito a monitorare i progressi e restare sincronizzate con i partner all'estero. Mantiene coordinatori e insegnanti allineati senza sforzi aggiuntivi.",
-    "testimonialRole": "Direttrice Programmi · Save the Children Messico"
+    "testimonialRole": "Direttrice Programmi · Save the Children Messico",
+    "signUpNew": "Registrati"
   },
   "dashboard": {
     "hi": "Salve, {name}",
@@ -477,7 +479,39 @@
     "previewTipsTitle": "Suggerimenti per il profilo",
     "previewTipOrgName": "Un nome di organizzazione chiaro aiuta le scuole a trovarLa e riconoscerLa",
     "previewTipSdg": "Selezionare SDG pertinenti migliora l'abbinamento con scuole allineate",
-    "previewTipContact": "Informazioni di contatto complete rafforzano la fiducia degli educatori"
+    "previewTipContact": "Informazioni di contatto complete rafforzano la fiducia degli educatori",
+
+    "schoolDetailsStepName": "Dettagli della scuola",
+    "schoolDetailsStepLabel": "Passaggio 2 di 5",
+    "schoolDetailsStepTitle": "Parlaci della tua scuola",
+    "schoolDetailsStepSubtitle": "Aiutaci a trovare i partner e i progetti giusti per la tua scuola.",
+    "schoolDetailsName": "Nome della scuola",
+    "schoolDetailsNamePlaceholder": "es. Scuola Elementare Lincoln",
+    "schoolDetailsType": "Tipo di scuola",
+    "schoolDetailsTypePlaceholder": "Seleziona il tipo di scuola",
+    "schoolDetailsTypePublic": "Scuola pubblica",
+    "schoolDetailsTypePrivate": "Scuola privata",
+    "schoolDetailsTypeInternational": "Scuola internazionale",
+    "schoolDetailsTypeCharter": "Scuola paritaria",
+    "schoolDetailsTypeOther": "Altro",
+    "schoolDetailsLocation": "Posizione",
+    "schoolDetailsCountryPlaceholder": "Seleziona il paese",
+    "schoolDetailsCityPlaceholder": "es. Copenaghen",
+    "schoolDetailsSize": "Dimensione della scuola",
+    "schoolDetailsStudents": "Studenti",
+    "schoolDetailsStudentsPlaceholder": "es. 450",
+    "schoolDetailsTeachers": "Insegnanti",
+    "schoolDetailsTeachersPlaceholder": "es. 25",
+    "schoolDetailsGradeLevels": "Livelli scolastici",
+    "schoolDetailsSelectAll": "Seleziona tutti quelli applicabili",
+    "schoolDetailsLanguages": "Lingue utilizzate nell'insegnamento",
+    "schoolDetailsValidationNameRequired": "Il nome della scuola è obbligatorio",
+    "schoolDetailsValidationTypeRequired": "Seleziona un tipo di scuola",
+    "schoolDetailsValidationCountryRequired": "Seleziona un paese",
+    "schoolDetailsValidationCityRequired": "La città è obbligatoria",
+    "summarySchool": "Scuola",
+    "summaryStudents": "studenti",
+    "summaryTeachers": "insegnanti"
   },
   "sdg": {
     "title": "Su quali SDG delle Nazioni Unite si concentra?",
@@ -611,7 +645,21 @@
     "generateWithAI": "Genera con l'IA",
     "generating": "Generazione in corso...",
     "selectedSDGs": "SDG selezionati:",
-    "subtitle": "Progetti creati dagli insegnanti della Sua scuola in tutti i programmi."
+    "subtitle": "Progetti creati dagli insegnanti della Sua scuola in tutti i programmi.",
+    "createProject": "Crea progetto",
+    "createProjectTitle": "Crea un nuovo progetto",
+    "createProjectDesc": "Progetta una collaborazione in classe all'interno di questo programma.",
+    "projectDetails": "Dettagli del progetto",
+    "projectDetailsDesc": "Dai al tuo progetto un titolo e una descrizione chiari per insegnanti e studenti.",
+    "projectTitlePlaceholder": "es., Diritti dei Bambini attraverso le Culture",
+    "projectDescPlaceholder": "Descrivi cosa faranno gli studenti, cosa impareranno e come collaboreranno...",
+    "collaborationThemeDesc": "Scegli il tipo di collaborazione su cui si concentra questo progetto.",
+    "sdgAlignment": "Allineamento SDG",
+    "sdgAlignmentDesc": "Ereditato dal programma principale.",
+    "projectCreated": "Progetto creato!",
+    "projectCreatedDesc": "Il tuo progetto è stato aggiunto al programma.",
+    "backToProgram": "Torna al programma",
+    "noProjectsPartner": "Nessun progetto ancora. Crea il tuo primo progetto per iniziare a collaborare con le scuole."
   },
   "programs": {
     "title": "Programmi",
@@ -728,7 +776,9 @@
       "lookingForPartner": "In cerca di partner",
       "connectSchool": "Colleghi una scuola per iniziare a collaborare",
       "schoolConnections": "Connessioni scolastiche",
-      "countriesConnected": "Paesi connessi attraverso i progetti"
+      "countriesConnected": "Paesi connessi attraverso i progetti",
+      "noAnalyticsTitle": "Nessuna analisi ancora",
+      "noAnalyticsDesc": "Avvia programmi e connettiti con le scuole per vedere i tuoi dati di impatto qui."
     },
     "network": {
       "title": "Rete",

@@ -122,10 +122,8 @@ export default function PartnerNetworkPage() {
   )
 
   const partnerRecord = useMemo(() => {
-    if (partnerContext.partnerRecord) return partnerContext.partnerRecord
-    if (!database) return null
-    return database.partners.length > 0 ? database.partners[0] : null
-  }, [database, partnerContext.partnerRecord])
+    return partnerContext.partnerRecord ?? null
+  }, [partnerContext.partnerRecord])
 
   const primaryCountryCode = toCountryCode(partnerRecord?.country)
   const organizationDisplayName =
@@ -153,34 +151,27 @@ export default function PartnerNetworkPage() {
   const loadOrganizationData = useCallback(async () => {
     setLoading(true)
     try {
-      // Use sample data for prototype - no strict session check needed
-      // For demo purposes - sample organization data
-      const sampleOrg: Organization = {
-        id: 'demo-org-id',
-        name: session?.organization ?? partnerRecord?.organizationName ?? 'Partner Organization',
+      const organizationName = session?.organization ?? 'Partner Organization'
+
+      setOrganization({
+        id: 'session-org',
+        name: organizationName,
         organization_type: 'ngo',
-        website: partnerRecord?.website ?? 'https://class2class.org',
+        website: null,
         logo: null,
-        short_description:
-          'Connecting classrooms worldwide through collaborative learning experiences aligned with UN Sustainable Development Goals',
+        short_description: null,
         primary_contacts: [],
-        regions_of_operation: ['Europe', 'Africa', 'Asia-Pacific'],
-        countries_of_operation: ['Denmark', 'Mexico', 'Italy', 'Germany', 'Brazil', 'Finland'],
-        languages: ['Danish', 'English', 'Spanish', 'Italian'],
-        sdg_tags: ['4', '10', '16', '17'],
-        thematic_tags: [
-          "Children's Rights",
-          'Global Citizenship',
-          'Cultural Exchange',
-          'Human Rights Education',
-        ],
-        verification_status: 'verified',
+        regions_of_operation: [],
+        countries_of_operation: [],
+        languages: [],
+        sdg_tags: [],
+        thematic_tags: [],
+        verification_status: 'pending',
         brand_settings: null,
-        created_at: '2024-01-15T10:00:00Z',
-        updated_at: '2024-03-10T15:30:00Z',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         is_active: true,
-      }
-      setOrganization(sampleOrg)
+      })
     } catch (err) {
       console.error('Error loading network data:', err)
     } finally {

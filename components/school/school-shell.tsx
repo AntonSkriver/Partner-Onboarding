@@ -61,7 +61,7 @@ export function SchoolShell({ children }: SchoolShellProps) {
 
   const handleLogout = () => {
     clearSession()
-    router.push('/partner/login')
+    router.push('/partners')
   }
 
   return (

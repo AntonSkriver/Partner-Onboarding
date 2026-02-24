@@ -122,16 +122,33 @@ export function PartnerPreview({ currentStep }: PartnerPreviewProps) {
             )}
           </div>
 
-          {/* Website */}
-          {formData.organizationWebsite && (
-            <div className="py-4">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Globe className="h-4 w-4 shrink-0" />
-                <span className="truncate text-purple-600">
-                  {formData.organizationWebsite.replace(/^https?:\/\//, '')}
-                </span>
+          {/* Website or School Location */}
+          {formData.organizationType === 'school' ? (
+            formData.country && formData.city ? (
+              <div className="py-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Globe className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{formData.city}, {formData.country}</span>
+                </div>
+                {(formData.numberOfStudents || formData.numberOfTeachers) && (
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                    <User className="h-4 w-4 shrink-0" />
+                    <span>{formData.numberOfStudents} students · {formData.numberOfTeachers} teachers</span>
+                  </div>
+                )}
               </div>
-            </div>
+            ) : null
+          ) : (
+            formData.organizationWebsite && (
+              <div className="py-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Globe className="h-4 w-4 shrink-0" />
+                  <span className="truncate text-purple-600">
+                    {formData.organizationWebsite.replace(/^https?:\/\//, '')}
+                  </span>
+                </div>
+              </div>
+            )
           )}
 
           {/* Contact Information */}

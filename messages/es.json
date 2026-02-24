@@ -159,7 +159,8 @@
     "ctaSubtitle": "Únase a nuestra creciente red de socios que generan un impacto real en aulas de todo el mundo. Su misión, amplificada a nivel global.",
     "startPartnership": "Inicie su alianza",
     "scheduleCall": "Agende una llamada",
-    "copyright": "© 2025 Class2Class. Conectando aulas para un mundo mejor."
+    "copyright": "© 2025 Class2Class. Conectando aulas para un mundo mejor.",
+    "getStarted": "Comenzar"
   },
   "auth": {
     "partnerLogin": "Inicio de sesión de socio",
@@ -226,7 +227,8 @@
     "demoStcItaly": "Administrar los Punti Luce y programas italianos.",
     "demoStcMexico": "Administrar los programas de México y las asociaciones escolares.",
     "testimonialQuote": "Class2Class ayuda a nuestras escuelas del Reino Unido a ver el progreso y mantenerse sincronizadas con los socios en el extranjero. Mantiene a coordinadores y profesores alineados sin esfuerzo adicional.",
-    "testimonialRole": "Directora de Programas · Save the Children México"
+    "testimonialRole": "Directora de Programas · Save the Children México",
+    "signUpNew": "Registrarse"
   },
   "dashboard": {
     "hi": "Hola, {name}",
@@ -477,7 +479,39 @@
     "previewTipsTitle": "Consejos para el perfil",
     "previewTipOrgName": "Un nombre de organización claro ayuda a las escuelas a encontrarlo y reconocerlo",
     "previewTipSdg": "Seleccionar los ODS relevantes mejora el emparejamiento con escuelas afines",
-    "previewTipContact": "La información de contacto completa genera confianza con los educadores"
+    "previewTipContact": "La información de contacto completa genera confianza con los educadores",
+
+    "schoolDetailsStepName": "Datos de la escuela",
+    "schoolDetailsStepLabel": "Paso 2 de 5",
+    "schoolDetailsStepTitle": "Cuéntenos sobre su escuela",
+    "schoolDetailsStepSubtitle": "Ayúdenos a encontrar los socios y proyectos adecuados para su escuela.",
+    "schoolDetailsName": "Nombre de la escuela",
+    "schoolDetailsNamePlaceholder": "p. ej., Escuela Primaria Lincoln",
+    "schoolDetailsType": "Tipo de escuela",
+    "schoolDetailsTypePlaceholder": "Seleccione el tipo de escuela",
+    "schoolDetailsTypePublic": "Escuela pública",
+    "schoolDetailsTypePrivate": "Escuela privada",
+    "schoolDetailsTypeInternational": "Escuela internacional",
+    "schoolDetailsTypeCharter": "Escuela concertada",
+    "schoolDetailsTypeOther": "Otro",
+    "schoolDetailsLocation": "Ubicación",
+    "schoolDetailsCountryPlaceholder": "Seleccione el país",
+    "schoolDetailsCityPlaceholder": "p. ej., Copenhague",
+    "schoolDetailsSize": "Tamaño de la escuela",
+    "schoolDetailsStudents": "Estudiantes",
+    "schoolDetailsStudentsPlaceholder": "p. ej., 450",
+    "schoolDetailsTeachers": "Profesores",
+    "schoolDetailsTeachersPlaceholder": "p. ej., 25",
+    "schoolDetailsGradeLevels": "Niveles escolares",
+    "schoolDetailsSelectAll": "Seleccione todos los que apliquen",
+    "schoolDetailsLanguages": "Idiomas utilizados en la enseñanza",
+    "schoolDetailsValidationNameRequired": "El nombre de la escuela es obligatorio",
+    "schoolDetailsValidationTypeRequired": "Seleccione un tipo de escuela",
+    "schoolDetailsValidationCountryRequired": "Seleccione un país",
+    "schoolDetailsValidationCityRequired": "La ciudad es obligatoria",
+    "summarySchool": "Escuela",
+    "summaryStudents": "estudiantes",
+    "summaryTeachers": "profesores"
   },
   "sdg": {
     "title": "¿En qué ODS de la ONU se enfoca?",
@@ -611,7 +645,21 @@
     "generateWithAI": "Generar con IA",
     "generating": "Generando...",
     "selectedSDGs": "ODS seleccionados:",
-    "subtitle": "Proyectos creados por docentes de su escuela en todos los programas."
+    "subtitle": "Proyectos creados por docentes de su escuela en todos los programas.",
+    "createProject": "Crear proyecto",
+    "createProjectTitle": "Crear un nuevo proyecto",
+    "createProjectDesc": "Diseña una colaboración de aula dentro de este programa.",
+    "projectDetails": "Detalles del proyecto",
+    "projectDetailsDesc": "Dale a tu proyecto un título y descripción claros para profesores y estudiantes.",
+    "projectTitlePlaceholder": "ej., Derechos del Niño a través de Culturas",
+    "projectDescPlaceholder": "Describe qué harán los estudiantes, qué aprenderán y cómo colaborarán...",
+    "collaborationThemeDesc": "Elige el tipo de colaboración en el que se enfoca este proyecto.",
+    "sdgAlignment": "Alineación con los ODS",
+    "sdgAlignmentDesc": "Heredado del programa principal.",
+    "projectCreated": "¡Proyecto creado!",
+    "projectCreatedDesc": "Tu proyecto ha sido añadido al programa.",
+    "backToProgram": "Volver al programa",
+    "noProjectsPartner": "Aún no hay proyectos. Crea tu primer proyecto para empezar a colaborar con escuelas."
   },
   "programs": {
     "title": "Programas",
@@ -728,7 +776,9 @@
       "lookingForPartner": "Buscando socio",
       "connectSchool": "Conecte una escuela para comenzar a colaborar",
       "schoolConnections": "Conexiones escolares",
-      "countriesConnected": "Países conectados a través de proyectos"
+      "countriesConnected": "Países conectados a través de proyectos",
+      "noAnalyticsTitle": "Sin análisis aún",
+      "noAnalyticsDesc": "Inicia programas y conéctate con escuelas para ver tus datos de impacto aquí."
     },
     "network": {
       "title": "Red",

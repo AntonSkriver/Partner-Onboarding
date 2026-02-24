@@ -388,12 +388,9 @@ export default function PartnerLoginPage() {
                 </form>
               </Form>
 
-              <div className="grid gap-3 text-sm text-gray-600 sm:grid-cols-2">
+              <div className="text-sm text-gray-600">
                 <Button asChild variant="ghost" className="justify-start px-0 text-purple-600 hover:text-purple-700">
-                  <Link href="/partner/onboarding">{t('signUpAsPartner')}</Link>
-                </Button>
-                <Button asChild variant="ghost" className="justify-start px-0 text-gray-700 hover:text-purple-700">
-                  <Link href="/school/onboarding">{t('signUpAsSchool')}</Link>
+                  <Link href="/partner/onboarding">{t('signUpNew')}</Link>
                 </Button>
               </div>
 

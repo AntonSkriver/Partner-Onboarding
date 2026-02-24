@@ -106,6 +106,7 @@ export default function PartnerOverviewPage() {
   const [loading, setLoading] = useState(true)
   const [resources, setResources] = useState<PartnerResource[]>([])
   const [childRightsFocus, setChildRightsFocus] = useState<string[]>([])
+  const [isDemoUser, setIsDemoUser] = useState(false)
   const { ready: prototypeReady, database } = usePrototypeDb()
 
   const normalizedOrganizationName = organization?.name
@@ -113,15 +114,15 @@ export default function PartnerOverviewPage() {
     : null
 
   const partnerRecord = useMemo(() => {
-    if (!database) return null
+    if (!database || !isDemoUser) return null
     if (normalizedOrganizationName) {
       const match = database.partners.find(
         (partner) => partner.organizationName.toLowerCase() === normalizedOrganizationName,
       )
       if (match) return match
     }
-    return database.partners.length > 0 ? database.partners[0] : null
-  }, [database, normalizedOrganizationName])
+    return null
+  }, [database, normalizedOrganizationName, isDemoUser])
 
   const programSummaries = useMemo<ProgramSummary[]>(() => {
     if (!prototypeReady || !database || !partnerRecord) {
@@ -156,126 +157,150 @@ export default function PartnerOverviewPage() {
     setLoading(true)
     try {
       const session = getCurrentSession()
-      const fallbackOrganization =
-        database?.partners.find((partner) =>
-          partner.organizationName.toLowerCase().includes('save the children italy'),
-        )?.organizationName ??
-        database?.partners[0]?.organizationName ??
-        'Partner Organization'
-      const orgName = session?.organization ?? fallbackOrganization
+      if (!session) {
+        setOrganization(null)
+        return
+      }
 
-      // Build dynamic org data from prototype database when available
-      const partnerUsers = database?.partnerUsers ?? []
+      const orgName = session.organization ?? 'Partner Organization'
+
+      // Check if this user matches a seed partner (demo user)
       const matchedPartner = database?.partners.find(
         (p) => p.organizationName.toLowerCase() === orgName.trim().toLowerCase(),
       )
 
-      // Build contacts from partner users linked to this partner
-      const contacts = matchedPartner
-        ? partnerUsers
-            .filter((u) => u.partnerId === matchedPartner.id && u.isActive)
-            .map((u, i) => ({
-              name: `${u.firstName} ${u.lastName}`,
-              email: u.email,
-              role: u.role === 'admin' ? 'Director' : 'Coordinator',
-              isPrimary: i === 0,
-            }))
-        : []
+      if (matchedPartner) {
+        // DEMO USER: Load full seed data
+        setIsDemoUser(true)
 
-      // If no partner users, use partner contact as fallback
-      if (contacts.length === 0 && matchedPartner) {
-        contacts.push({
+        const partnerUsers = database?.partnerUsers ?? []
+        const contacts = partnerUsers
+          .filter((u) => u.partnerId === matchedPartner.id && u.isActive)
+          .map((u, i) => ({
+            name: `${u.firstName} ${u.lastName}`,
+            email: u.email,
+            role: u.role === 'admin' ? 'Director' : 'Coordinator',
+            isPrimary: i === 0,
+          }))
+
+        if (contacts.length === 0) {
+          contacts.push({
+            name: orgName,
+            email: matchedPartner.contactEmail,
+            role: 'Primary Contact',
+            isPrimary: true,
+          })
+        }
+
+        const programs = database?.programs ?? []
+        const programPartners = database?.programPartners ?? []
+        const linkedProgramIds = new Set([
+          ...programs.filter((p) => p.partnerId === matchedPartner.id).map((p) => p.id),
+          ...programPartners.filter((pp) => pp.partnerId === matchedPartner.id).map((pp) => pp.programId),
+        ])
+        const linkedPrograms = programs.filter((p) => linkedProgramIds.has(p.id))
+        const countriesSet = new Set<string>()
+        linkedPrograms.forEach((p) => p.countriesInScope?.forEach((c: string) => countriesSet.add(c)))
+
+        const sdgTags = matchedPartner.sdgFocus
+          ? matchedPartner.sdgFocus.map((s) => s.replace('SDG ', ''))
+          : ['4']
+
+        const thematicSet = new Set<string>()
+        linkedPrograms.forEach((p) => {
+          p.pedagogicalFramework?.forEach((f: string) => {
+            const labels: Record<string, string> = {
+              pbl: 'Project-Based Learning',
+              design_thinking: 'Design Thinking',
+              global_citizenship: 'Global Citizenship',
+              steam: 'STEAM Education',
+            }
+            thematicSet.add(labels[f] ?? f)
+          })
+          p.projectTypes?.forEach((pt: string) => {
+            const labels: Record<string, string> = {
+              cultural_exchange: 'Cultural Exchange',
+              explore_global_challenges: 'Global Challenges',
+              create_solutions: 'Solution Design',
+            }
+            if (labels[pt]) thematicSet.add(labels[pt])
+          })
+        })
+
+        const crcSet = new Set<string>()
+        linkedPrograms.forEach((p) => {
+          p.crcFocus?.forEach((c: string) => crcSet.add(c))
+        })
+
+        setOrganization({
+          id: matchedPartner.id,
           name: orgName,
-          email: matchedPartner.contactEmail,
-          role: 'Primary Contact',
-          isPrimary: true,
+          organization_type: matchedPartner.organizationType as Organization['organization_type'],
+          website: matchedPartner.website ?? null,
+          logo: matchedPartner.logo ?? null,
+          short_description: matchedPartner.description ?? null,
+          primary_contacts: contacts,
+          regions_of_operation: [],
+          countries_of_operation: Array.from(countriesSet),
+          languages: matchedPartner.languages ?? ['en'],
+          sdg_tags: sdgTags,
+          thematic_tags: Array.from(thematicSet),
+          verification_status: matchedPartner.verificationStatus ?? 'verified',
+          brand_settings: null,
+          created_at: matchedPartner.createdAt ?? new Date().toISOString(),
+          updated_at: matchedPartner.updatedAt ?? new Date().toISOString(),
+          is_active: matchedPartner.isActive ?? true,
         })
+
+        setResources([
+          { id: 'children-rights-toolkit', title: "Children's Rights Education Toolkit" },
+          { id: 'cultural-exchange-framework', title: 'Cultural Exchange Learning Framework' },
+          { id: 'sustainability-action-guide', title: 'Climate Action for Young Leaders' },
+        ])
+        setChildRightsFocus(Array.from(crcSet))
+      } else {
+        // FRESH ONBOARDING USER: Use localStorage data, no seed fallback
+        setIsDemoUser(false)
+
+        const storedOrgType = typeof window !== 'undefined' ? localStorage.getItem('organizationType') : null
+        const storedContactName = typeof window !== 'undefined' ? localStorage.getItem('onboarding_contactName') : null
+        const storedContactEmail = typeof window !== 'undefined' ? localStorage.getItem('onboarding_contactEmail') : null
+        const storedContactRole = typeof window !== 'undefined' ? localStorage.getItem('onboarding_contactRole') : null
+        const storedContactPhone = typeof window !== 'undefined' ? localStorage.getItem('onboarding_contactPhone') : null
+        const storedSdgFocus = typeof window !== 'undefined' ? localStorage.getItem('onboarding_sdgFocus') : null
+        const storedMission = typeof window !== 'undefined' ? localStorage.getItem('onboarding_missionStatement') : null
+        const storedWebsite = typeof window !== 'undefined' ? localStorage.getItem('organizationWebsite') : null
+
+        const sdgFocusArray: number[] = storedSdgFocus ? JSON.parse(storedSdgFocus) : []
+        const sdgTags = sdgFocusArray.map(String)
+
+        const contacts: OrganizationContact[] = storedContactName
+          ? [{ name: storedContactName, email: storedContactEmail ?? undefined, role: storedContactRole, phone: storedContactPhone, isPrimary: true }]
+          : []
+
+        setOrganization({
+          id: 'onboarding-org',
+          name: orgName,
+          organization_type: (storedOrgType ?? 'ngo') as Organization['organization_type'],
+          website: storedWebsite ?? null,
+          logo: null,
+          short_description: storedMission || null,
+          primary_contacts: contacts,
+          regions_of_operation: [],
+          countries_of_operation: [],
+          languages: [],
+          sdg_tags: sdgTags,
+          thematic_tags: [],
+          verification_status: 'pending',
+          brand_settings: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_active: true,
+        })
+
+        setResources([])
+        setChildRightsFocus([])
       }
-
-      // Build countries from programs
-      const programs = database?.programs ?? []
-      const programPartners = database?.programPartners ?? []
-      const linkedProgramIds = matchedPartner
-        ? new Set([
-            ...programs.filter((p) => p.partnerId === matchedPartner.id).map((p) => p.id),
-            ...programPartners.filter((pp) => pp.partnerId === matchedPartner.id).map((pp) => pp.programId),
-          ])
-        : new Set<string>()
-      const linkedPrograms = programs.filter((p) => linkedProgramIds.has(p.id))
-      const countriesSet = new Set<string>()
-      linkedPrograms.forEach((p) => p.countriesInScope?.forEach((c: string) => countriesSet.add(c)))
-
-      // Build SDG tags from partner record
-      const sdgTags = matchedPartner?.sdgFocus
-        ? matchedPartner.sdgFocus.map((s) => s.replace('SDG ', ''))
-        : ['4']
-
-      // Build thematic tags from program pedagogical frameworks
-      const thematicSet = new Set<string>()
-      linkedPrograms.forEach((p) => {
-        p.pedagogicalFramework?.forEach((f: string) => {
-          const labels: Record<string, string> = {
-            pbl: 'Project-Based Learning',
-            design_thinking: 'Design Thinking',
-            global_citizenship: 'Global Citizenship',
-            steam: 'STEAM Education',
-          }
-          thematicSet.add(labels[f] ?? f)
-        })
-        p.projectTypes?.forEach((t: string) => {
-          const labels: Record<string, string> = {
-            cultural_exchange: 'Cultural Exchange',
-            explore_global_challenges: 'Global Challenges',
-            create_solutions: 'Solution Design',
-          }
-          if (labels[t]) thematicSet.add(labels[t])
-        })
-      })
-
-      // Build CRC focus from programs
-      const crcSet = new Set<string>()
-      linkedPrograms.forEach((p) => {
-        p.crcFocus?.forEach((c: string) => crcSet.add(c))
-      })
-
-      const sampleOrg: Organization = {
-        id: matchedPartner?.id ?? 'demo-org-id',
-        name: orgName,
-        organization_type: (matchedPartner?.organizationType ?? 'ngo') as Organization['organization_type'],
-        website: matchedPartner?.website ?? null,
-        logo: matchedPartner?.logo ?? null,
-        short_description: matchedPartner?.description ?? 'Partner organization on Class2Class.',
-        primary_contacts: contacts,
-        regions_of_operation: [],
-        countries_of_operation: Array.from(countriesSet),
-        languages: matchedPartner?.languages ?? ['en'],
-        sdg_tags: sdgTags,
-        thematic_tags: Array.from(thematicSet),
-        verification_status: matchedPartner?.verificationStatus ?? 'verified',
-        brand_settings: null,
-        created_at: matchedPartner?.createdAt ?? '2024-01-15T10:00:00Z',
-        updated_at: matchedPartner?.updatedAt ?? '2024-03-10T15:30:00Z',
-        is_active: matchedPartner?.isActive ?? true,
-      }
-
-      const mockResources = [
-        {
-          id: 'children-rights-toolkit',
-          title: "Children's Rights Education Toolkit",
-        },
-        {
-          id: 'cultural-exchange-framework',
-          title: 'Cultural Exchange Learning Framework',
-        },
-        {
-          id: 'sustainability-action-guide',
-          title: 'Climate Action for Young Leaders',
-        },
-      ]
-
-      setOrganization(sampleOrg)
-      setResources(mockResources)
-      setChildRightsFocus(Array.from(crcSet))
     } catch (err) {
       console.error('Error loading organization profile:', err)
     } finally {
@@ -292,9 +317,9 @@ export default function PartnerOverviewPage() {
           .map((sdg) => (typeof sdg === 'string' ? Number.parseInt(sdg, 10) : sdg))
           .filter((sdg) => Number.isInteger(sdg))
       : []
-    const sdgFocus = normalizedSdgTags.length > 0 ? normalizedSdgTags : [4]
+    const sdgFocus = normalizedSdgTags.length > 0 ? normalizedSdgTags : (isDemoUser ? [4] : [])
     return sdgFocus.filter((sdgId) => sdgId !== 17)
-  }, [organization?.sdg_tags])
+  }, [organization?.sdg_tags, isDemoUser])
 
   const organizationChildRights = extractChildRightsFocus(organization)
 

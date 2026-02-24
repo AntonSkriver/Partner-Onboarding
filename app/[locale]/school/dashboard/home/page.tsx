@@ -74,7 +74,26 @@ export default function SchoolDashboardHomePage() {
       const primaryInstitution = matchingInstitutions[0]
 
       if (!primaryInstitution) {
-        setSchool(null)
+        // Fresh onboarding user: try localStorage schoolData
+        const rawSchoolData = typeof window !== 'undefined' ? localStorage.getItem('schoolData') : null
+        const orgName = currentSession.organization ?? localStorage.getItem('organizationName') ?? 'My School'
+        if (rawSchoolData) {
+          const schoolData = JSON.parse(rawSchoolData)
+          setSchool({
+            id: 'onboarding-school',
+            name: orgName,
+            type: schoolData.schoolType ?? 'School',
+            location: [schoolData.city, schoolData.country].filter(Boolean).join(', '),
+            city: schoolData.city ?? '',
+            country: schoolData.country ?? '',
+            studentCount: schoolData.numberOfStudents ?? 0,
+            teacherCount: schoolData.numberOfTeachers ?? 0,
+            programCount: 0,
+            projectCount: 0,
+          })
+        } else {
+          setSchool(null)
+        }
         return
       }
 
