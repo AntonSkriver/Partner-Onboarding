@@ -53,7 +53,6 @@ function SchoolOnboardingContent() {
     { name: t('stepSchoolName'), component: SchoolNameStep },
     { name: t('stepDetails'), component: SchoolDetailsStep },
     { name: t('stepContact'), component: ContactStep },
-    { name: t('stepInterests'), component: InterestsStep },
     { name: t('stepSdg'), component: SDGSelectionStep },
   ]
 
@@ -134,7 +133,7 @@ function SchoolOnboardingContent() {
   }
 
   // SDG step has different props
-  if (currentStep === 5) {
+  if (currentStep === 4) {
     stepProps.onBack = goToPreviousStep
     stepProps.currentStep = getProgressStep()
     stepProps.totalSteps = getTotalSteps()

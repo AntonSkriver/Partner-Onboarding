@@ -1,24 +1,24 @@
 'use client'
 
 // Official UN SDG Colors and Data
-export const SDG_DATA: Record<number, { title: string; color: string }> = {
-  1: { title: 'No Poverty', color: '#E5243B' },
-  2: { title: 'Zero Hunger', color: '#DDA63A' },
-  3: { title: 'Good Health and Well-being', color: '#4C9F38' },
-  4: { title: 'Quality Education', color: '#C5192D' },
-  5: { title: 'Gender Equality', color: '#FF3A21' },
-  6: { title: 'Clean Water and Sanitation', color: '#26BDE2' },
-  7: { title: 'Affordable and Clean Energy', color: '#FCC30B' },
-  8: { title: 'Decent Work and Economic Growth', color: '#A21942' },
-  9: { title: 'Industry, Innovation and Infrastructure', color: '#FD6925' },
-  10: { title: 'Reduced Inequalities', color: '#DD1367' },
-  11: { title: 'Sustainable Cities and Communities', color: '#FD9D24' },
-  12: { title: 'Responsible Consumption and Production', color: '#BF8B2E' },
-  13: { title: 'Climate Action', color: '#3F7E44' },
-  14: { title: 'Life Below Water', color: '#0A97D9' },
-  15: { title: 'Life on Land', color: '#56C02B' },
-  16: { title: 'Peace, Justice and Strong Institutions', color: '#00689D' },
-  17: { title: 'Partnerships for the Goals', color: '#19486A' },
+export const SDG_DATA: Record<number, { title: string; color: string; description: string }> = {
+  1: { title: 'No Poverty', color: '#E5243B', description: 'End poverty in all its forms everywhere' },
+  2: { title: 'Zero Hunger', color: '#DDA63A', description: 'End hunger, achieve food security and improved nutrition' },
+  3: { title: 'Good Health and Well-being', color: '#4C9F38', description: 'Ensure healthy lives and promote well-being for all' },
+  4: { title: 'Quality Education', color: '#C5192D', description: 'Ensure inclusive and equitable quality education' },
+  5: { title: 'Gender Equality', color: '#FF3A21', description: 'Achieve gender equality and empower all women and girls' },
+  6: { title: 'Clean Water and Sanitation', color: '#26BDE2', description: 'Ensure availability and sustainable management of water' },
+  7: { title: 'Affordable and Clean Energy', color: '#FCC30B', description: 'Ensure access to affordable, reliable and sustainable energy' },
+  8: { title: 'Decent Work and Economic Growth', color: '#A21942', description: 'Promote sustained, inclusive and sustainable economic growth' },
+  9: { title: 'Industry, Innovation and Infrastructure', color: '#FD6925', description: 'Build resilient infrastructure and foster innovation' },
+  10: { title: 'Reduced Inequalities', color: '#DD1367', description: 'Reduce inequality within and among countries' },
+  11: { title: 'Sustainable Cities and Communities', color: '#FD9D24', description: 'Make cities and communities inclusive, safe and sustainable' },
+  12: { title: 'Responsible Consumption and Production', color: '#BF8B2E', description: 'Ensure sustainable consumption and production patterns' },
+  13: { title: 'Climate Action', color: '#3F7E44', description: 'Take urgent action to combat climate change' },
+  14: { title: 'Life Below Water', color: '#0A97D9', description: 'Conserve and sustainably use the oceans and marine resources' },
+  15: { title: 'Life on Land', color: '#56C02B', description: 'Protect, restore and promote sustainable use of terrestrial ecosystems' },
+  16: { title: 'Peace, Justice and Strong Institutions', color: '#00689D', description: 'Promote peaceful and inclusive societies for sustainable development' },
+  17: { title: 'Partnerships for the Goals', color: '#19486A', description: 'Strengthen the means of implementation and revitalize global partnerships' },
 }
 
 interface SDGIconProps {

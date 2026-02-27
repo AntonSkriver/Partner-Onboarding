@@ -3,6 +3,7 @@
 import { useSchoolForm } from "@/contexts/school-form-context"
 import { School, MapPin, Users, Globe, Mail, User, GraduationCap } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { SDGIcon } from "@/components/sdg-icons"
 
 interface SchoolPreviewProps {
   currentStep?: number
@@ -19,7 +20,7 @@ export function SchoolPreview({ currentStep }: SchoolPreviewProps) {
       case 'details': return currentStep === 2
       case 'contact': return currentStep === 3
       case 'interests': return currentStep === 4
-      case 'sdg': return currentStep === 5
+      case 'sdg': return currentStep === 4
       default: return false
     }
   }
@@ -32,6 +33,7 @@ export function SchoolPreview({ currentStep }: SchoolPreviewProps) {
   const hasLanguages = formData.languages && formData.languages.length > 0
   const hasContact = formData.contactName || formData.contactEmail
   const hasInterests = (formData.subjectAreas && formData.subjectAreas.length > 0) || (formData.collaborationInterests && formData.collaborationInterests.length > 0)
+  const hasSDGs = formData.sdgFocus && formData.sdgFocus.length > 0
 
   return (
     <div className="space-y-4">
@@ -138,6 +140,33 @@ export function SchoolPreview({ currentStep }: SchoolPreviewProps) {
             ) : (
               <div className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center text-sm text-gray-300">
                 {t('previewInterestsPlaceholder')}
+              </div>
+            )}
+          </div>
+
+          {/* SDG Focus */}
+          <div className={`py-4 ${sectionClass('sdg')}`}>
+            <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">{t('previewSdgFocus')}</h4>
+            {hasSDGs ? (
+              <div className="flex flex-wrap gap-2">
+                {formData.sdgFocus!.slice(0, 4).map((sdgStr, i) => (
+                  <SDGIcon
+                    key={i}
+                    number={parseInt(sdgStr)}
+                    size="md"
+                    showTitle={false}
+                    className="h-12 w-12 rounded-lg object-cover shadow-sm"
+                  />
+                ))}
+                {formData.sdgFocus!.length > 4 && (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 text-xs font-medium text-gray-600">
+                    +{formData.sdgFocus!.length - 4}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center text-sm text-gray-300">
+                {t('previewSdgPlaceholder')}
               </div>
             )}
           </div>

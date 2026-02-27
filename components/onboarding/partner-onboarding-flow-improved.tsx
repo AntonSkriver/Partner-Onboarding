@@ -8,7 +8,8 @@ import { ProgressBar } from './progress-bar-improved'
 import { WelcomeScreen } from './welcome-screen-improved'
 import { PartnerTypeSelection } from './partner-type-selection'
 import { OrganizationDetails } from './organization-details'
-import { MissionAndSdg } from './mission-and-sdg'
+import { MissionStatementStep } from './mission-statement-step'
+import { SdgSelectionStep } from './sdg-selection-step'
 import { ContactInformation } from './contact-information'
 import { ProfilePreview } from './profile-preview-improved'
 import { FinalScreen } from './final-screen-improved'
@@ -44,7 +45,8 @@ function PartnerOnboardingContent() {
     { name: "Welcome", component: WelcomeScreen },
     { name: "Organization Type", component: PartnerTypeSelection },
     { name: "Organization Details", component: OrganizationDetails },
-    { name: "Mission & SDGs", component: MissionAndSdg },
+    { name: "Mission", component: MissionStatementStep },
+    { name: "SDG Selection", component: SdgSelectionStep },
     { name: "Contact Information", component: ContactInformation },
     { name: "Preview", component: ProfilePreview },
     { name: "Complete", component: FinalScreen },

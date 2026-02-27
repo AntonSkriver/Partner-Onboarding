@@ -1,31 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
 import { useSchoolForm } from '@/contexts/school-form-context';
-import { SDGIcon } from '@/components/sdg-icons';
+import { Globe, Plus, X, Check, Info } from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { SDG_DATA } from '@/components/sdg-icons';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useTranslations } from 'next-intl';
 
-const sdgOptions = [
-  { id: 1, title: 'No Poverty' },
-  { id: 2, title: 'Zero Hunger' },
-  { id: 3, title: 'Good Health and Well-being' },
-  { id: 4, title: 'Quality Education' },
-  { id: 5, title: 'Gender Equality' },
-  { id: 6, title: 'Clean Water and Sanitation' },
-  { id: 7, title: 'Affordable and Clean Energy' },
-  { id: 8, title: 'Decent Work and Economic Growth' },
-  { id: 9, title: 'Industry, Innovation and Infrastructure' },
-  { id: 10, title: 'Reduced Inequalities' },
-  { id: 11, title: 'Sustainable Cities and Communities' },
-  { id: 12, title: 'Responsible Consumption and Production' },
-  { id: 13, title: 'Climate Action' },
-  { id: 14, title: 'Life Below Water' },
-  { id: 15, title: 'Life on Land' },
-  { id: 16, title: 'Peace, Justice and Strong Institutions' },
-  { id: 17, title: 'Partnerships for the Goals' },
-];
+const MAX_SDGS = 5;
+const SDG_LIST = Array.from({ length: 17 }, (_, i) => i + 1);
 
 interface SDGSelectionStepProps {
   onNext: () => void;
@@ -45,120 +48,285 @@ export function SDGSelectionStep({
 }: SDGSelectionStepProps) {
   const { formData, updateFormData } = useSchoolForm();
   const t = useTranslations('schoolOnboarding');
-  const [selectedSDGs, setSelectedSDGs] = useState<number[]>(
-    // Parse any existing SDG data from formData
-    formData.sdgFocus?.map((s: string) => parseInt(s)) || []
+
+  // Parse any existing SDG data from formData (memoized to prevent infinite re-renders)
+  const sdgFocusKey = JSON.stringify(formData.sdgFocus || []);
+  const initialSDGs = useMemo(
+    () => formData.sdgFocus?.map((s: string) => parseInt(s)) || [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sdgFocusKey],
   );
 
-  const handleSDGToggle = (sdgId: number) => {
-    const newSelected = selectedSDGs.includes(sdgId)
-      ? selectedSDGs.filter(id => id !== sdgId)
-      : [...selectedSDGs, sdgId];
+  // Sheet state
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [tempSelectedSDGs, setTempSelectedSDGs] = useState<number[]>([]);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-    setSelectedSDGs(newSelected);
+  // Sync temp state when opening sheet
+  useEffect(() => {
+    if (isSheetOpen) {
+      setTempSelectedSDGs([...initialSDGs]);
+    }
+    // Only sync when sheet opens, not when initialSDGs changes mid-edit
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSheetOpen]);
+
+  const handleOpenChange = (open: boolean) => {
+    if (open === isSheetOpen) return;
+
+    if (!open) {
+      // Check for unsaved changes when trying to close
+      const hasChanges =
+        tempSelectedSDGs.length !== initialSDGs.length ||
+        !tempSelectedSDGs.every(id => initialSDGs.includes(id));
+
+      if (hasChanges) {
+        setShowConfirmDialog(true);
+        return; // Prevent sheet from closing
+      }
+    }
+    setIsSheetOpen(open);
+  };
+
+  const removeSDG = (sdgId: number) => {
+    const updatedSDGs = initialSDGs.filter((id: number) => id !== sdgId);
+    updateFormData({ sdgFocus: updatedSDGs.map(String) });
+  };
+
+  const toggleTempSDG = (sdgId: number) => {
+    const isSelected = tempSelectedSDGs.includes(sdgId);
+
+    if (isSelected) {
+      setTempSelectedSDGs(prev => prev.filter(id => id !== sdgId));
+    } else {
+      if (tempSelectedSDGs.length >= MAX_SDGS) {
+        toast.error(`Select up to ${MAX_SDGS} goals`, {
+          style: {
+            backgroundColor: '#fff7ed',
+            borderColor: '#ffedd5',
+            color: '#c2410c',
+          },
+        });
+        return;
+      }
+      setTempSelectedSDGs(prev => [...prev, sdgId]);
+    }
+  };
+
+  const confirmSelection = () => {
+    updateFormData({ sdgFocus: tempSelectedSDGs.map(String) });
+    setIsSheetOpen(false);
+  };
+
+  const discardChanges = () => {
+    setShowConfirmDialog(false);
+    setIsSheetOpen(false);
   };
 
   const handleContinue = () => {
-    // Save SDGs to context as string array for compatibility
-    updateFormData({ sdgFocus: selectedSDGs.map(String) });
     onNext();
   };
 
   const goBack = onBack || onPrevious;
 
+  // Calculate slots
+  const selectedCount = initialSDGs.length;
+  const emptySlotsCount = MAX_SDGS - selectedCount;
+  const emptySlots = Array.from({ length: emptySlotsCount });
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <p className="text-sm font-medium text-purple-600 mb-1">{t('sdgStepLabel')}</p>
-        <h1 className="text-2xl font-bold text-gray-900">{t('sdgStepTitle')}</h1>
-        <p className="mt-1 text-sm text-gray-500">{t('sdgStepSubtitle')}</p>
+    <div className="space-y-6">
+      <div className="text-center">
+        <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Globe className="w-8 h-8 text-purple-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('sdgStepTitle')}</h2>
+        <p className="text-gray-600">
+          {t('sdgDescription')}
+        </p>
       </div>
 
-      <p className="text-sm text-gray-600">{t('sdgDescription')}</p>
+      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+        <p className="text-sm text-blue-800 leading-relaxed">
+          <span className="font-semibold px-2 py-0.5 bg-yellow-100/50 rounded inline-block mr-1">💡 About SDGs:</span>
+          The UN Sustainable Development Goals are a global framework addressing humanity&apos;s biggest challenges.
+          Connecting your project to SDGs helps students understand how their work contributes to solving
+          real-world problems and builds global awareness. <a href="#" className="underline text-blue-600 font-medium">Learn more about the SDGs here</a>.
+        </p>
+      </div>
 
-      {/* SDG Grid */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-gray-700">
-            {t('sdgStepTitle')}
-          </p>
-          {selectedSDGs.length > 0 && (
-            <span className="text-sm text-purple-600 font-medium">
-              {selectedSDGs.length} {t('sdgSelected')}
-            </span>
-          )}
+          <h3 className="text-sm font-medium text-gray-700">Selected SDGs</h3>
+          <span className={`text-sm font-medium ${selectedCount >= MAX_SDGS ? 'text-orange-500' : 'text-gray-500'}`}>{selectedCount}/{MAX_SDGS} {t('sdgSelected').toLowerCase()}</span>
         </div>
 
-        <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-          {sdgOptions.map((sdg) => {
-            const isSelected = selectedSDGs.includes(sdg.id);
+        <div className="space-y-3">
+          {/* Selected SDG Cards */}
+          {initialSDGs.map((sdgId: number) => {
+            const sdgInfo = SDG_DATA[sdgId];
             return (
-              <button
-                key={sdg.id}
-                type="button"
-                onClick={() => handleSDGToggle(sdg.id)}
-                className={`
-                  relative group aspect-square rounded-xl overflow-hidden transition-all duration-300
-                  ${isSelected
-                    ? 'ring-3 ring-purple-600 ring-offset-2 scale-105 shadow-lg'
-                    : 'opacity-70 hover:opacity-100 hover:scale-102'
-                  }
-                `}
-              >
-                <SDGIcon
-                  number={sdg.id}
-                  size="lg"
-                  showTitle={false}
-                  className="w-full h-full object-cover"
-                />
-
-                {isSelected && (
-                  <div className="absolute inset-0 bg-purple-600/20 flex items-center justify-center">
-                    <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center">
-                      <Check className="w-4 h-4 text-white" strokeWidth={3} />
-                    </div>
-                  </div>
-                )}
-
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-              </button>
+              <div key={sdgId} className="relative p-4 pr-12 rounded-xl border-2 bg-white shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 flex-shrink-0">
+                  <img
+                    src={`/sdg/sdg-${sdgId}.webp`}
+                    alt={`Goal ${sdgId}`}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = `https://upload.wikimedia.org/wikipedia/commons/${[
+                        '',
+                        '9/9d/Sustainable_Development_Goal_1.png',
+                        '4/4d/Sustainable_Development_Goal_2.png',
+                        'c/c4/Sustainable_Development_Goal_3.png',
+                        '6/6e/Sustainable_Development_Goal_4.png',
+                        'b/bc/Sustainable_Development_Goal_5.png',
+                        '8/87/Sustainable_Development_Goal_6.png',
+                        'd/d7/Sustainable_Development_Goal_7.png',
+                        '8/8e/Sustainable_Development_Goal_8.png',
+                        'c/cc/Sustainable_Development_Goal_9.png',
+                        'd/d4/Sustainable_Development_Goal_10.png',
+                        '8/81/Sustainable_Development_Goal_11.png',
+                        'd/d9/Sustainable_Development_Goal_12.png',
+                        '7/70/Sustainable_Development_Goal_13.png',
+                        '6/63/Sustainable_Development_Goal_14.png',
+                        '1/18/Sustainable_Development_Goal_15.png',
+                        '6/68/Sustainable_Development_Goal_16.png',
+                        ''
+                      ][sdgId]
+                        }`;
+                    }}
+                    className="w-full h-full object-cover rounded shadow-sm"
+                  />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900">Goal {sdgId}: {sdgInfo?.title}</h4>
+                  <p className="text-sm text-gray-500">
+                    {sdgInfo?.description}
+                  </p>
+                </div>
+                <button
+                  onClick={() => removeSDG(sdgId)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             );
           })}
+
+          {/* Empty Add SDG Slots */}
+          <Sheet open={isSheetOpen} onOpenChange={handleOpenChange}>
+            {emptySlots.map((_, index) => (
+              <SheetTrigger asChild key={`empty-${index}`}>
+                <button className="w-full p-4 rounded-xl border-2 border-dashed border-violet-200 hover:border-violet-400 bg-gradient-to-br from-violet-50/40 to-indigo-50/30 flex items-center justify-center gap-2 text-violet-600 hover:text-violet-700 transition-all shadow-sm hover:shadow group h-[84px]">
+                  <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <span className="font-medium">Add SDG</span>
+                </button>
+              </SheetTrigger>
+            ))}
+
+            <SheetContent side="right" className="w-full sm:w-[33vw] sm:min-w-[480px] p-0 flex flex-col h-full">
+              <SheetHeader className="p-6 border-b relative">
+                <div className="flex justify-between items-center mr-8">
+                  <SheetTitle className="text-xl">Choose SDGs</SheetTitle>
+                  <span className={`text-sm font-medium ${tempSelectedSDGs.length >= MAX_SDGS ? 'text-orange-500' : 'text-gray-500'}`}>{tempSelectedSDGs.length}/{MAX_SDGS} {t('sdgSelected').toLowerCase()}</span>
+                </div>
+              </SheetHeader>
+
+              <div className="flex-1 overflow-y-auto p-6 space-y-3">
+                {SDG_LIST.map((sdgId) => {
+                  const sdgInfo = SDG_DATA[sdgId];
+                  const isSelected = tempSelectedSDGs.includes(sdgId);
+                  const isMaxReached = tempSelectedSDGs.length >= MAX_SDGS;
+
+                  let cardClasses = "relative w-full p-4 rounded-xl border-2 flex items-center gap-5 transition-all text-left shadow-sm ";
+
+                  if (isSelected) {
+                    if (isMaxReached) {
+                      cardClasses += "border-orange-400 bg-orange-50 ";
+                    } else {
+                      cardClasses += "border-violet-400 bg-gradient-to-br from-violet-50 to-indigo-50 ";
+                    }
+                  } else {
+                    cardClasses += "border-gray-200 bg-white hover:border-violet-300 hover:shadow";
+                  }
+
+                  return (
+                    <button
+                      key={sdgId}
+                      onClick={() => toggleTempSDG(sdgId)}
+                      className={cardClasses}
+                    >
+                      <div className="w-14 h-14 flex-shrink-0">
+                        <img
+                          src={`/sdg/sdg-${sdgId}.webp`}
+                          alt={`Goal ${sdgId}`}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = `https://upload.wikimedia.org/wikipedia/commons/${[
+                              '',
+                              '9/9d/Sustainable_Development_Goal_1.png',
+                              '4/4d/Sustainable_Development_Goal_2.png',
+                              'c/c4/Sustainable_Development_Goal_3.png',
+                              '6/6e/Sustainable_Development_Goal_4.png',
+                              'b/bc/Sustainable_Development_Goal_5.png',
+                              '8/87/Sustainable_Development_Goal_6.png',
+                              'd/d7/Sustainable_Development_Goal_7.png',
+                              '8/8e/Sustainable_Development_Goal_8.png',
+                              'c/cc/Sustainable_Development_Goal_9.png',
+                              'd/d4/Sustainable_Development_Goal_10.png',
+                              '8/81/Sustainable_Development_Goal_11.png',
+                              'd/d9/Sustainable_Development_Goal_12.png',
+                              '7/70/Sustainable_Development_Goal_13.png',
+                              '6/63/Sustainable_Development_Goal_14.png',
+                              '1/18/Sustainable_Development_Goal_15.png',
+                              '6/68/Sustainable_Development_Goal_16.png',
+                              ''
+                            ][sdgId]
+                              }`;
+                          }}
+                          className="w-full h-full object-cover rounded shadow-sm"
+                        />
+                      </div>
+                      <div className="flex-1 pr-6 flex items-center gap-2">
+                        <span className="text-base font-semibold text-gray-900">Goal {sdgId}: {sdgInfo?.title}</span>
+                        <TooltipProvider delayDuration={200}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                <Info className="w-4 h-4 text-gray-400" />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-[280px]">
+                              <p>{sdgInfo?.description}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+
+                      {isSelected && (
+                        <div className={`absolute -right-2 -top-2 w-6 h-6 rounded-full flex items-center justify-center text-white shadow-sm border-2 border-white ${isMaxReached ? 'bg-orange-500' : 'bg-green-500'}`}>
+                          <Check className="w-3.5 h-3.5" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <SheetFooter className="p-6 border-t bg-gray-50 flex-row gap-3 sm:justify-end">
+                <Button variant="outline" onClick={() => handleOpenChange(false)} className="bg-white">
+                  Cancel
+                </Button>
+                <Button onClick={confirmSelection} className="bg-purple-600 hover:bg-purple-700 text-white">
+                  Confirm selection
+                </Button>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 
-      {/* Selected summary */}
-      {selectedSDGs.length > 0 && (
-        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-5 border border-emerald-100/50">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-              <Check className="w-4 h-4 text-emerald-600" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-emerald-900 mb-2">
-                {selectedSDGs.length} {t('sdgSelected')}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {selectedSDGs.map(id => {
-                  const sdg = sdgOptions.find(s => s.id === id);
-                  return sdg ? (
-                    <span
-                      key={id}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-sm text-gray-700 border border-emerald-200"
-                    >
-                      <span className="font-semibold text-emerald-600">#{id}</span>
-                      <span className="text-gray-500">{sdg.title}</span>
-                    </span>
-                  ) : null;
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Navigation */}
       <div className="flex gap-4 pt-4">
         <Button
           variant="outline"
@@ -170,13 +338,31 @@ export function SDGSelectionStep({
         </Button>
         <Button
           onClick={handleContinue}
-          disabled={selectedSDGs.length === 0}
+          disabled={initialSDGs.length === 0}
           className="flex-1 py-6 text-base bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
           size="lg"
         >
-          {t('continue')} ({selectedSDGs.length} {t('sdgSelected')})
+          {t('continue')} {initialSDGs.length > 0 && `(${initialSDGs.length} ${t('sdgSelected').toLowerCase()})`}
         </Button>
       </div>
+
+      {/* Unsaved Changes Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave without saving?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have made changes to your SDG selection. Discarding will revert to your previously saved goals.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowConfirmDialog(false)}>Continue Editing</AlertDialogCancel>
+            <AlertDialogAction onClick={discardChanges} className="bg-red-600 hover:bg-red-700 text-white">
+              Discard Changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

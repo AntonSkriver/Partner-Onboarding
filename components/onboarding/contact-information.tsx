@@ -88,7 +88,7 @@ export function ContactInformation({ onNext, onPrevious }: ContactInformationPro
         <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <User className="w-8 h-8 text-purple-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Contact Information</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Who is your contact person?</h2>
         <p className="text-gray-600">
           We need a primary contact for your {getOrganizationTypeLabel().toLowerCase()} so schools can reach out about collaborations.
         </p>
@@ -192,7 +192,7 @@ export function ContactInformation({ onNext, onPrevious }: ContactInformationPro
           <div>
             <h4 className="font-medium text-yellow-900 mb-1">Privacy & Contact</h4>
             <p className="text-sm text-yellow-800">
-              Your contact information will only be shared with schools that express interest 
+              Your contact information will only be shared with schools that express interest
               in partnering with your organization. You can update these details anytime in your profile.
             </p>
           </div>
