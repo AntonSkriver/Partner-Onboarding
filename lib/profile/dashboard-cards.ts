@@ -4,7 +4,6 @@ import {
   Building2,
   Layers,
   Mail,
-  Users,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -13,7 +12,6 @@ export type DashboardCardId =
   | 'programs'
   | 'resources'
   | 'analytics'
-  | 'network'
   | 'contact'
 
 export type ProfileDashboardCard = {
@@ -70,14 +68,6 @@ const DASHBOARD_CARD_TEMPLATES: DashboardCardTemplate[] = [
     path: 'analytics',
     ctaLabel: 'View metrics',
     icon: BarChart3,
-  },
-  {
-    id: 'network',
-    title: 'Network',
-    description: 'Manage coordinators and educational institutions.',
-    path: 'network',
-    ctaLabel: 'Manage',
-    icon: Users,
   },
   {
     id: 'contact',

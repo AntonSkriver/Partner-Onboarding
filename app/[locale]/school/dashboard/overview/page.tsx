@@ -19,9 +19,10 @@ import {
   ShieldCheck,
   GraduationCap,
   Users,
+  Lightbulb,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { getCurrentSession } from '@/lib/auth/session'
+import { getCurrentSession, isOnboardedUser } from '@/lib/auth/session'
 import { SDGIcon } from '@/components/sdg-icons'
 import { SDG_OPTIONS } from '@/contexts/partner-onboarding-context'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
@@ -73,6 +74,7 @@ export default function SchoolOverviewPage() {
   const [loading, setLoading] = useState(true)
   const [institutionIds, setInstitutionIds] = useState<string[]>([])
   const { ready: prototypeReady, database } = usePrototypeDb()
+  const [session] = useState(() => getCurrentSession())
 
   const activeProgramIds = useMemo<string[]>(() => {
     if (typeof window === 'undefined') return []
@@ -118,6 +120,41 @@ export default function SchoolOverviewPage() {
         return
       }
 
+      // Fresh onboarded users should never match seed/demo institutions
+      if (isOnboardedUser(session)) {
+        const rawSchoolData = typeof window !== 'undefined' ? localStorage.getItem('schoolData') : null
+        const orgName = session.organization ?? localStorage.getItem('organizationName') ?? 'My School'
+        const storedContactName = localStorage.getItem('onboarding_contactName') ?? ''
+        const storedContactEmail = localStorage.getItem('onboarding_contactEmail') ?? ''
+        const storedContactPhone = localStorage.getItem('onboarding_contactPhone') ?? undefined
+        const storedSdgFocus = localStorage.getItem('onboarding_sdgFocus')
+        const sdgFocusArray: number[] = storedSdgFocus ? JSON.parse(storedSdgFocus) : []
+
+        const schoolData = rawSchoolData ? JSON.parse(rawSchoolData) : {}
+        setSchool({
+          id: 'onboarding-school',
+          name: orgName,
+          type: schoolData.schoolType ?? 'School',
+          location: [schoolData.city, schoolData.country].filter(Boolean).join(', ') || '',
+          city: schoolData.city ?? '',
+          country: schoolData.country ?? '',
+          studentCount: schoolData.numberOfStudents ?? 0,
+          teacherCount: schoolData.numberOfTeachers ?? 0,
+          languages: schoolData.languages ?? [],
+          contactName: storedContactName || session.name || '',
+          contactEmail: storedContactEmail || session.email,
+          contactPhone: storedContactPhone,
+          interests: [],
+          sdgFocus: sdgFocusArray.map(String),
+          childRightsFocus: [],
+          description: '',
+          mission: '',
+          gradeLevels: schoolData.gradeLevels ?? [],
+          schoolType: schoolData.schoolType ?? '',
+        })
+        return
+      }
+
       const normalizedEmail = session.email.toLowerCase()
       const normalizedName = session.organization?.trim().toLowerCase()
       const activeInstitutionId =
@@ -135,42 +172,7 @@ export default function SchoolOverviewPage() {
       const primaryInstitution = matchingInstitutions[0]
 
       if (!primaryInstitution) {
-        // Fresh onboarding user: try localStorage schoolData
-        const rawSchoolData = typeof window !== 'undefined' ? localStorage.getItem('schoolData') : null
-        const orgName = session.organization ?? localStorage.getItem('organizationName') ?? 'My School'
-        const storedContactName = localStorage.getItem('onboarding_contactName') ?? ''
-        const storedContactEmail = localStorage.getItem('onboarding_contactEmail') ?? ''
-        const storedContactPhone = localStorage.getItem('onboarding_contactPhone') ?? undefined
-        const storedSdgFocus = localStorage.getItem('onboarding_sdgFocus')
-        const storedMission = localStorage.getItem('onboarding_missionStatement') ?? ''
-        const sdgFocusArray: number[] = storedSdgFocus ? JSON.parse(storedSdgFocus) : []
-
-        if (rawSchoolData) {
-          const schoolData = JSON.parse(rawSchoolData)
-          setSchool({
-            id: 'onboarding-school',
-            name: orgName,
-            type: schoolData.schoolType ?? 'School',
-            location: [schoolData.city, schoolData.country].filter(Boolean).join(', ') || 'Location pending',
-            city: schoolData.city ?? '',
-            country: schoolData.country ?? '',
-            studentCount: schoolData.numberOfStudents ?? 0,
-            teacherCount: schoolData.numberOfTeachers ?? 0,
-            languages: schoolData.languages ?? [],
-            contactName: storedContactName || session.name || 'School lead',
-            contactEmail: storedContactEmail || session.email,
-            contactPhone: storedContactPhone,
-            interests: [],
-            sdgFocus: sdgFocusArray.map(String),
-            childRightsFocus: [],
-            description: '',
-            mission: storedMission,
-            gradeLevels: schoolData.gradeLevels ?? [],
-            schoolType: schoolData.schoolType ?? '',
-          })
-        } else {
-          setSchool(null)
-        }
+        setSchool(null)
         return
       }
 
@@ -247,8 +249,28 @@ export default function SchoolOverviewPage() {
     }
   })
 
+  const isFreshProfile = isOnboardedUser(session)
+  const hasStats = quickStats.programs > 0 || quickStats.projects > 0 || school.studentCount > 0 || school.teacherCount > 0
+  const hasInterests = school.interests.length > 0
+
   return (
     <div className="space-y-10">
+      {/* Complete your profile CTA for fresh users */}
+      {isFreshProfile && (
+        <Card className="border-purple-200 bg-purple-50/50">
+          <CardContent className="flex items-start gap-4 p-5">
+            <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-purple-600" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900">{t('completeProfileTitle')}</h3>
+              <p className="text-sm text-gray-600">{t('completeProfileDescSchool')}</p>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/school/dashboard/edit">{t('editProfile')}</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Header Section */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -262,15 +284,15 @@ export default function SchoolOverviewPage() {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">School Overview</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t('schoolOverview')}</h2>
           <p className="text-sm text-gray-600">
-            {school.description || `${school.type} in ${school.location}`}
+            {school.description || `${school.type}${school.location ? ` in ${school.location}` : ''}`}
           </p>
         </div>
       </div>
 
       {/* Detailed Information Sections */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className={`grid grid-cols-1 gap-6 ${hasInterests || hasStats ? 'lg:grid-cols-3' : 'lg:grid-cols-1'}`}>
         {/* Contact Information */}
         <Card>
           <CardHeader>
@@ -297,16 +319,16 @@ export default function SchoolOverviewPage() {
           </CardContent>
         </Card>
 
-        {/* Thematic Areas */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Tag className="h-4 w-4" />
-              {t('thematicAreas')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {school.interests.length > 0 ? (
+        {/* Thematic Areas — only shown when populated */}
+        {hasInterests && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Tag className="h-4 w-4" />
+                {t('thematicAreas')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="flex flex-wrap gap-2">
                 {school.interests.map((interest) => (
                   <Badge key={interest} variant="outline">
@@ -314,41 +336,41 @@ export default function SchoolOverviewPage() {
                   </Badge>
                 ))}
               </div>
-            ) : (
-              <p className="text-gray-500">{t('noThematicAreas')}</p>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Quick Stats */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              {t('quickStats')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-4 gap-4">
-              <div>
-                <div className="text-2xl font-bold text-purple-600">{quickStats.programs}</div>
-                <div className="text-sm text-gray-600">{t('programs')}</div>
+        {/* Quick Stats — only shown when there's data */}
+        {hasStats && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                {t('quickStats')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-4 gap-4">
+                <div>
+                  <div className="text-2xl font-bold text-purple-600">{quickStats.programs}</div>
+                  <div className="text-sm text-gray-600">{t('programs')}</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-emerald-600">{quickStats.projects}</div>
+                  <div className="text-sm text-gray-600">{t('projects')}</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">{school.studentCount}</div>
+                  <div className="text-sm text-gray-600">{t('students')}</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-amber-600">{school.teacherCount}</div>
+                  <div className="text-sm text-gray-600">{t('teachers')}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-emerald-600">{quickStats.projects}</div>
-                <div className="text-sm text-gray-600">{t('projects')}</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-blue-600">{school.studentCount}</div>
-                <div className="text-sm text-gray-600">{t('students')}</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-amber-600">{school.teacherCount}</div>
-                <div className="text-sm text-gray-600">{t('teachers')}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* School Details Section */}
@@ -434,80 +456,76 @@ export default function SchoolOverviewPage() {
         </Card>
       )}
 
-      {/* Focus Areas */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* SDG Focus */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-4 w-4" />
-              {t('sdgFocus')}
-            </CardTitle>
-            <CardDescription>
-              Priority Sustainable Development Goals our school advances.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {school.sdgFocus.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                {school.sdgFocus.map((sdgString) => {
-                  const sdgId = typeof sdgString === 'string' ? Number.parseInt(sdgString, 10) : sdgString
-                  const sdg = SDG_OPTIONS.find((s) => s.id === sdgId)
-                  return sdg ? (
-                    <div key={sdgId} className="flex flex-col items-center gap-2">
-                      <SDGIcon number={sdgId} size="lg" showTitle={false} />
+      {/* Focus Areas — only shown when there's content */}
+      {(school.sdgFocus.length > 0 || childRightsEntries.length > 0) && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* SDG Focus */}
+          {school.sdgFocus.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="h-4 w-4" />
+                  {t('sdgFocus')}
+                </CardTitle>
+                <CardDescription>
+                  {t('sdgFocusDesc')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                  {school.sdgFocus.map((sdgString) => {
+                    const sdgId = typeof sdgString === 'string' ? Number.parseInt(sdgString, 10) : sdgString
+                    const sdg = SDG_OPTIONS.find((s) => s.id === sdgId)
+                    return sdg ? (
+                      <div key={sdgId} className="flex flex-col items-center gap-2">
+                        <SDGIcon number={sdgId} size="lg" showTitle={false} />
+                        <p className="text-center text-xs leading-tight text-gray-900">
+                          {sdg.title}
+                        </p>
+                      </div>
+                    ) : null
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Child Rights Focus */}
+          {childRightsEntries.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4" />
+                  {tcrc('childRightsFocus')}
+                </CardTitle>
+                <CardDescription>
+                  {t('crcFocusDesc')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                  {childRightsEntries.map((entry) => (
+                    <div key={entry.article} className="flex flex-col items-center gap-2">
+                      <div className="relative h-20 w-20">
+                        <Image
+                          src={entry.iconSrc}
+                          alt={entry.title}
+                          fill
+                          sizes="80px"
+                          className="rounded object-contain"
+                        />
+                      </div>
                       <p className="text-center text-xs leading-tight text-gray-900">
-                        {sdg.title}
+                        {entry.title}
                       </p>
                     </div>
-                  ) : null
-                })}
-              </div>
-            ) : (
-              <p className="text-gray-500">{t('noSdgFocus')}</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Child Rights Focus */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4" />
-              {tcrc('childRightsFocus')}
-            </CardTitle>
-            <CardDescription>
-              Priority articles from the UN Convention on the Rights of the Child.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {childRightsEntries.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                {childRightsEntries.map((entry) => (
-                  <div key={entry.article} className="flex flex-col items-center gap-2">
-                    <div className="relative h-20 w-20">
-                      <Image
-                        src={entry.iconSrc}
-                        alt={entry.title}
-                        fill
-                        sizes="80px"
-                        className="rounded object-contain"
-                      />
-                    </div>
-                    <p className="text-center text-xs leading-tight text-gray-900">
-                      {entry.title}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">
-                Add your Convention on the Rights of the Child focus areas.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
     </div>
   )

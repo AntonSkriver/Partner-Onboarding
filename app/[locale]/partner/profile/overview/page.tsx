@@ -18,8 +18,9 @@ import {
   Edit,
   Building2,
   ShieldCheck,
+  Lightbulb,
 } from 'lucide-react'
-import { getCurrentSession } from '@/lib/auth/session'
+import { getCurrentSession, isOnboardedUser as checkIsOnboarded } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
 import { SDGIcon } from '@/components/sdg-icons'
 import { SDG_OPTIONS } from '@/contexts/partner-onboarding-context'
@@ -165,9 +166,13 @@ export default function PartnerOverviewPage() {
       const orgName = session.organization ?? 'Partner Organization'
 
       // Check if this user matches a seed partner (demo user)
-      const matchedPartner = database?.partners.find(
-        (p) => p.organizationName.toLowerCase() === orgName.trim().toLowerCase(),
-      )
+      // Fresh onboarded users never match seed data
+      const isOnboardedUser = checkIsOnboarded(session)
+      const matchedPartner = isOnboardedUser
+        ? null
+        : database?.partners.find(
+            (p) => p.organizationName.toLowerCase() === orgName.trim().toLowerCase(),
+          ) ?? null
 
       if (matchedPartner) {
         // DEMO USER: Load full seed data
@@ -401,9 +406,31 @@ export default function PartnerOverviewPage() {
         />
       </div>
 
+      {/* Complete Your Profile Banner - shown for fresh profiles */}
+      {!isDemoUser && (
+        <Card className="border-purple-200 bg-purple-50/50">
+          <CardContent className="flex items-start gap-4 p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100">
+              <Lightbulb className="h-5 w-5 text-purple-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900">{t('completeProfileTitle')}</h3>
+              <p className="mt-1 text-sm text-gray-600">{t('completeProfileDesc')}</p>
+            </div>
+            <Button variant="outline" size="sm" asChild className="shrink-0 border-purple-200 text-purple-700 hover:bg-purple-100">
+              <Link href="/partner/profile/edit">
+                <Edit className="mr-2 h-3 w-3" />
+                {t('editProfile')}
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Detailed Information Sections */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Contact Information */}
+        {/* Contact Information - hidden when blank */}
+        {primaryContacts.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -449,17 +476,18 @@ export default function PartnerOverviewPage() {
             )}
           </CardContent>
         </Card>
+        )}
 
-        {/* Thematic Areas */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Tag className="h-4 w-4" />
-              {t('thematicAreas')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {(organization.thematic_tags ?? []).length > 0 ? (
+        {/* Thematic Areas - hidden when blank */}
+        {(organization.thematic_tags ?? []).length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Tag className="h-4 w-4" />
+                {t('thematicAreas')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="flex flex-wrap gap-2">
                 {(organization.thematic_tags ?? []).map((tag) => (
                   <Badge key={tag} variant="outline">
@@ -467,127 +495,125 @@ export default function PartnerOverviewPage() {
                   </Badge>
                 ))}
               </div>
-            ) : (
-              <p className="text-gray-500">{t('noThematicAreas')}</p>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Quick Stats */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              {t('quickStats')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <div className="text-2xl font-bold text-purple-600">{programSummaries.length}</div>
-                <div className="text-sm text-gray-600">{t('programs')}</div>
+        {/* Quick Stats - hidden when all zeros */}
+        {(programSummaries.length > 0 || schoolCount > 0 || resources.length > 0) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                {t('quickStats')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <div className="text-2xl font-bold text-purple-600">{programSummaries.length}</div>
+                  <div className="text-sm text-gray-600">{t('programs')}</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">{schoolCount}</div>
+                  <div className="text-sm text-gray-600">{t('schools')}</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-green-600">{resources.length}</div>
+                  <div className="text-sm text-gray-600">{t('resources')}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-blue-600">{schoolCount}</div>
-                <div className="text-sm text-gray-600">{t('schools')}</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-green-600">{resources.length}</div>
-                <div className="text-sm text-gray-600">{t('resources')}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Mission Statement */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-4 w-4" />
-            {t('ourMission')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="leading-relaxed text-gray-700">
-            {partnerRecord?.mission ?? organization?.short_description ?? t('noMission')}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Focus Areas */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* SDG Focus */}
+      {/* Mission Statement - hidden when blank */}
+      {(partnerRecord?.mission || organization?.short_description) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Award className="h-4 w-4" />
-              {t('sdgFocus')}
+              <Target className="h-4 w-4" />
+              {t('ourMission')}
             </CardTitle>
-            <CardDescription>
-              {t('sdgFocusDesc')}
-            </CardDescription>
           </CardHeader>
           <CardContent>
-            {sdgFocusDisplay.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                {sdgFocusDisplay.map((sdgId) => {
-                  const sdg = SDG_OPTIONS.find((s) => s.id === sdgId)
-                  return sdg ? (
-                    <div key={sdgId} className="flex flex-col items-center gap-2">
-                      <SDGIcon number={sdgId} size="lg" showTitle={false} />
+            <p className="leading-relaxed text-gray-700">
+              {partnerRecord?.mission ?? organization?.short_description}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Focus Areas - only show section if at least one has data */}
+      {(sdgFocusDisplay.length > 0 || childRightsEntries.length > 0) && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* SDG Focus - hidden when blank */}
+          {sdgFocusDisplay.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="h-4 w-4" />
+                  {t('sdgFocus')}
+                </CardTitle>
+                <CardDescription>
+                  {t('sdgFocusDesc')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                  {sdgFocusDisplay.map((sdgId) => {
+                    const sdg = SDG_OPTIONS.find((s) => s.id === sdgId)
+                    return sdg ? (
+                      <div key={sdgId} className="flex flex-col items-center gap-2">
+                        <SDGIcon number={sdgId} size="lg" showTitle={false} />
+                        <p className="text-center text-xs leading-tight text-gray-900">
+                          {sdg.title}
+                        </p>
+                      </div>
+                    ) : null
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Child Rights Focus - hidden when blank */}
+          {childRightsEntries.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4" />
+                  {tCrc('childRightsFocus')}
+                </CardTitle>
+                <CardDescription>
+                  {tCrc('childRightsFocusDesc')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                  {childRightsEntries.map((entry) => (
+                    <div key={entry.article} className="flex flex-col items-center gap-2">
+                      <div className="relative h-24 w-24">
+                        <Image
+                          src={entry.iconSrc}
+                          alt={entry.title}
+                          fill
+                          sizes="96px"
+                          className="rounded object-contain"
+                        />
+                      </div>
                       <p className="text-center text-xs leading-tight text-gray-900">
-                        {sdg.title}
+                        {entry.title}
                       </p>
                     </div>
-                  ) : null
-                })}
-              </div>
-            ) : (
-              <p className="text-gray-500">{t('noSdgFocus')}</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Child Rights Focus */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4" />
-              {tCrc('childRightsFocus')}
-            </CardTitle>
-            <CardDescription>
-              {tCrc('childRightsFocusDesc')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {childRightsEntries.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                {childRightsEntries.map((entry) => (
-                  <div key={entry.article} className="flex flex-col items-center gap-2">
-                    <div className="relative h-24 w-24">
-                      <Image
-                        src={entry.iconSrc}
-                        alt={entry.title}
-                        fill
-                        sizes="96px"
-                        className="rounded object-contain"
-                      />
-                    </div>
-                    <p className="text-center text-xs leading-tight text-gray-900">
-                      {entry.title}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">
-                {tCrc('addFocusAreas')}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   )
 }

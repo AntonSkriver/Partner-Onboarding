@@ -1,11 +1,11 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { usePartnerOnboarding, SDG_OPTIONS } from "../../../contexts/partner-onboarding-context"
-import { Globe2, AlertCircle, Check } from "lucide-react"
+import { usePartnerOnboarding } from "../../../contexts/partner-onboarding-context"
+import { Globe2, AlertCircle } from "lucide-react"
 import { useState } from "react"
-import { SDGIcon } from "../../sdg-icons"
 import { useTranslations } from "next-intl"
+import { SdgDisplay } from "@/components/framework-selector"
 
 interface PartnerMissionSdgProps {
   onNext: () => void
@@ -36,22 +36,10 @@ export function PartnerMissionSdg({ onNext, onPrevious }: PartnerMissionSdgProps
     return Object.keys(newErrors).length === 0
   }
 
-  const toggleSDG = (sdgId: number) => {
-    const currentSDGs = formData.sdgFocus || []
-    const updatedSDGs = currentSDGs.includes(sdgId)
-      ? currentSDGs.filter(id => id !== sdgId)
-      : [...currentSDGs, sdgId]
-
-    updateFormData({ sdgFocus: updatedSDGs })
+  const handleSdgChange = (sdgs: number[]) => {
+    updateFormData({ sdgFocus: sdgs })
     if (touched.sdgFocus) {
-      validateField('sdgFocus', updatedSDGs)
-    }
-  }
-
-  const handleSDGSectionInteraction = () => {
-    if (!touched.sdgFocus) {
-      setTouched(prev => ({ ...prev, sdgFocus: true }))
-      validateField('sdgFocus', formData.sdgFocus || [])
+      validateField('sdgFocus', sdgs)
     }
   }
 
@@ -59,16 +47,12 @@ export function PartnerMissionSdg({ onNext, onPrevious }: PartnerMissionSdgProps
     const sdgValid = validateField('sdgFocus', formData.sdgFocus || [])
     setTouched({ sdgFocus: true })
 
-    if (sdgValid && isStepComplete(3)) {
+    if (sdgValid && isStepComplete(2)) {
       onNext()
     }
   }
 
-  const getSelectedSDGs = () => {
-    return formData.sdgFocus?.map(id => SDG_OPTIONS.find(sdg => sdg.id === id)).filter(Boolean) || []
-  }
-
-  const canProceed = isStepComplete(3) && Object.keys(errors).length === 0
+  const canProceed = isStepComplete(2) && Object.keys(errors).length === 0
 
   return (
     <div className="space-y-8">
@@ -81,58 +65,25 @@ export function PartnerMissionSdg({ onNext, onPrevious }: PartnerMissionSdgProps
         </p>
       </div>
 
-      {/* SDG Grid */}
-      <div className="space-y-4" onClick={handleSDGSectionInteraction}>
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-gray-700 flex items-center gap-2">
-            <Globe2 className="w-4 h-4 text-[#8157D9]" />
+      {/* SDG Selection via Sheet */}
+      <div className="space-y-4" onClick={() => {
+        if (!touched.sdgFocus) {
+          setTouched(prev => ({ ...prev, sdgFocus: true }))
+          validateField('sdgFocus', formData.sdgFocus || [])
+        }
+      }}>
+        <div className="flex items-center gap-2">
+          <Globe2 className="w-4 h-4 text-[#8157D9]" />
+          <p className="text-sm font-medium text-gray-700">
             {t('sdgSelectLabel')} <span className="text-[#8157D9]">*</span>
           </p>
-          {formData.sdgFocus.length > 0 && (
-            <span className="text-sm text-[#8157D9] font-medium">
-              {formData.sdgFocus.length} {t('sdgSelected')}
-            </span>
-          )}
         </div>
 
-        <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-          {SDG_OPTIONS.map((sdg) => {
-            const isSelected = formData.sdgFocus?.includes(sdg.id)
-            return (
-              <button
-                key={sdg.id}
-                type="button"
-                onClick={() => toggleSDG(sdg.id)}
-                className={`
-                  relative group aspect-square rounded-xl overflow-hidden transition-all duration-300
-                  ${isSelected
-                    ? 'ring-3 ring-[#8157D9] ring-offset-2 scale-105 shadow-lg'
-                    : 'opacity-70 hover:opacity-100 hover:scale-102'
-                  }
-                `}
-              >
-                <SDGIcon
-                  number={sdg.id}
-                  size="lg"
-                  showTitle={false}
-                  className="w-full h-full object-cover"
-                />
-
-                {/* Selection overlay */}
-                {isSelected && (
-                  <div className="absolute inset-0 bg-[#8157D9]/20 flex items-center justify-center">
-                    <div className="w-6 h-6 rounded-full bg-[#8157D9] flex items-center justify-center">
-                      <Check className="w-4 h-4 text-white" strokeWidth={3} />
-                    </div>
-                  </div>
-                )}
-
-                {/* Hover effect */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-              </button>
-            )
-          })}
-        </div>
+        <SdgDisplay
+          selected={formData.sdgFocus || []}
+          onChange={handleSdgChange}
+          max={5}
+        />
 
         {errors.sdgFocus && (
           <div className="flex items-center gap-2 text-red-600">
@@ -141,33 +92,6 @@ export function PartnerMissionSdg({ onNext, onPrevious }: PartnerMissionSdgProps
           </div>
         )}
       </div>
-
-      {/* Selected SDGs summary */}
-      {getSelectedSDGs().length > 0 && (
-        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-5 border border-emerald-100/50">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-              <Check className="w-4 h-4 text-emerald-600" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-emerald-900 mb-2">
-                {t('sdgSelectedTitle')} ({getSelectedSDGs().length})
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {getSelectedSDGs().map(sdg => (
-                  <span
-                    key={sdg!.id}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-sm text-gray-700 border border-emerald-200"
-                  >
-                    <span className="font-semibold text-emerald-600">#{sdg!.id}</span>
-                    <span className="text-gray-500">{sdg!.title}</span>
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Tip card */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 border border-blue-100/50">

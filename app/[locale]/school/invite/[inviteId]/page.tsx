@@ -156,7 +156,7 @@ export default function SchoolInvitePage() {
             <p className="text-gray-600 mb-6">
               This invitation has already been accepted. You can sign in to your Class2Class account to access your dashboard.
             </p>
-            <Link href="/sign-in">
+            <Link href="/login">
               <Button className="w-full bg-blue-600 hover:bg-blue-700">
                 Sign In to Dashboard
               </Button>

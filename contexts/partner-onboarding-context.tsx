@@ -46,7 +46,7 @@ interface PartnerFormContextType {
 }
 
 const initialFormData: PartnerFormData = {
-  organizationType: null,
+  organizationType: 'ngo',
   organizationName: "",
   organizationWebsite: "",
   missionStatement: "",
@@ -87,37 +87,21 @@ export function PartnerOnboardingProvider({ children }: { children: ReactNode })
     switch (step) {
       case 0: // Welcome screen is always complete
         return true
-      case 1: // Organization type selection
-        return formData.organizationType !== null
-      case 2: // Organization details OR School details
-        if (isSchool) {
-          return (
-            formData.organizationName.trim() !== "" &&
-            formData.schoolType !== null &&
-            formData.country.trim() !== "" &&
-            formData.city.trim() !== "" &&
-            (formData.numberOfStudents ?? 0) > 0 &&
-            (formData.numberOfTeachers ?? 0) > 0 &&
-            formData.gradeLevels.length > 0 &&
-            formData.languages.length > 0
-          )
-        }
+      case 1: // Organization details
         return (
           formData.organizationName.trim() !== "" &&
           (formData.organizationWebsite === "" ||
            /^https?:\/\/.+\..+/.test(formData.organizationWebsite))
         )
-      case 3: // SDG Focus
+      case 2: // SDG Focus
         return formData.sdgFocus.length > 0
-      case 4: // Contact information
+      case 3: // Contact information
         return (
           formData.contactName.trim() !== "" &&
           /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail) &&
           formData.contactRole !== null
         )
-      case 5: // Summary is always complete
-        return true
-      case 6: // Final screen is always complete
+      case 4: // Summary is always complete
         return true
       default:
         return false

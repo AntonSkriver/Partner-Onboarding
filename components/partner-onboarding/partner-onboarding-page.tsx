@@ -4,15 +4,12 @@ import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { PartnerWelcomeScreen } from "./components/partner-welcome-screen"
-import { PartnerTypeSelection } from "./components/partner-type-selection"
 import { PartnerOrganizationDetails } from "./components/partner-organization-details"
-import { PartnerSchoolDetails } from "./components/partner-school-details"
 import { PartnerMissionSdg } from "./components/partner-mission-sdg"
 import { PartnerContactInfo } from "./components/partner-contact-info"
 import { PartnerSummary } from "./components/partner-summary"
-import { PartnerFinalScreen } from "./components/partner-final-screen"
 import { PartnerProgressBar } from "./components/partner-progress-bar"
-import { PartnerOnboardingProvider, usePartnerOnboarding } from "../../contexts/partner-onboarding-context"
+import { PartnerOnboardingProvider } from "../../contexts/partner-onboarding-context"
 import { PartnerPreview } from "./components/partner-preview"
 import { PartnerOnboardingHeader } from "./components/partner-onboarding-header"
 
@@ -31,7 +28,6 @@ function PartnerOnboardingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const t = useTranslations('onboarding')
-  const { formData } = usePartnerOnboarding()
   const stepParam = searchParams.get('step')
   const initialStep = stepParam ? parseInt(stepParam) : 0
   const [isDesktop, setIsDesktop] = useState(true)
@@ -47,24 +43,19 @@ function PartnerOnboardingContent() {
     return () => window.removeEventListener('resize', checkWidth)
   }, [])
 
-  const isSchool = formData.organizationType === 'school'
-
   const steps = [
     { name: t('stepWelcome'), component: PartnerWelcomeScreen },
-    { name: t('stepType'), component: PartnerTypeSelection },
-    { name: isSchool ? t('schoolDetailsStepName') : t('stepDetails'), component: isSchool ? PartnerSchoolDetails : PartnerOrganizationDetails },
+    { name: t('stepDetails'), component: PartnerOrganizationDetails },
     { name: t('stepSdgFocus'), component: PartnerMissionSdg },
     { name: t('stepContact'), component: PartnerContactInfo },
     { name: t('stepSummary'), component: PartnerSummary },
-    { name: t('stepComplete'), component: PartnerFinalScreen },
   ]
 
   const currentStep = Math.min(Math.max(initialStep, 0), steps.length - 1)
   const CurrentStepComponent = steps[currentStep].component
-  const isFinal = currentStep === steps.length - 1
   const isWelcome = currentStep === 0
   const showPreview = !isWelcome && isDesktop
-  const showProgressBar = !isWelcome && !isFinal
+  const showProgressBar = !isWelcome
 
   const goToNextStep = () => {
     if (currentStep < steps.length - 1) {
@@ -89,12 +80,11 @@ function PartnerOnboardingContent() {
 
   const getProgressStep = () => {
     if (currentStep === 0) return 0
-    if (currentStep === steps.length - 1) return steps.length - 2
     return currentStep - 1
   }
 
   const getTotalSteps = () => {
-    return steps.length - 2
+    return steps.length - 1
   }
 
   if (!mounted) {
@@ -113,7 +103,7 @@ function PartnerOnboardingContent() {
             <PartnerProgressBar
               currentStep={getProgressStep()}
               totalSteps={getTotalSteps()}
-              stepNames={steps.slice(1, -1).map((step) => step.name)}
+              stepNames={steps.slice(1).map((step) => step.name)}
               onGoToStep={(step) => goToStep(step + 1)}
             />
           </div>
@@ -124,17 +114,6 @@ function PartnerOnboardingContent() {
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {isWelcome ? (
           <CurrentStepComponent onNext={goToNextStep} onPrevious={goToPreviousStep} onGoToStep={goToStep} />
-        ) : isFinal ? (
-          <div className="flex flex-col gap-6 lg:flex-row">
-            <div className="w-full lg:w-[55%]">
-              <CurrentStepComponent onNext={goToNextStep} onPrevious={goToPreviousStep} onGoToStep={goToStep} />
-            </div>
-            <div className="w-full lg:w-[45%]">
-              <div className="lg:sticky lg:top-6">
-                <PartnerPreview currentStep={currentStep} />
-              </div>
-            </div>
-          </div>
         ) : (
           <div className="flex flex-col gap-6 lg:flex-row">
             <div className="w-full lg:w-[60%]">

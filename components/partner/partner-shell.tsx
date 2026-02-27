@@ -10,7 +10,6 @@ import {
   Layers,
   BookOpen,
   BarChart3,
-  Users,
   LogOut,
   Building2,
 } from 'lucide-react'
@@ -41,7 +40,6 @@ export function PartnerShell({ children }: PartnerShellProps) {
     { href: '/partner/profile/programs', label: tNav('programs'), icon: Layers },
     { href: '/partner/profile/resources', label: tNav('resources'), icon: BookOpen },
     { href: '/partner/profile/analytics', label: tNav('analytics'), icon: BarChart3 },
-    { href: '/partner/profile/network', label: tNav('network'), icon: Users },
   ]
   const [session, setSession] = useState<UserSession | null>(null)
 

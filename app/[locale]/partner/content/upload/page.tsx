@@ -30,8 +30,7 @@ import { ProgramAssignmentSection } from '@/components/partner/upload/program-as
 import { PartnerVisibilitySection } from '@/components/partner/upload/partner-visibility-section'
 import { ResourceContentSection } from '@/components/partner/upload/resource-content-section'
 import { TargetAudienceSection } from '@/components/partner/upload/target-audience-section'
-import { SdgAlignmentSection } from '@/components/partner/upload/sdg-alignment-section'
-import { CrcAlignmentSection } from '@/components/partner/upload/crc-alignment-section'
+import { SdgDisplay, CrcDisplay } from '@/components/framework-selector'
 
 const resourceSchema = z.object({
   title: z.string().min(3, 'Title is required (minimum 3 characters)'),
@@ -75,7 +74,6 @@ export default function UploadContentPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedSDGs, setSelectedSDGs] = useState<string[]>([])
   const [selectedCRCs, setSelectedCRCs] = useState<string[]>([])
-  const [activeCRCCategory, setActiveCRCCategory] = useState('general-principles')
   const [selectedAudiences, setSelectedAudiences] = useState<string[]>([])
   const [uploadTab, setUploadTab] = useState('file')
   const [tagInput, setTagInput] = useState('')
@@ -183,22 +181,15 @@ export default function UploadContentPage() {
     form.setValue('targetPartners', newSelection)
   }
 
-  const handleSDGToggle = (sdgId: string) => {
-    const newSelection = selectedSDGs.includes(sdgId)
-      ? selectedSDGs.filter(id => id !== sdgId)
-      : [...selectedSDGs, sdgId]
-
-    setSelectedSDGs(newSelection)
-    form.setValue('sdgAlignment', newSelection)
+  const handleSdgChange = (sdgs: number[]) => {
+    const asStrings = sdgs.map(String)
+    setSelectedSDGs(asStrings)
+    form.setValue('sdgAlignment', asStrings)
   }
 
-  const handleCRCToggle = (crcId: string) => {
-    const newSelection = selectedCRCs.includes(crcId)
-      ? selectedCRCs.filter(id => id !== crcId)
-      : [...selectedCRCs, crcId]
-
-    setSelectedCRCs(newSelection)
-    form.setValue('crcAlignment', newSelection)
+  const handleCrcChange = (articles: string[]) => {
+    setSelectedCRCs(articles)
+    form.setValue('crcAlignment', articles)
   }
 
   const handleAudienceToggle = (audience: string) => {
@@ -378,18 +369,33 @@ export default function UploadContentPage() {
             />
 
             {/* SDG Alignment */}
-            <SdgAlignmentSection
-              selectedSDGs={selectedSDGs}
-              onSDGToggle={handleSDGToggle}
-            />
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('sdgAlignment')} *</CardTitle>
+                <CardDescription>{t('sdgAlignmentDesc')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SdgDisplay
+                  selected={selectedSDGs.map(Number)}
+                  onChange={handleSdgChange}
+                  max={5}
+                />
+              </CardContent>
+            </Card>
 
             {/* CRC Alignment */}
-            <CrcAlignmentSection
-              selectedCRCs={selectedCRCs}
-              activeCRCCategory={activeCRCCategory}
-              onCRCToggle={handleCRCToggle}
-              onCRCCategoryChange={setActiveCRCCategory}
-            />
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('crcAlignment')} *</CardTitle>
+                <CardDescription>{t('crcAlignmentDesc')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CrcDisplay
+                  selected={selectedCRCs}
+                  onChange={handleCrcChange}
+                />
+              </CardContent>
+            </Card>
 
             {/* Tags */}
             <Card>

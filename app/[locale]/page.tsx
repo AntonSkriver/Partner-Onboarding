@@ -53,7 +53,7 @@ export default function Home() {
         {/* User Profile / Right Nav */}
         <div className="hidden lg:flex items-center space-x-4">
           <LanguageSwitcher />
-          <Link href="/sign-in">
+          <Link href="/login">
             <Button variant="outline" className="border-[#8B5CF6] text-[#8B5CF6] hover:bg-purple-50">
               {t('login')}
             </Button>
@@ -88,7 +88,7 @@ export default function Home() {
           <Link href="#" className="block text-gray-900 font-medium py-2">{tn('aboutUs')}</Link>
           <Link href="#" className="block text-gray-900 font-medium py-2">{tn('resources')}</Link>
           <div className="border-t border-gray-200 pt-3 flex flex-col gap-2">
-            <Link href="/sign-in">
+            <Link href="/login">
               <Button variant="outline" className="w-full border-[#8B5CF6] text-[#8B5CF6] hover:bg-purple-50">
                 {t('login')}
               </Button>

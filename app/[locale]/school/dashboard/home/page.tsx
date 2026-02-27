@@ -15,7 +15,7 @@ import {
   Globe,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { getCurrentSession } from '@/lib/auth/session'
+import { getCurrentSession, isOnboardedUser } from '@/lib/auth/session'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 
 interface SchoolProfile {
@@ -52,6 +52,41 @@ export default function SchoolDashboardHomePage() {
         return
       }
 
+      // Fresh onboarded users should never match seed/demo institutions
+      if (isOnboardedUser(currentSession)) {
+        const rawSchoolData = typeof window !== 'undefined' ? localStorage.getItem('schoolData') : null
+        const orgName = currentSession.organization ?? localStorage.getItem('organizationName') ?? 'My School'
+        if (rawSchoolData) {
+          const schoolData = JSON.parse(rawSchoolData)
+          setSchool({
+            id: 'onboarding-school',
+            name: orgName,
+            type: schoolData.schoolType ?? 'School',
+            location: [schoolData.city, schoolData.country].filter(Boolean).join(', '),
+            city: schoolData.city ?? '',
+            country: schoolData.country ?? '',
+            studentCount: schoolData.numberOfStudents ?? 0,
+            teacherCount: schoolData.numberOfTeachers ?? 0,
+            programCount: 0,
+            projectCount: 0,
+          })
+        } else {
+          setSchool({
+            id: 'onboarding-school',
+            name: orgName,
+            type: 'School',
+            location: '',
+            city: '',
+            country: '',
+            studentCount: 0,
+            teacherCount: 0,
+            programCount: 0,
+            projectCount: 0,
+          })
+        }
+        return
+      }
+
       const normalizedEmail = currentSession.email.toLowerCase()
       const normalizedName = currentSession.organization?.trim().toLowerCase()
 
@@ -74,26 +109,7 @@ export default function SchoolDashboardHomePage() {
       const primaryInstitution = matchingInstitutions[0]
 
       if (!primaryInstitution) {
-        // Fresh onboarding user: try localStorage schoolData
-        const rawSchoolData = typeof window !== 'undefined' ? localStorage.getItem('schoolData') : null
-        const orgName = currentSession.organization ?? localStorage.getItem('organizationName') ?? 'My School'
-        if (rawSchoolData) {
-          const schoolData = JSON.parse(rawSchoolData)
-          setSchool({
-            id: 'onboarding-school',
-            name: orgName,
-            type: schoolData.schoolType ?? 'School',
-            location: [schoolData.city, schoolData.country].filter(Boolean).join(', '),
-            city: schoolData.city ?? '',
-            country: schoolData.country ?? '',
-            studentCount: schoolData.numberOfStudents ?? 0,
-            teacherCount: schoolData.numberOfTeachers ?? 0,
-            programCount: 0,
-            projectCount: 0,
-          })
-        } else {
-          setSchool(null)
-        }
+        setSchool(null)
         return
       }
 
@@ -156,29 +172,31 @@ export default function SchoolDashboardHomePage() {
           <h1 className="text-3xl font-semibold text-gray-900">
             Hi, {school.name}
           </h1>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-purple-600" />
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">{school.programCount}</p>
-                <p className="text-xs text-gray-600">{t('programs')}</p>
+          {(school.programCount > 0 || school.teacherCount > 0 || school.projectCount > 0) && (
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-purple-600" />
+                <div className="text-center">
+                  <p className="text-2xl font-semibold text-gray-900">{school.programCount}</p>
+                  <p className="text-xs text-gray-600">{t('programs')}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-purple-600" />
+                <div className="text-center">
+                  <p className="text-2xl font-semibold text-gray-900">{school.teacherCount}</p>
+                  <p className="text-xs text-gray-600">{t('teachers')}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <FolderKanban className="h-5 w-5 text-purple-600" />
+                <div className="text-center">
+                  <p className="text-2xl font-semibold text-gray-900">{school.projectCount}</p>
+                  <p className="text-xs text-gray-600">{t('projects')}</p>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-purple-600" />
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">{school.teacherCount}</p>
-                <p className="text-xs text-gray-600">{t('teachers')}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <FolderKanban className="h-5 w-5 text-purple-600" />
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-gray-900">{school.projectCount}</p>
-                <p className="text-xs text-gray-600">{t('projects')}</p>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
         <div>
@@ -293,33 +311,6 @@ export default function SchoolDashboardHomePage() {
                   asChild
                 >
                   <Link href="/school/dashboard/resources">{tc('browse')}</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Network Card */}
-          <Card className="border-purple-100 bg-gradient-to-br from-purple-50 to-white">
-            <CardContent className="space-y-4 p-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
-                <Users className="h-6 w-6 text-purple-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">{tn('network')}</h3>
-                <p className="text-sm text-gray-600">
-                  {t('networkTeacherDesc')}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" className="px-0 text-sm text-purple-600 hover:text-purple-700">
-                  {tc('learnMore')}
-                </Button>
-                <Button
-                  className="bg-purple-600 text-white hover:bg-purple-700"
-                  size="sm"
-                  asChild
-                >
-                  <Link href="/school/dashboard/network">{tc('manage')}</Link>
                 </Button>
               </div>
             </CardContent>

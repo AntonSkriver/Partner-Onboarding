@@ -1,4 +1,5 @@
 import type { UserSession } from '@/lib/auth/session'
+import { isOnboardedUser } from '@/lib/auth/session'
 import type {
   PrototypeDatabase,
   StoredPartner,
@@ -49,6 +50,11 @@ export const resolvePartnerIdFromSession = (
   database: PrototypeDatabase | null,
 ): string | null => {
   if (!session || !database) {
+    return null
+  }
+
+  // Fresh onboarded users should never match seed/demo partners — they start clean.
+  if (isOnboardedUser(session)) {
     return null
   }
 

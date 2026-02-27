@@ -6,6 +6,7 @@ export interface UserSession {
   role: 'partner' | 'teacher' | 'student' | 'parent' | 'coordinator'
   organization?: string
   name?: string
+  source?: 'onboarding' | 'demo'
   loginTime: string
 }
 
@@ -78,6 +79,14 @@ export function clearSession(): void {
 
   // Clear any other session-related data
   sessionStorage.clear()
+}
+
+// Check if the current user came through onboarding (fresh profile, no seed data)
+export function isOnboardedUser(session?: UserSession | null): boolean {
+  if (!isBrowserEnvironment()) return false
+  const s = session ?? getCurrentSession()
+  if (s?.source === 'onboarding') return true
+  return window.localStorage.getItem('onboarding_completed') === 'true'
 }
 
 // Check if user has specific role
@@ -166,7 +175,7 @@ export function redirectBasedOnRole(defaultPath = '/'): void {
   
   const session = getCurrentSession()
   if (!session) {
-    window.location.href = '/sign-in'
+    window.location.href = '/login'
     return
   }
   

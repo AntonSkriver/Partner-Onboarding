@@ -129,12 +129,12 @@ export function PartnerContactInfo({ onNext, onPrevious }: PartnerContactInfoPro
       contactRole: true
     })
 
-    if (nameValid && emailValid && phoneValid && roleValid && isStepComplete(4)) {
+    if (nameValid && emailValid && phoneValid && roleValid && isStepComplete(3)) {
       onNext()
     }
   }
 
-  const canProceed = isStepComplete(4) && Object.keys(errors).length === 0
+  const canProceed = isStepComplete(3) && Object.keys(errors).length === 0
   const isFieldValid = (field: string, value: string | null | undefined) => {
     return value && value.trim() && !errors[field]
   }

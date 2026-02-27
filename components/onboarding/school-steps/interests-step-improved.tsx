@@ -104,29 +104,25 @@ export function InterestsStep({ onNext, onPrevious }: InterestsStepProps) {
                       control={form.control}
                       name="subjectAreas"
                       render={({ field }) => {
+                        const isChecked = field.value?.includes(subject)
                         return (
-                          <FormItem
-                            key={subject}
-                            className="flex flex-row items-start space-x-2 space-y-0 p-3 border rounded-xl hover:bg-gray-50 transition-colors"
+                          <label
+                            className={`flex flex-row items-start space-x-2 p-3 border rounded-xl cursor-pointer transition-colors ${isChecked ? 'border-purple-300 bg-purple-50' : 'hover:bg-gray-50'}`}
                           >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(subject)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, subject])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== subject
-                                        )
-                                      )
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="text-sm font-normal leading-tight">
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={(checked) => {
+                                field.onChange(
+                                  checked
+                                    ? [...field.value, subject]
+                                    : field.value?.filter((v: string) => v !== subject)
+                                )
+                              }}
+                            />
+                            <span className="text-sm font-normal leading-tight">
                               {subject}
-                            </FormLabel>
-                          </FormItem>
+                            </span>
+                          </label>
                         )
                       }}
                     />
@@ -151,29 +147,25 @@ export function InterestsStep({ onNext, onPrevious }: InterestsStepProps) {
                       control={form.control}
                       name="collaborationInterests"
                       render={({ field }) => {
+                        const isChecked = field.value?.includes(collaboration)
                         return (
-                          <FormItem
-                            key={collaboration}
-                            className="flex flex-row items-start space-x-2 space-y-0 p-3 border rounded-xl hover:bg-gray-50 transition-colors"
+                          <label
+                            className={`flex flex-row items-start space-x-2 p-3 border rounded-xl cursor-pointer transition-colors ${isChecked ? 'border-purple-300 bg-purple-50' : 'hover:bg-gray-50'}`}
                           >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(collaboration)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, collaboration])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== collaboration
-                                        )
-                                      )
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="text-sm font-normal leading-tight">
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={(checked) => {
+                                field.onChange(
+                                  checked
+                                    ? [...field.value, collaboration]
+                                    : field.value?.filter((v: string) => v !== collaboration)
+                                )
+                              }}
+                            />
+                            <span className="text-sm font-normal leading-tight">
                               {collaboration}
-                            </FormLabel>
-                          </FormItem>
+                            </span>
+                          </label>
                         )
                       }}
                     />

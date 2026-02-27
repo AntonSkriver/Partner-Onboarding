@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Plus, Edit, Users, Building2 } from 'lucide-react'
-import { getCurrentSession } from '@/lib/auth/session'
+import { getCurrentSession, isOnboardedUser } from '@/lib/auth/session'
 import { Database } from '@/lib/types/database'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import { buildProgramCatalog, getProgramsForPartner } from '@/lib/programs/selectors'
@@ -19,15 +19,15 @@ type Organization = Database['public']['Tables']['organizations']['Row']
 export default function PartnerProgramsPage() {
   const t = useTranslations('programs')
   const tDashboard = useTranslations('dashboard')
-  const [sessionRole] = useState<string | null>(
-    () => getCurrentSession()?.role ?? null,
-  )
+  const [session] = useState(() => getCurrentSession())
+  const sessionRole = session?.role ?? null
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
   const { ready: prototypeReady, database } = usePrototypeDb()
 
   const partnerRecord = useMemo(() => {
     if (!database) return null
+    if (isOnboardedUser(session)) return null
     const normalizedName = organization?.name?.trim().toLowerCase()
     if (normalizedName) {
       const match = database.partners.find(
@@ -36,7 +36,7 @@ export default function PartnerProgramsPage() {
       if (match) return match
     }
     return null
-  }, [database, organization?.name])
+  }, [database, organization?.name, session?.source])
 
   const programCatalog = useMemo(() => {
     if (!database) return []
@@ -59,7 +59,9 @@ export default function PartnerProgramsPage() {
       .filter((item) => allowedProgramIds.has(item.programId))
   }, [database, partnerRecord, sessionRole])
 
-  const programDataLoading = !prototypeReady || !database || (sessionRole !== 'parent' && !partnerRecord)
+  // Once the prototype DB is ready, we can determine programs.
+  // For fresh users without a seed partner match, show empty state (not perpetual loading).
+  const programDataLoading = !prototypeReady || !database
 
   useEffect(() => {
     loadOrganizationProfile()
@@ -168,13 +170,15 @@ export default function PartnerProgramsPage() {
         </div>
       ) : (
         <Card>
-          <CardContent className="space-y-4 p-10 text-center">
-            <Users className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="text-lg font-medium text-gray-900">{t('noPrograms')}</h3>
-            <p className="text-gray-500">
+          <CardContent className="space-y-5 p-12 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-50">
+              <Plus className="h-8 w-8 text-purple-500" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900">{t('noPrograms')}</h3>
+            <p className="mx-auto max-w-md text-gray-500">
               {t('noProgramsDesc')}
             </p>
-            <Button variant="profile" asChild>
+            <Button variant="profile" size="lg" asChild>
               <Link href="/partner/programs/create">
                 <Plus className="mr-2 h-4 w-4" />
                 {t('createProgram')}

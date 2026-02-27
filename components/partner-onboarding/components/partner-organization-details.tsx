@@ -66,12 +66,12 @@ export function PartnerOrganizationDetails({ onNext, onPrevious }: PartnerOrgani
 
     setTouched({ organizationName: true, organizationWebsite: true })
 
-    if (nameValid && websiteValid && isStepComplete(2)) {
+    if (nameValid && websiteValid && isStepComplete(1)) {
       onNext()
     }
   }
 
-  const canProceed = isStepComplete(2) && Object.keys(errors).length === 0
+  const canProceed = isStepComplete(1) && Object.keys(errors).length === 0
   return (
     <div className="space-y-8">
       {/* Header */}

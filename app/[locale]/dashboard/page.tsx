@@ -24,7 +24,7 @@ export default function DashboardPage() {
           }}>
             ← Back to Home
           </Link>
-          <Link href="/sign-in" style={{ 
+          <Link href="/login" style={{
             padding: '0.75rem 1.5rem', 
             backgroundColor: '#8b5cf6', 
             color: 'white', 

@@ -30,13 +30,13 @@ export function PartnerPreview({ currentStep }: PartnerPreviewProps) {
     return null
   }
 
-  // Step mapping: 1=Type, 2=Details, 3=SDG, 4=Contact, 5=Summary, 6=Final
+  // Step mapping: 1=Details, 2=SDG, 3=Contact, 4=Summary, 5=Final
   const isHighlighted = (section: 'header' | 'sdg' | 'contact') => {
     if (!currentStep) return false
     switch (section) {
-      case 'header': return currentStep === 1 || currentStep === 2
-      case 'sdg': return currentStep === 3
-      case 'contact': return currentStep === 4
+      case 'header': return currentStep === 1
+      case 'sdg': return currentStep === 2
+      case 'contact': return currentStep === 3
       default: return false
     }
   }
@@ -84,10 +84,7 @@ export function PartnerPreview({ currentStep }: PartnerPreviewProps) {
                 )}
               </h3>
               <p className="text-sm text-purple-100">
-                {formData.organizationType
-                  ? getOrganizationTypeLabel(formData.organizationType)
-                  : <span className="text-white/40">{t('previewSelectType')}</span>
-                }
+                {getOrganizationTypeLabel(formData.organizationType)}
               </p>
             </div>
           </div>

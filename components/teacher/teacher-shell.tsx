@@ -6,7 +6,6 @@ import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
 import { usePathname, useRouter } from '@/i18n/navigation'
 import {
-  Briefcase,
   Compass,
   Home,
   Layers,
@@ -14,8 +13,6 @@ import {
   ArrowLeft,
   Users,
   FolderOpen,
-  Building2,
-  Link2,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -43,11 +40,8 @@ export function TeacherShell({ children }: TeacherShellProps) {
   const navItems = [
     { href: '/teacher/dashboard', label: tNav('dashboard'), icon: Home },
     { href: '/teacher/discover', label: tNav('discover'), icon: Compass },
-    { href: '/teacher/connect', label: tNav('connect'), icon: Link2 },
     { href: '/teacher/projects', label: tNav('myProjects'), icon: Layers },
     { href: '/teacher/programs', label: tNav('myPrograms'), icon: FolderOpen },
-    { href: '/teacher/school', label: tNav('mySchool'), icon: Building2 },
-    { href: '/teacher/partner', label: tNav('myPartner'), icon: Briefcase },
   ]
   const [session, setSession] = useState<UserSession | null>(null)
   const [hasBackup, setHasBackup] = useState(false)

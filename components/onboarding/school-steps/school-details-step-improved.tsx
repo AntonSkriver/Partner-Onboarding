@@ -63,8 +63,8 @@ export function SchoolDetailsStep({ onNext, onPrevious }: SchoolDetailsStepProps
       schoolType: formData.schoolType || undefined,
       country: formData.country || '',
       city: formData.city || '',
-      studentCount: formData.studentCount || undefined,
-      teacherCount: formData.teacherCount || undefined,
+      studentCount: formData.studentCount ?? ('' as unknown as number),
+      teacherCount: formData.teacherCount ?? ('' as unknown as number),
       gradelevels: formData.gradelevels || [],
       languages: formData.languages || [],
     },
@@ -171,7 +171,7 @@ export function SchoolDetailsStep({ onNext, onPrevious }: SchoolDetailsStepProps
                 <FormItem>
                   <FormLabel>{t('studentCountLabel')}</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder={t('studentCountPlaceholder')} {...field} className="h-14 text-base px-4 rounded-xl" />
+                    <Input type="number" placeholder={t('studentCountPlaceholder')} {...field} value={field.value ?? ''} className="h-14 text-base px-4 rounded-xl" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -184,7 +184,7 @@ export function SchoolDetailsStep({ onNext, onPrevious }: SchoolDetailsStepProps
                 <FormItem>
                   <FormLabel>{t('teacherCountLabel')}</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder={t('teacherCountPlaceholder')} {...field} className="h-14 text-base px-4 rounded-xl" />
+                    <Input type="number" placeholder={t('teacherCountPlaceholder')} {...field} value={field.value ?? ''} className="h-14 text-base px-4 rounded-xl" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

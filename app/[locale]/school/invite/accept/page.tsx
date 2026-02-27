@@ -144,7 +144,7 @@ function AcceptSchoolInviteForm() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-10">
         <header className="flex items-center justify-between">
-          <Link href="/partner/login" className="inline-flex items-center text-sm text-purple-700 hover:text-purple-900">
+          <Link href="/login" className="inline-flex items-center text-sm text-purple-700 hover:text-purple-900">
             <ArrowLeft className="mr-2 h-4 w-4" />
             {t('backToLogin')}
           </Link>

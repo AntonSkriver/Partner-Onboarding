@@ -125,17 +125,12 @@ export default function PartnersPage() {
 
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
-            <Link href="/partner/login">
-              <Button variant="ghost" className="text-gray-600 hover:text-[#8157D9] text-sm xl:text-base font-medium px-3 py-4">
-                {t('demo')}
-              </Button>
-            </Link>
             <Link href="/login">
               <Button variant="outline" className="border-[#8157D9] text-[#8157D9] hover:bg-white text-sm xl:text-base font-medium rounded-full bg-white px-4 xl:px-6 py-4">
                 {t('logIn')}
               </Button>
             </Link>
-            <Link href="/partner/onboarding">
+            <Link href="/signup">
               <Button className="bg-[#8157D9] hover:bg-[#7048C6] text-white text-sm xl:text-base font-medium px-4 xl:px-6 py-4 rounded-full">
                 {t('signUp')}
               </Button>
@@ -195,7 +190,7 @@ export default function PartnersPage() {
 
               <div className="flex flex-col gap-4 pt-2">
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Link href="/partner/onboarding">
+                  <Link href="/signup">
                     <Button size="lg" className="bg-[#8157D9] hover:bg-[#7048C6] text-white px-7 py-5 text-base font-semibold rounded-full shadow-lg shadow-[#8157D9]/25 hover:shadow-xl hover:shadow-[#8157D9]/30 transition-all hover:-translate-y-0.5 group">
                       {t('getStarted')}
                       <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -560,7 +555,7 @@ export default function PartnersPage() {
           </p>
           <div className="flex flex-col items-center gap-4 justify-center">
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/partner/onboarding">
+              <Link href="/signup">
                 <Button size="lg" className="bg-[#8157D9] text-white hover:bg-[#7048C6] px-10 py-6 text-lg font-semibold rounded-full shadow-xl shadow-[#8157D9]/25 transition-all hover:-translate-y-1 group">
                   {t('getStarted')}
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />

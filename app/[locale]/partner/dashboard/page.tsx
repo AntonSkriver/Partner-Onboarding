@@ -333,7 +333,7 @@ export default function PartnerDashboard() {
   useEffect(() => {
     const currentSession = getCurrentSession()
     if (!currentSession || currentSession.role !== 'partner') {
-      router.push('/partner/login')
+      router.push('/login')
       return
     }
     setSession(currentSession)
@@ -341,7 +341,7 @@ export default function PartnerDashboard() {
 
   const handleLogout = () => {
     clearSession()
-    router.push('/partner/login')
+    router.push('/login')
   }
 
   const toggleProjectDetails = (projectId: string) => {

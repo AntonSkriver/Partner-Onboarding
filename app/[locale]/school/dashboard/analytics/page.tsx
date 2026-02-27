@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
-import { getCurrentSession } from '@/lib/auth/session'
+import { getCurrentSession, isOnboardedUser } from '@/lib/auth/session'
 import { buildProgramSummary, type ProgramSummary } from '@/lib/programs/selectors'
 import { getCountryDisplay } from '@/lib/countries'
 
@@ -53,6 +53,13 @@ export default function SchoolAnalyticsPage() {
 
   useEffect(() => {
     if (!prototypeReady || !database) return
+
+    // Fresh onboarded users have no seed institution — show empty analytics
+    if (isOnboardedUser(session)) {
+      setInstitution(null)
+      setLoading(false)
+      return
+    }
 
     const activeInstitutionId =
       typeof window !== 'undefined' ? window.localStorage.getItem('activeInstitutionId') : null
@@ -227,8 +234,8 @@ export default function SchoolAnalyticsPage() {
     return (
       <Card>
         <CardContent className="p-10 text-center">
-          <p className="text-lg font-semibold text-gray-900">No school profile found</p>
-          <p className="text-gray-600">Accept an invitation to view analytics.</p>
+          <p className="text-lg font-semibold text-gray-900">{t('noAnalyticsTitle')}</p>
+          <p className="text-gray-600">{t('noAnalyticsDesc')}</p>
         </CardContent>
       </Card>
     )

@@ -9,7 +9,7 @@ import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import { buildProgramCatalog } from '@/lib/programs/selectors'
 import { ProgramCatalogCard } from '@/components/program/program-catalog-card'
 import { useTranslations } from 'next-intl'
-import { getCurrentSession } from '@/lib/auth/session'
+import { getCurrentSession, isOnboardedUser } from '@/lib/auth/session'
 
 export default function SchoolProgramsPage() {
   const t = useTranslations('programs')
@@ -41,6 +41,9 @@ export default function SchoolProgramsPage() {
 
   const programCatalog = useMemo(() => {
     if (!prototypeReady || !database) return []
+
+    // Fresh onboarded users have no programs yet
+    if (isOnboardedUser(session)) return []
 
     const allCatalog = buildProgramCatalog(database, { includePrivate: true })
 
@@ -125,9 +128,9 @@ export default function SchoolProgramsPage() {
           <CardContent className="flex flex-col items-center justify-center gap-4 py-12 text-center">
             <BookOpen className="h-12 w-12 text-purple-300" />
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">You haven&apos;t joined a program yet</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('noPrograms')}</h3>
               <p className="mt-1 text-sm text-gray-600">
-                Browse the catalog and connect your classrooms with partners worldwide.
+                {t('noProgramsSchoolDesc')}
               </p>
             </div>
             <Button className="bg-purple-600 hover:bg-purple-700" asChild>

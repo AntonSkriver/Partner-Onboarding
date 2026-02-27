@@ -10,41 +10,44 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { createSession, clearSession } from '@/lib/auth/session'
 
-// Hardcoded credentials
+// Hardcoded credentials for the prototype
 const VALID_CREDENTIALS = [
-  { username: 'Unicefworld', password: '123', type: 'partner', redirect: '/partner/profile/dashboard' },
-  { username: 'UnicefDK', password: '123', type: 'partner', redirect: '/partner/profile/dashboard' },
-  { username: 'schoolDK', password: '123', type: 'school', redirect: '/school/dashboard' },
+  { username: 'Unicefworld', password: '123', type: 'partner' as const, redirect: '/partner/profile/dashboard', org: 'UNICEF World Organization', name: 'UNICEF Global Coordinator' },
+  { username: 'UnicefDK', password: '123', type: 'partner' as const, redirect: '/partner/profile/dashboard', org: 'UNICEF Denmark', name: 'UNICEF Denmark Coordinator' },
+  { username: 'schoolDK', password: '123', type: 'school' as const, redirect: '/school/dashboard', org: 'Copenhagen International School', name: 'School Admin' },
 ]
 
 const testimonials = [
   {
+    quote: "Your guidance, constant support and meaningful suggestions make all the difference. You are an inspiration and our students can become global citizens and have life experiences that will change their lives for the better.",
+    author: "Gisel Crespo",
+    role: "Teacher",
+    location: "Argentina",
+    photo: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&h=200&fit=crop",
+  },
+  {
     quote: "Class2Class has transformed how we connect schools globally. The platform makes cross-cultural collaboration seamless and impactful.",
     author: "Maria Jensen",
     role: "Program Director",
-    organization: "UNICEF Denmark"
+    location: "UNICEF Denmark",
+    photo: null,
   },
   {
     quote: "Our students have gained invaluable perspectives through Class2Class partnerships. It's education without borders.",
     author: "Thomas Andersen",
     role: "School Coordinator",
-    organization: "Copenhagen International School"
+    location: "Copenhagen International School",
+    photo: null,
   },
-  {
-    quote: "The best platform for managing global education initiatives. Simple, effective, and beautifully designed.",
-    author: "Sarah Williams",
-    role: "Partnership Manager",
-    organization: "Global Education Alliance"
-  }
 ]
 
 export default function LoginPage() {
   const t = useTranslations('auth')
   const tc = useTranslations('common')
   const router = useRouter()
-  const [userType, setUserType] = useState<'partner' | 'school'>('partner')
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
@@ -56,20 +59,75 @@ export default function LoginPage() {
     setError('')
     setIsLoading(true)
 
-    // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 500))
 
+    // Try hardcoded username/password credentials first
     const credential = VALID_CREDENTIALS.find(
-      cred => cred.username.toLowerCase() === email.toLowerCase() && cred.password === password
+      cred => cred.username.toLowerCase() === identifier.toLowerCase() && cred.password === password
     )
 
     if (credential) {
+      clearSession()
+      createSession({
+        email: identifier,
+        role: credential.type,
+        organization: credential.org,
+        name: credential.name,
+      })
       router.push(credential.redirect)
-    } else {
-      setError('Invalid username or password. Try: Unicefworld, UnicefDK, or schoolDK with password 123')
-      setIsLoading(false)
+      return
     }
+
+    // Try email-pattern matching for partner demo accounts
+    const normalizedEmail = identifier.toLowerCase()
+    if (
+      normalizedEmail.includes('partner') ||
+      normalizedEmail.includes('unicef') ||
+      normalizedEmail.includes('ngo') ||
+      normalizedEmail.includes('savethechildren') ||
+      normalizedEmail.includes('stc')
+    ) {
+      let organizationName = 'Partner Organization'
+      let userName = 'Partner Coordinator'
+
+      if (normalizedEmail.includes('unicef')) {
+        if (normalizedEmail.includes('.uk') || normalizedEmail.includes('england')) {
+          organizationName = 'UNICEF England'
+          userName = 'UNICEF England Coordinator'
+        } else if (normalizedEmail.includes('world') || normalizedEmail.includes('global')) {
+          organizationName = 'UNICEF World Organization'
+          userName = 'UNICEF Global Coordinator'
+        } else {
+          organizationName = 'UNICEF Denmark'
+          userName = 'UNICEF Denmark Coordinator'
+        }
+      } else if (normalizedEmail.includes('mx') || normalizedEmail.includes('mexico')) {
+        organizationName = 'Save the Children Mexico'
+        userName = 'STC Mexico Coordinator'
+      } else if (normalizedEmail.includes('savethechildren') || normalizedEmail.includes('stc')) {
+        organizationName = 'Save the Children Italy'
+        userName = 'STC Coordinator'
+      } else if (normalizedEmail.includes('ngo')) {
+        organizationName = 'NGO Partner'
+        userName = 'NGO Coordinator'
+      }
+
+      clearSession()
+      createSession({
+        email: identifier,
+        role: 'partner',
+        organization: organizationName,
+        name: userName,
+      })
+      router.push('/partner/dashboard')
+      return
+    }
+
+    setError(t('invalidCredentials'))
+    setIsLoading(false)
   }
+
+  const testimonial = testimonials[currentTestimonial]
 
   return (
     <div className="min-h-screen flex">
@@ -78,7 +136,7 @@ export default function LoginPage() {
         <div className="max-w-md w-full mx-auto">
           {/* Logo & Language */}
           <div className="flex items-center justify-between mb-12">
-            <Link href="/partners" className="inline-flex items-center gap-3 group">
+            <Link href="/" className="inline-flex items-center gap-3 group">
               <Image
                 src="/isotipo.png"
                 alt="Class2Class"
@@ -98,60 +156,20 @@ export default function LoginPage() {
             {t('loginPageSubtitle')}
           </p>
 
-          {/* User Type Toggle */}
-          <div className="flex gap-6 mb-8">
-            <button
-              type="button"
-              onClick={() => setUserType('partner')}
-              className="flex items-center gap-2 cursor-pointer group"
-            >
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                userType === 'partner'
-                  ? 'border-[#8157D9] bg-[#8157D9]'
-                  : 'border-gray-300 group-hover:border-[#8157D9]/50'
-              }`}>
-                {userType === 'partner' && (
-                  <div className="w-2 h-2 bg-white rounded-full" />
-                )}
-              </div>
-              <span className={`font-medium transition-colors ${
-                userType === 'partner' ? 'text-[#1a1a2e]' : 'text-gray-500'
-              }`}>{t('partner')}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setUserType('school')}
-              className="flex items-center gap-2 cursor-pointer group"
-            >
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                userType === 'school'
-                  ? 'border-[#8157D9] bg-[#8157D9]'
-                  : 'border-gray-300 group-hover:border-[#8157D9]/50'
-              }`}>
-                {userType === 'school' && (
-                  <div className="w-2 h-2 bg-white rounded-full" />
-                )}
-              </div>
-              <span className={`font-medium transition-colors ${
-                userType === 'school' ? 'text-[#1a1a2e]' : 'text-gray-500'
-              }`}>{t('school')}</span>
-            </button>
-          </div>
-
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-[#1a1a2e] font-medium">
-                {t('username')} <span className="text-[#8157D9]">*</span>
+              <Label htmlFor="identifier" className="text-[#1a1a2e] font-medium">
+                {t('emailOrUsername')} <span className="text-[#8157D9]">*</span>
               </Label>
               <Input
-                id="email"
+                id="identifier"
                 type="text"
-                placeholder={t('enterUsername')}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t('enterEmailOrUsername')}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 className="h-12 border-gray-200 focus:border-[#8157D9] focus:ring-[#8157D9]/20 rounded-lg"
+                autoComplete="username"
                 required
               />
             </div>
@@ -173,6 +191,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="h-12 border-gray-200 focus:border-[#8157D9] focus:ring-[#8157D9]/20 rounded-lg pr-12"
+                  autoComplete="current-password"
                   required
                 />
                 <button
@@ -196,7 +215,14 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full h-12 bg-[#8157D9] hover:bg-[#7048C6] text-white font-semibold rounded-lg transition-all disabled:opacity-70"
             >
-              {isLoading ? t('signingIn') : t('logIn')}
+              {isLoading ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  {t('signingIn')}
+                </>
+              ) : (
+                t('logIn')
+              )}
             </Button>
           </form>
 
@@ -207,34 +233,32 @@ export default function LoginPage() {
             <div className="flex-1 h-px bg-gray-200" />
           </div>
 
-          {/* Demo Login Link */}
-          <Link href="/partner/login">
-            <Button
-              variant="outline"
-              className="w-full h-12 border-gray-200 hover:border-[#8157D9] hover:bg-[#8157D9]/5 text-gray-700 font-medium rounded-lg transition-all"
-            >
-              {t('continueWithDemoLogin')}
-            </Button>
-          </Link>
+          {/* Google Login */}
+          <Button
+            variant="outline"
+            className="w-full h-12 border-gray-200 hover:border-[#8157D9] hover:bg-[#8157D9]/5 text-gray-700 font-medium rounded-lg transition-all"
+          >
+            {t('continueWithGoogle')}
+          </Button>
 
           {/* Sign Up Link */}
           <p className="mt-8 text-center text-gray-600">
             {t('dontHaveAccountQ')}{' '}
-            <Link href="/partner/onboarding" className="text-[#8157D9] hover:text-[#7048C6] font-semibold">
+            <Link href="/signup" className="text-[#8157D9] hover:text-[#7048C6] font-semibold">
               {t('signUp')}
             </Link>
           </p>
         </div>
       </div>
 
-      {/* Right Side - Branding */}
+      {/* Right Side - Branding with Map & Testimonial */}
       <div className="hidden lg:flex lg:w-[55%] bg-[#E0CCFF] relative overflow-hidden flex-col justify-center items-center p-12">
         {/* World Map Background */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="relative w-[120%] h-[80%]">
             <Image
               src="/images/world-map.webp"
-              alt="World Map"
+              alt=""
               fill
               className="object-contain opacity-40 brightness-125"
             />
@@ -252,20 +276,32 @@ export default function LoginPage() {
           </p>
 
           {/* Testimonial Card */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl shadow-[#8157D9]/10">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6 italic">
-              &quot;{testimonials[currentTestimonial].quote}&quot;
-            </p>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#8157D9] to-[#A78BFA] rounded-full flex items-center justify-center text-white font-bold text-lg">
-                {testimonials[currentTestimonial].author.charAt(0)}
-              </div>
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl shadow-[#8157D9]/10 overflow-hidden">
+            <div className="p-8">
+              <p className="text-gray-700 text-lg leading-relaxed mb-6 italic">
+                &quot;{testimonial.quote}&quot;
+              </p>
+            </div>
+            <div className="border-t border-gray-100 px-8 py-5 flex items-center gap-4">
+              {testimonial.photo ? (
+                <div className="w-12 h-12 overflow-hidden rounded-full bg-gray-200 shrink-0">
+                  <img
+                    src={testimonial.photo}
+                    alt={testimonial.author}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-12 h-12 bg-gradient-to-br from-[#8157D9] to-[#A78BFA] rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0">
+                  {testimonial.author.charAt(0)}
+                </div>
+              )}
               <div>
                 <p className="font-semibold text-[#1a1a2e]">
-                  {testimonials[currentTestimonial].author}
+                  {testimonial.author}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {testimonials[currentTestimonial].role} · {testimonials[currentTestimonial].organization}
+                  {testimonial.role} · {testimonial.location}
                 </p>
               </div>
             </div>

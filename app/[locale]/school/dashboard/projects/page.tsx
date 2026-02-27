@@ -11,7 +11,7 @@ import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { getCountryDisplay } from '@/lib/countries'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
-import { getCurrentSession } from '@/lib/auth/session'
+import { getCurrentSession, isOnboardedUser } from '@/lib/auth/session'
 
 // Helper for consistent age group calculation based on project name hash
 function getProjectAgeGroup(projectName: string): string {
@@ -172,6 +172,9 @@ export default function SchoolProjectsPage() {
 
   const matchingInstitutionIds = useMemo(() => {
     if (!prototypeReady || !database) return []
+    // Fresh onboarded users have no seed institutions
+    if (isOnboardedUser(session)) return []
+
     const activeInstitutionId =
       typeof window !== 'undefined' ? window.localStorage.getItem('activeInstitutionId') : null
     const normalizedEmail = session?.email?.toLowerCase()
@@ -229,15 +232,12 @@ export default function SchoolProjectsPage() {
         <Card className="border-dashed border-purple-200">
           <CardContent className="flex flex-col items-center justify-center gap-3 py-12 text-center">
             <div className="rounded-full bg-purple-50 px-4 py-1 text-xs font-semibold text-purple-700">
-              No teachers connected yet
+              {t('noProjectsYet')}
             </div>
             <p className="max-w-md text-sm text-gray-600">
-              Invite teachers to your school workspace so projects show up here automatically.
+              {t('noProjectsYetDesc')}
             </p>
             <div className="flex gap-2">
-              <Button variant="outline" asChild>
-                <Link href="/school/dashboard/network">Invite teachers</Link>
-              </Button>
               <Button className="bg-purple-600 hover:bg-purple-700" asChild>
                 <Link href="/school/dashboard/programs">{tn('programs')}</Link>
               </Button>
@@ -251,9 +251,9 @@ export default function SchoolProjectsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold text-gray-900">Projects</h1>
+        <h1 className="text-3xl font-semibold text-gray-900">{tn('projects')}</h1>
         <p className="text-sm text-gray-600">
-          Projects created by teachers at your school across all programs.
+          {t('subtitle')}
         </p>
       </div>
 

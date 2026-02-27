@@ -93,12 +93,12 @@ export default function EditProgramPage() {
 
   useEffect(() => {
     if (!session) {
-      router.push('/partner/login')
+      router.push('/login')
       return
     }
 
     if (session.role !== 'partner' && session.role !== 'parent') {
-      router.push('/partner/login')
+      router.push('/login')
     }
   }, [session, router])
 

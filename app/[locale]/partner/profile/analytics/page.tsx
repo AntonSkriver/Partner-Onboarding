@@ -30,7 +30,7 @@ import {
   type ProgramSummary,
 } from '@/lib/programs/selectors'
 import { getCountryDisplay } from '@/lib/countries'
-import { getCurrentSession } from '@/lib/auth/session'
+import { getCurrentSession, isOnboardedUser } from '@/lib/auth/session'
 import {
   EXCLUDED_INSTITUTION_IDS,
   TEACHER_AVATARS,
@@ -52,6 +52,7 @@ export default function PartnerAnalyticsPage() {
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null)
+  const [session] = useState(() => getCurrentSession())
   const { ready: prototypeReady, database } = usePrototypeDb()
 
   const normalizedOrganizationName = organization?.name
@@ -60,6 +61,7 @@ export default function PartnerAnalyticsPage() {
 
   const partnerRecord = useMemo(() => {
     if (!database) return null
+    if (isOnboardedUser(session)) return null
     if (normalizedOrganizationName) {
       const match = database.partners.find(
         (partner) => partner.organizationName.toLowerCase() === normalizedOrganizationName,
@@ -67,7 +69,7 @@ export default function PartnerAnalyticsPage() {
       if (match) return match
     }
     return null
-  }, [database, normalizedOrganizationName])
+  }, [database, normalizedOrganizationName, session?.source])
 
   const programSummaries = useMemo<ProgramSummary[]>(() => {
     if (!prototypeReady || !database || !partnerRecord) {
@@ -741,7 +743,7 @@ export default function PartnerAnalyticsPage() {
         className="space-y-2"
       />
 
-      {programSummaries.length === 0 && (
+      {programSummaries.length === 0 ? (
         <Card>
           <CardContent className="space-y-4 p-10 text-center">
             <Target className="mx-auto h-12 w-12 text-gray-400" />
@@ -749,85 +751,87 @@ export default function PartnerAnalyticsPage() {
             <p className="text-gray-500">{t('noAnalyticsDesc')}</p>
           </CardContent>
         </Card>
-      )}
+      ) : (
+        <>
+          {/* Headline Metrics - Clickable Cards */}
+          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {headlineMetrics.map(({ id, label, value, caption, icon: Icon, bgColor, textColor }) => (
+              <motion.div
+                key={id}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Card
+                  className="cursor-pointer border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all group"
+                  onClick={() => setSelectedMetric(id)}
+                >
+                  <CardContent className="p-5">
+                    <div className="flex items-start justify-between">
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${bgColor}`}>
+                        <Icon className={`h-6 w-6 ${textColor}`} />
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-gray-400 transition-colors" />
+                    </div>
+                    <div className="mt-4">
+                      <p className="text-3xl font-bold text-gray-900">{value}</p>
+                      <p className="text-sm font-medium text-gray-700 mt-1">{label}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{caption}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </section>
 
-      {/* Headline Metrics - Clickable Cards */}
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {headlineMetrics.map(({ id, label, value, caption, icon: Icon, bgColor, textColor }) => (
-          <motion.div
-            key={id}
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Card
-              className="cursor-pointer border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all group"
-              onClick={() => setSelectedMetric(id)}
-            >
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between">
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${bgColor}`}>
-                    <Icon className={`h-6 w-6 ${textColor}`} />
+          {/* Modal for detailed view */}
+          <Dialog open={!!selectedMetric} onOpenChange={(open) => !open && setSelectedMetric(null)}>
+            <DialogContent className="sm:max-w-5xl lg:max-w-6xl max-h-[85vh] overflow-y-auto">
+              <DialogHeader className="pb-2">
+                <div className="flex items-center gap-4">
+                  {selectedMetricData && (
+                    <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${selectedMetricData.bgColor}`}>
+                      <selectedMetricData.icon className={`h-7 w-7 ${selectedMetricData.textColor}`} />
+                    </div>
+                  )}
+                  <div>
+                    <DialogTitle className="text-2xl">{selectedMetricData?.label}</DialogTitle>
+                    <p className="text-sm text-gray-500 mt-1">{selectedMetricData?.caption}</p>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-gray-400 transition-colors" />
                 </div>
-                <div className="mt-4">
-                  <p className="text-3xl font-bold text-gray-900">{value}</p>
-                  <p className="text-sm font-medium text-gray-700 mt-1">{label}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{caption}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </section>
-
-      {/* Modal for detailed view */}
-      <Dialog open={!!selectedMetric} onOpenChange={(open) => !open && setSelectedMetric(null)}>
-        <DialogContent className="sm:max-w-5xl lg:max-w-6xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader className="pb-2">
-            <div className="flex items-center gap-4">
-              {selectedMetricData && (
-                <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${selectedMetricData.bgColor}`}>
-                  <selectedMetricData.icon className={`h-7 w-7 ${selectedMetricData.textColor}`} />
-                </div>
-              )}
-              <div>
-                <DialogTitle className="text-2xl">{selectedMetricData?.label}</DialogTitle>
-                <p className="text-sm text-gray-500 mt-1">{selectedMetricData?.caption}</p>
+              </DialogHeader>
+              <div className="mt-6">
+                {renderModalContent()}
               </div>
-            </div>
-          </DialogHeader>
-          <div className="mt-6">
-            {renderModalContent()}
-          </div>
-        </DialogContent>
-      </Dialog>
+            </DialogContent>
+          </Dialog>
 
-      <section>
-        {/* Interactive Geographic Map */}
-        <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 0.3, type: "spring", stiffness: 100 }}
-        >
-          <Card className="overflow-hidden">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapIcon className="h-5 w-5 text-purple-600" />
-                {t('geographicReach')}
-              </CardTitle>
-              <CardDescription>
-                {t('geographicReachDesc', { partner: partnerRecord?.organizationName ?? 'partner' })}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[500px] w-full">
-                <InteractiveMapWrapper countries={allMapData} />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </section>
+          <section>
+            {/* Interactive Geographic Map */}
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 0.3, type: "spring", stiffness: 100 }}
+            >
+              <Card className="overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapIcon className="h-5 w-5 text-purple-600" />
+                    {t('geographicReach')}
+                  </CardTitle>
+                  <CardDescription>
+                    {t('geographicReachDesc', { partner: partnerRecord?.organizationName ?? 'partner' })}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[500px] w-full">
+                    <InteractiveMapWrapper countries={allMapData} />
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </section>
+        </>
+      )}
     </div>
   )
 }

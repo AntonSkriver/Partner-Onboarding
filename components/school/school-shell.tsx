@@ -42,7 +42,6 @@ export function SchoolShell({ children }: SchoolShellProps) {
     { href: '/school/dashboard/programs', label: tNav('programs'), icon: Layers },
     { href: '/school/dashboard/projects', label: tNav('projects'), icon: FolderKanban },
     { href: '/school/dashboard/resources', label: tNav('resources'), icon: BookOpen },
-    { href: '/school/dashboard/network', label: tNav('network'), icon: Users },
     { href: '/school/dashboard/analytics', label: tNav('analytics'), icon: BarChart3 },
   ]
   const [session, setSession] = useState<UserSession | null>(null)

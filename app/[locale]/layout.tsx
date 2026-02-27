@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { hasLocale, NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
 import { Toaster } from 'sonner'
+import { AgentationWidget } from '@/components/agentation-widget'
 import { locales } from '@/i18n/config'
 import '../globals.css'
 
@@ -76,6 +77,7 @@ export default async function LocaleLayout({
           {children}
         </NextIntlClientProvider>
         <Toaster />
+        <AgentationWidget />
       </body>
     </html>
   )

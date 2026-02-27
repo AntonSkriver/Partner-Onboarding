@@ -286,7 +286,7 @@ export function PartnerProfileDashboard({
         {isOwnProfile && (
           <div className="flex flex-wrap items-center justify-end gap-2">
             <Button variant="outline" asChild>
-              <Link href="/partner/login">
+              <Link href="/login">
                 <LogOut className="w-4 h-4 mr-2" />
                 Back to Login
               </Link>

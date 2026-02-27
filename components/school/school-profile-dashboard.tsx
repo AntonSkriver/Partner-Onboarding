@@ -24,7 +24,6 @@ import type { ProgramProject } from '@/lib/types/program'
 import { OverviewTab } from '@/components/school/dashboard-tabs/overview-tab'
 import { ProgramsTab } from '@/components/school/dashboard-tabs/programs-tab'
 import { ProjectsTab } from '@/components/school/dashboard-tabs/projects-tab'
-import { NetworkTab } from '@/components/school/dashboard-tabs/network-tab'
 import { ResourcesTab } from '@/components/school/dashboard-tabs/resources-tab'
 import { AnalyticsTab } from '@/components/school/dashboard-tabs/analytics-tab'
 
@@ -50,7 +49,7 @@ interface SchoolProfileDashboardProps {
   school: SchoolProfile
   onEdit?: () => void
   isOwnProfile?: boolean
-  initialTab?: 'overview' | 'programs' | 'projects' | 'network' | 'resources' | 'analytics'
+  initialTab?: 'overview' | 'programs' | 'projects' | 'resources' | 'analytics'
 }
 
 type TeacherEntry = {
@@ -108,8 +107,6 @@ export function SchoolProfileDashboard({
   initialTab = 'overview',
 }: SchoolProfileDashboardProps) {
   const [activeTab, setActiveTab] = useState(initialTab)
-  const [showInviteTeacherDialog, setShowInviteTeacherDialog] = useState(false)
-  const [showInviteSchoolDialog, setShowInviteSchoolDialog] = useState(false)
   useEffect(() => {
     setActiveTab(initialTab)
   }, [initialTab])
@@ -195,36 +192,7 @@ export function SchoolProfileDashboard({
       })
     })
 
-    if (seen.size > 0) {
-      return Array.from(seen.values())
-    }
-
-    return [
-      {
-        id: 'demo-teacher-1',
-        name: 'Maria Hansen',
-        email: 'maria@school.dk',
-        subject: 'Social Studies',
-        status: 'active',
-        programName: 'Build the Change',
-      },
-      {
-        id: 'demo-teacher-2',
-        name: 'Peter Nielsen',
-        email: 'peter@school.dk',
-        subject: 'Science',
-        status: 'active',
-        programName: 'Communities in Focus',
-      },
-      {
-        id: 'demo-teacher-3',
-        name: 'Anna Larsen',
-        email: 'anna@school.dk',
-        subject: 'Languages',
-        status: 'invited',
-        programName: 'Build the Change',
-      },
-    ]
+    return Array.from(seen.values())
   }, [programSummaries])
 
   const partnerSchools = useMemo<PartnerSchoolEntry[]>(() => {
@@ -244,24 +212,7 @@ export function SchoolProfileDashboard({
       })
     })
 
-    if (entries.size > 0) {
-      return Array.from(entries.values())
-    }
-
-    return [
-      {
-        id: 'demo-partner-school-berlin',
-        name: 'Berlin International School',
-        country: 'Germany',
-        programName: 'Build the Change',
-      },
-      {
-        id: 'demo-partner-school-sao-paulo',
-        name: 'São Paulo Academy',
-        country: 'Brazil',
-        programName: 'Communities in Focus',
-      },
-    ]
+    return Array.from(entries.values())
   }, [programSummaries, normalizedSchoolName])
 
   const resources = useMemo<ResourceEntry[]>(() => {
@@ -290,38 +241,7 @@ export function SchoolProfileDashboard({
       })
     })
 
-    if (derived.length > 0) {
-      return derived
-    }
-
-    return [
-      {
-        id: 'resource-1',
-        title: 'Human Rights Education Toolkit',
-        description: 'Comprehensive guide for teaching human rights concepts and promoting global citizenship through interactive activities.',
-        type: 'Document',
-        category: 'Teaching Guide',
-        ageRange: '13-19 years old',
-        sdgAlignment: [16],
-        language: 'English',
-        heroImageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=480&fit=crop',
-        updatedAt: '2025-01-10T10:00:00Z',
-        programName: 'Communities in Focus',
-      },
-      {
-        id: 'resource-2',
-        title: 'Climate Action Project Templates',
-        description: 'Ready-to-use templates for climate projects that engage students in hands-on sustainability initiatives.',
-        type: 'Project Template',
-        category: 'Science',
-        ageRange: '9-13 years old',
-        sdgAlignment: [13],
-        language: 'English',
-        heroImageUrl: 'https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?w=800&h=480&fit=crop',
-        updatedAt: '2025-01-15T10:00:00Z',
-        programName: 'Build the Change',
-      },
-    ]
+    return derived
   }, [programSummaries])
 
   const projects = useMemo<SchoolProjectEntry[]>(() => {
@@ -370,46 +290,11 @@ export function SchoolProfileDashboard({
       })
     })
 
-    if (entries.length > 0) {
-      return entries.sort((a, b) => {
-        const dateA = a.updatedAt ?? a.createdAt ?? ''
-        const dateB = b.updatedAt ?? b.createdAt ?? ''
-        return new Date(dateB).valueOf() - new Date(dateA).valueOf()
-      })
-    }
-
-    return [
-      {
-        id: 'demo-project-1',
-        title: 'City Guardians Story Maps',
-        status: 'active',
-        programId: 'program-build-the-change-2025',
-        programName: 'Build the Change',
-        templateTitle: 'City Guardians Story Maps',
-        estimatedWeeks: 4,
-        sdgAlignment: [4, 11, 13],
-        teacherName: 'Maria Hansen',
-        teacherEmail: 'maria@school.dk',
-        updatedAt: '2025-02-20T12:30:00.000Z',
-        coverImageUrl:
-          'https://images.unsplash.com/photo-1529101091764-c3526daf38fe?w=800&h=480&fit=crop',
-      },
-      {
-        id: 'demo-project-2',
-        title: 'Community Story Circles',
-        status: 'draft',
-        programId: 'program-communities-2025',
-        programName: 'Communities in Focus',
-        templateTitle: 'Community Story Circles',
-        estimatedWeeks: 3,
-        sdgAlignment: [3, 4, 11],
-        teacherName: 'Peter Nielsen',
-        teacherEmail: 'peter@school.dk',
-        updatedAt: '2025-02-18T09:10:00.000Z',
-        coverImageUrl:
-          'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&h=480&fit=crop',
-      },
-    ]
+    return entries.sort((a, b) => {
+      const dateA = a.updatedAt ?? a.createdAt ?? ''
+      const dateB = b.updatedAt ?? b.createdAt ?? ''
+      return new Date(dateB).valueOf() - new Date(dateA).valueOf()
+    })
   }, [prototypeReady, database, programSummaries])
 
   const handleTabChange = (value: string) => {
@@ -453,7 +338,7 @@ export function SchoolProfileDashboard({
         {isOwnProfile && (
           <div className="flex flex-wrap items-center justify-end gap-2">
             <Button variant="outline" asChild>
-              <Link href="/partner/login">
+              <Link href="/login">
                 <LogOut className="w-4 h-4 mr-2" />
                 Back to Login
               </Link>
@@ -473,7 +358,6 @@ export function SchoolProfileDashboard({
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="programs">Programs</TabsTrigger>
           <TabsTrigger value="projects">Projects</TabsTrigger>
-          {isOwnProfile && <TabsTrigger value="network">Network</TabsTrigger>}
           <TabsTrigger value="resources">Resources</TabsTrigger>
           {isOwnProfile && <TabsTrigger value="analytics">Analytics</TabsTrigger>}
         </TabsList>
@@ -487,18 +371,6 @@ export function SchoolProfileDashboard({
         />
 
         <ProjectsTab projects={projects} />
-
-        {isOwnProfile && (
-          <NetworkTab
-            teachers={teachers}
-            partnerSchools={partnerSchools}
-            programSummaries={programSummaries}
-            showInviteTeacherDialog={showInviteTeacherDialog}
-            setShowInviteTeacherDialog={setShowInviteTeacherDialog}
-            showInviteSchoolDialog={showInviteSchoolDialog}
-            setShowInviteSchoolDialog={setShowInviteSchoolDialog}
-          />
-        )}
 
         <ResourcesTab resources={resources} />
 

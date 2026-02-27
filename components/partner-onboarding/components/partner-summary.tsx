@@ -1,10 +1,12 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { usePartnerOnboarding, getOrganizationTypeLabel, getContactRoleLabel, SDG_OPTIONS } from "../../../contexts/partner-onboarding-context"
-import { Building2, Globe, Mail, Phone, User, Pencil, CheckCircle2, Target, Rocket, School, MapPin, Users } from "lucide-react"
+import { usePartnerOnboarding, getContactRoleLabel, SDG_OPTIONS } from "../../../contexts/partner-onboarding-context"
+import { Globe, Mail, Phone, User, Pencil, CheckCircle2, Target, Rocket } from "lucide-react"
 import { SDGIcon } from "../../sdg-icons"
 import { useTranslations } from "next-intl"
+import { useRouter } from "@/i18n/navigation"
+import { createSession } from "@/lib/auth/session"
 
 interface PartnerSummaryProps {
   onNext: () => void
@@ -12,10 +14,34 @@ interface PartnerSummaryProps {
   onGoToStep: (step: number) => void
 }
 
-export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummaryProps) {
+export function PartnerSummary({ onPrevious, onGoToStep }: PartnerSummaryProps) {
   const { formData } = usePartnerOnboarding()
   const t = useTranslations('onboarding')
-  const isSchool = formData.organizationType === 'school'
+  const router = useRouter()
+  const handleComplete = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('organizationType', formData.organizationType || '')
+      localStorage.setItem('organizationName', formData.organizationName)
+      localStorage.setItem('organizationWebsite', formData.organizationWebsite || '')
+      localStorage.setItem('onboarding_contactName', formData.contactName)
+      localStorage.setItem('onboarding_contactEmail', formData.contactEmail)
+      localStorage.setItem('onboarding_contactPhone', formData.contactPhone || '')
+      localStorage.setItem('onboarding_contactRole', formData.contactRole || '')
+      localStorage.setItem('onboarding_sdgFocus', JSON.stringify(formData.sdgFocus))
+      localStorage.setItem('onboarding_missionStatement', formData.missionStatement || '')
+      localStorage.setItem('onboarding_completed', 'true')
+    }
+
+    createSession({
+      email: formData.contactEmail,
+      role: 'partner',
+      organization: formData.organizationName,
+      name: formData.contactName,
+      source: 'onboarding',
+    })
+
+    router.push('/partner/profile')
+  }
 
   const getSelectedSDGs = () => {
     return formData.sdgFocus.map(id => SDG_OPTIONS.find(sdg => sdg.id === id)).filter(Boolean)
@@ -32,71 +58,30 @@ export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummar
 
       {/* Summary Cards */}
       <div className="space-y-4">
-        {/* Organization Type */}
-        <div className="group relative bg-white rounded-2xl p-5 border border-gray-100 hover:border-[#8157D9]/20 hover:shadow-md transition-all duration-300">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
-              <div className="w-10 h-10 rounded-xl bg-[#8157D9]/10 flex items-center justify-center shrink-0">
-                <Building2 className="w-5 h-5 text-[#8157D9]" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">{t('summaryOrgType')}</p>
-                <p className="font-semibold text-gray-900">{getOrganizationTypeLabel(formData.organizationType)}</p>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onGoToStep(1)}
-              className="opacity-0 group-hover:opacity-100 transition-opacity text-[#8157D9] hover:text-[#7048C6] hover:bg-[#8157D9]/10"
-            >
-              <Pencil className="w-4 h-4 mr-1" />
-              Edit
-            </Button>
-          </div>
-        </div>
-
-        {/* Organization / School Details */}
+        {/* Organization Details */}
         <div className="group relative bg-white rounded-2xl p-5 border border-gray-100 hover:border-[#8157D9]/20 hover:shadow-md transition-all duration-300">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4 flex-1">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0">
-                {isSchool ? <School className="w-5 h-5 text-blue-500" /> : <Globe className="w-5 h-5 text-blue-500" />}
+                <Globe className="w-5 h-5 text-blue-500" />
               </div>
               <div>
                 <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">
-                  {isSchool ? t('summarySchool') : t('summaryOrganization')}
+                  {t('summaryOrganization')}
                 </p>
                 <p className="font-semibold text-gray-900">{formData.organizationName || t('summaryNotSpecified')}</p>
-                {isSchool ? (
-                  <div className="space-y-1 mt-1">
-                    {formData.country && formData.city && (
-                      <p className="text-sm text-gray-500 flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {formData.city}, {formData.country}
-                      </p>
-                    )}
-                    {(formData.numberOfStudents || formData.numberOfTeachers) && (
-                      <p className="text-sm text-gray-500 flex items-center gap-1">
-                        <Users className="w-3 h-3" />
-                        {formData.numberOfStudents} {t('summaryStudents')} · {formData.numberOfTeachers} {t('summaryTeachers')}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  formData.organizationWebsite && (
-                    <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
-                      <Globe className="w-3 h-3" />
-                      {formData.organizationWebsite.replace(/^https?:\/\//, '')}
-                    </p>
-                  )
+                {formData.organizationWebsite && (
+                  <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                    <Globe className="w-3 h-3" />
+                    {formData.organizationWebsite.replace(/^https?:\/\//, '')}
+                  </p>
                 )}
               </div>
             </div>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onGoToStep(2)}
+              onClick={() => onGoToStep(1)}
               className="opacity-0 group-hover:opacity-100 transition-opacity text-[#8157D9] hover:text-[#7048C6] hover:bg-[#8157D9]/10"
             >
               <Pencil className="w-4 h-4 mr-1" />
@@ -132,7 +117,7 @@ export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummar
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onGoToStep(3)}
+              onClick={() => onGoToStep(2)}
               className="opacity-0 group-hover:opacity-100 transition-opacity text-[#8157D9] hover:text-[#7048C6] hover:bg-[#8157D9]/10"
             >
               <Pencil className="w-4 h-4 mr-1" />
@@ -169,7 +154,7 @@ export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummar
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onGoToStep(4)}
+              onClick={() => onGoToStep(3)}
               className="opacity-0 group-hover:opacity-100 transition-opacity text-[#8157D9] hover:text-[#7048C6] hover:bg-[#8157D9]/10"
             >
               <Pencil className="w-4 h-4 mr-1" />
@@ -243,7 +228,7 @@ export function PartnerSummary({ onNext, onPrevious, onGoToStep }: PartnerSummar
           {t('summaryBack')}
         </Button>
         <Button
-          onClick={onNext}
+          onClick={handleComplete}
           className="flex-1 py-6 text-base bg-purple-600 hover:bg-purple-700 text-white"
           size="lg"
         >
