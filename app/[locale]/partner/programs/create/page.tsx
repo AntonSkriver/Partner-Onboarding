@@ -6,7 +6,7 @@ import { Link } from '@/i18n/navigation'
 import { useRouter } from '@/i18n/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { getCurrentSession } from '@/lib/auth/session'
+import { getCurrentSession, isOnboardedUser } from '@/lib/auth/session'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import type { Program } from '@/lib/types/program'
 import {
@@ -29,12 +29,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, CheckCircle, Loader2, Sparkles } from 'lucide-react'
+import { ArrowLeft, Calendar, CheckCircle, CheckCircle2, Loader2, Sparkles } from 'lucide-react'
 import { resolvePartnerContext } from '@/lib/auth/partner-context'
 import { Badge } from '@/components/ui/badge'
 import { SdgDisplay, CrcDisplay } from '@/components/framework-selector'
 import {
   AGE_RANGE_VALUES,
+  AGE_RANGE_LABELS,
   STATUS_VALUES,
   COLLABORATION_TYPE_VALUES,
   PROGRAM_LANGUAGE_OPTIONS,
@@ -83,15 +84,20 @@ export default function CreateProgramPage() {
     }
   }, [session, router])
 
-  const { partnerId, partnerRecord, partnerUser } = useMemo(
+  const isFreshUser = useMemo(() => isOnboardedUser(session), [session])
+
+  const { partnerId: resolvedPartnerId, partnerRecord, partnerUser } = useMemo(
     () => resolvePartnerContext(session, database ?? null),
     [database, session],
   )
 
+  // For fresh users, use a stable fallback partner ID
+  const partnerId = resolvedPartnerId ?? (isFreshUser ? 'partner-onboarded-user' : null)
+
   const fallbackPartnerUser = useMemo(() => {
-    if (!database || !partnerId) return null
-    return database.partnerUsers.find((user) => user.partnerId === partnerId) ?? null
-  }, [database, partnerId])
+    if (!database || !resolvedPartnerId) return null
+    return database.partnerUsers.find((user) => user.partnerId === resolvedPartnerId) ?? null
+  }, [database, resolvedPartnerId])
 
   const createdById =
     partnerUser?.id ?? fallbackPartnerUser?.id ?? 'partner-user-prototype-system'
@@ -102,7 +108,7 @@ export default function CreateProgramPage() {
       name: '',
       description: '',
       learningGoals: '',
-      collaborationType: 'explore_global_challenges',
+      collaborationType: 'cultural_exchange',
       targetAgeRanges: [],
       languages: ['en'],
       sdgFocus: [],
@@ -114,13 +120,6 @@ export default function CreateProgramPage() {
       programUrl: '',
     },
   })
-
-  const toggleValue = <T,>(value: T, current: T[], onChange: (next: T[]) => void) => {
-    const next = current.includes(value)
-      ? current.filter((item) => item !== value)
-      : [...current, value]
-    onChange(next)
-  }
 
   const handleSdgChange = (sdgs: number[]) => {
     setSelectedSDGs(sdgs)
@@ -138,7 +137,7 @@ export default function CreateProgramPage() {
       : [...selectedLanguages, code]
 
     setSelectedLanguages(newSelection)
-    form.setValue('languages', newSelection as ("en" | "da")[])
+    form.setValue('languages', newSelection as (typeof PROGRAM_LANGUAGE_OPTIONS)[number][])
   }
 
   const handleSubmit = async (values: ProgramFormValues) => {
@@ -152,7 +151,7 @@ export default function CreateProgramPage() {
 
     try {
       const now = new Date().toISOString()
-      const hostName = partnerRecord?.organizationName ?? 'Program Host'
+      const hostName = partnerRecord?.organizationName ?? session?.organization ?? 'Program Host'
       const displayTitle = `${hostName}: ${values.name}`
       const programRecord = createRecord('programs', {
         partnerId,
@@ -239,9 +238,9 @@ export default function CreateProgramPage() {
             <Button variant="outline" onClick={() => setCreatedProgram(null)}>
               {t('createAnother')}
             </Button>
-            <Link href="/partner/dashboard" className="w-full sm:w-auto">
+            <Link href="/partner/profile/overview" className="w-full sm:w-auto">
               <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                Go to Dashboard
+                {t('goToProfile')}
               </Button>
             </Link>
           </CardFooter>
@@ -260,11 +259,6 @@ export default function CreateProgramPage() {
               <span>{t('programBuilder')}</span>
             </div>
             <h1 className="text-3xl font-bold text-gray-900">{t('createNewProgram')}</h1>
-            <p className="text-gray-600 mt-2 max-w-3xl">
-              Design a collaboration that aligns with your mission. We&apos;ll add it to the
-              prototype database so the dashboard and upcoming flows can reference the same local
-              data.
-            </p>
           </div>
           <Button
             variant="outline"
@@ -394,9 +388,12 @@ export default function CreateProgramPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t('startDate')}</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                          <FormControl>
+                            <Input type="date" className="pl-10" {...field} />
+                          </FormControl>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -407,9 +404,12 @@ export default function CreateProgramPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t('endDate')}</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                          <FormControl>
+                            <Input type="date" className="pl-10" {...field} />
+                          </FormControl>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -466,20 +466,31 @@ export default function CreateProgramPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('targetAgeRanges')}</FormLabel>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="grid gap-2 max-w-lg">
                         {AGE_RANGE_VALUES.map((value) => {
                           const isActive = field.value?.includes(value)
                           return (
-                            <Badge
+                            <button
+                              type="button"
                               key={value}
-                              variant={isActive ? 'default' : 'outline'}
-                              className="cursor-pointer"
-                              onClick={() =>
-                                toggleValue(value, field.value ?? [], field.onChange)
-                              }
+                              onClick={() => {
+                                const current = field.value ?? []
+                                const next = current.includes(value)
+                                  ? current.filter((v) => v !== value)
+                                  : [...current, value]
+                                field.onChange(next)
+                              }}
+                              className={`relative rounded-xl border-2 px-6 py-3 text-center text-sm font-medium transition-all ${
+                                isActive
+                                  ? 'border-purple-400 bg-purple-50 text-gray-900'
+                                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                              }`}
                             >
-                              {value.replace('-', '–')}
-                            </Badge>
+                              {AGE_RANGE_LABELS[value]}
+                              {isActive && (
+                                <CheckCircle2 className="absolute -right-2 -top-2 h-5 w-5 fill-green-500 text-white" />
+                              )}
+                            </button>
                           )
                         })}
                       </div>
@@ -502,6 +513,8 @@ export default function CreateProgramPage() {
                           const labelMap: Record<(typeof PROGRAM_LANGUAGE_OPTIONS)[number], string> = {
                             en: 'English',
                             da: 'Danish',
+                            es: 'Spanish',
+                            it: 'Italian',
                           }
                           const isActive = field.value?.includes(code)
                           return (
@@ -576,7 +589,7 @@ export default function CreateProgramPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => router.push('/partner/dashboard')}
+                    onClick={() => router.push('/partner/profile/overview')}
                   >
                     {tc('cancel')}
                   </Button>

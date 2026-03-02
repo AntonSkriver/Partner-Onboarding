@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import {
   ArrowLeft,
   CheckCircle,
+  CheckCircle2,
   Loader2,
   Sparkles,
 } from 'lucide-react'
@@ -41,6 +42,7 @@ import { Badge } from '@/components/ui/badge'
 import { resolvePartnerContext } from '@/lib/auth/partner-context'
 import {
   AGE_RANGE_VALUES,
+  AGE_RANGE_LABELS,
   CRC_ARTICLE_OPTIONS,
   SDG_OPTIONS,
   STATUS_VALUES,
@@ -67,7 +69,7 @@ const toFormValues = (program: Program): ProgramFormValues => ({
   learningGoals: program.learningGoals,
   collaborationType: (program.projectTypes?.[0] ?? 'cultural_exchange') as typeof COLLABORATION_TYPE_VALUES[number],
   targetAgeRanges: program.targetAgeRanges,
-  languages: (program.languages && program.languages.length > 0 ? program.languages : ['en']) as ("en" | "da")[],
+  languages: (program.languages && program.languages.length > 0 ? program.languages : ['en']) as (typeof PROGRAM_LANGUAGE_OPTIONS)[number][],
   sdgFocus: program.sdgFocus,
   crcFocus: program.crcFocus ?? [],
   startDate: program.startDate,
@@ -466,20 +468,31 @@ export default function EditProgramPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Target age ranges</FormLabel>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="grid gap-2 max-w-lg">
                         {AGE_RANGE_VALUES.map((value) => {
                           const isActive = field.value?.includes(value)
                           return (
-                            <Badge
+                            <button
+                              type="button"
                               key={value}
-                              variant={isActive ? 'default' : 'outline'}
-                              className="cursor-pointer"
-                              onClick={() =>
-                                toggleValue(value, field.value ?? [], field.onChange)
-                              }
+                              onClick={() => {
+                                const current = field.value ?? []
+                                const next = current.includes(value)
+                                  ? current.filter((v) => v !== value)
+                                  : [...current, value]
+                                field.onChange(next)
+                              }}
+                              className={`relative rounded-xl border-2 px-6 py-3 text-center text-sm font-medium transition-all ${
+                                isActive
+                                  ? 'border-purple-400 bg-purple-50 text-gray-900'
+                                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                              }`}
                             >
-                              {value.replace('-', '–')}
-                            </Badge>
+                              {AGE_RANGE_LABELS[value]}
+                              {isActive && (
+                                <CheckCircle2 className="absolute -right-2 -top-2 h-5 w-5 fill-green-500 text-white" />
+                              )}
+                            </button>
                           )
                         })}
                       </div>
@@ -502,6 +515,8 @@ export default function EditProgramPage() {
                           const labelMap: Record<(typeof PROGRAM_LANGUAGE_OPTIONS)[number], string> = {
                             en: 'English',
                             da: 'Danish',
+                            es: 'Spanish',
+                            it: 'Italian',
                           }
                           const isActive = field.value?.includes(code)
                           return (

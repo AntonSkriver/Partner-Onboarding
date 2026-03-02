@@ -15,12 +15,12 @@ export const PROGRAM_TYPE_VALUES = [
 ] as const
 
 export const COLLABORATION_TYPE_VALUES = [
-  'explore_global_challenges',
   'cultural_exchange',
+  'explore_global_challenges',
   'create_solutions',
 ] as const
 
-export const PROGRAM_LANGUAGE_OPTIONS = ['en', 'da'] as const
+export const PROGRAM_LANGUAGE_OPTIONS = ['en', 'da', 'es', 'it'] as const
 
 export const PEDAGOGICAL_FRAMEWORK_VALUES = [
   'coil',
@@ -34,7 +34,16 @@ export const PEDAGOGICAL_FRAMEWORK_VALUES = [
   'other',
 ] as const
 
-export const AGE_RANGE_VALUES = ['3-5', '6-8', '9-11', '12-14', '15-18', '18+'] as const
+export const AGE_RANGE_VALUES = ['under_6', '6-8', '9-12', '13-15', '16-18', '18+'] as const
+
+export const AGE_RANGE_LABELS: Record<(typeof AGE_RANGE_VALUES)[number], string> = {
+  under_6: 'Less than 6 years',
+  '6-8': '6-8 years',
+  '9-12': '9-12 years',
+  '13-15': '13-15 years',
+  '16-18': '16-18 years',
+  '18+': '18+ years',
+}
 
 export const STATUS_VALUES = ['draft', 'active', 'completed', 'archived'] as const
 
@@ -78,7 +87,7 @@ export const programSchema = z
     targetAgeRanges: z.array(z.enum(AGE_RANGE_VALUES)).min(1, 'Select at least one age range'),
     languages: z.array(z.enum(PROGRAM_LANGUAGE_OPTIONS)).min(1, 'Select at least one language'),
     sdgFocus: z.array(z.number()).min(1, 'Choose at least one SDG focus area'),
-    crcFocus: z.array(z.string()).min(1, 'Choose at least one CRC article'),
+    crcFocus: z.array(z.string()).optional().default([]),
     startDate: z.string().min(1, 'Start date is required'),
     endDate: z.string().min(1, 'End date is required'),
     status: z.enum(STATUS_VALUES),

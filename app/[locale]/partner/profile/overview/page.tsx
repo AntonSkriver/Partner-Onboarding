@@ -21,6 +21,7 @@ import {
   Lightbulb,
 } from 'lucide-react'
 import { getCurrentSession, isOnboardedUser as checkIsOnboarded } from '@/lib/auth/session'
+import { friendlyLabel } from '@/lib/utils'
 import { getCrcArticle, getCrcIconPath } from '@/lib/data/crc-data'
 import { Database } from '@/lib/types/database'
 import { SDGIcon } from '@/components/sdg-icons'
@@ -383,26 +384,36 @@ export default function PartnerOverviewPage() {
         />
       </div>
 
-      {/* Complete Your Profile Banner - shown for fresh profiles */}
-      {!isDemoUser && (
-        <Card className="border-purple-200 bg-purple-50/50">
-          <CardContent className="flex items-start gap-4 p-5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100">
-              <Lightbulb className="h-5 w-5 text-purple-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-gray-900">{t('completeProfileTitle')}</h3>
-              <p className="mt-1 text-sm text-gray-600">{t('completeProfileDesc')}</p>
-            </div>
-            <Button variant="outline" size="sm" asChild className="shrink-0 border-purple-200 text-purple-700 hover:bg-purple-100">
-              <Link href="/partner/profile/edit">
-                <Edit className="mr-2 h-3 w-3" />
-                {t('editProfile')}
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Profile Banner - adapts based on how much is filled out */}
+      {!isDemoUser && (() => {
+        const hasThematics = (organization.thematic_tags ?? []).length > 0
+        const hasCrc = childRightsFocus.length > 0
+        const hasMission = !!organization.short_description
+        const profileEnriched = hasThematics || hasCrc || hasMission
+        return (
+          <Card className={profileEnriched ? 'border-green-200 bg-green-50/50' : 'border-purple-200 bg-purple-50/50'}>
+            <CardContent className="flex items-start gap-4 p-5">
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${profileEnriched ? 'bg-green-100' : 'bg-purple-100'}`}>
+                <Lightbulb className={`h-5 w-5 ${profileEnriched ? 'text-green-600' : 'text-purple-600'}`} />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900">
+                  {profileEnriched ? t('profileLooksGoodTitle') : t('completeProfileTitle')}
+                </h3>
+                <p className="mt-1 text-sm text-gray-600">
+                  {profileEnriched ? t('profileLooksGoodDesc') : t('completeProfileDesc')}
+                </p>
+              </div>
+              <Button variant="outline" size="sm" asChild className={`shrink-0 ${profileEnriched ? 'border-green-200 text-green-700 hover:bg-green-100' : 'border-purple-200 text-purple-700 hover:bg-purple-100'}`}>
+                <Link href="/partner/profile/edit">
+                  <Edit className="mr-2 h-3 w-3" />
+                  {t('editProfile')}
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )
+      })()}
 
       {/* Detailed Information Sections */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -419,7 +430,7 @@ export default function PartnerOverviewPage() {
             {primaryContact && (
               <div className="space-y-2">
                 <div className="font-medium">{primaryContact.name}</div>
-                <div className="text-sm text-gray-600">{primaryContact.role}</div>
+                <div className="text-sm text-gray-600">{friendlyLabel(primaryContact.role ?? '')}</div>
                 <div className="flex items-center space-x-2 text-sm">
                   <Mail className="h-3 w-3" />
                   <span className="text-gray-800">{primaryContact.email}</span>
@@ -438,7 +449,7 @@ export default function PartnerOverviewPage() {
                       <div key={`${contact.email ?? contact.name ?? index}`} className="space-y-1">
                         <div className="text-sm font-medium">{contact.name}</div>
                         {contact.role && (
-                          <div className="text-xs text-gray-600">{contact.role}</div>
+                          <div className="text-xs text-gray-600">{friendlyLabel(contact.role)}</div>
                         )}
                         {contact.email && (
                           <div className="flex items-center space-x-2 text-sm text-gray-800">
