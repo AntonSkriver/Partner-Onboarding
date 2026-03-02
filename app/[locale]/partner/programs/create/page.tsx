@@ -22,21 +22,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { ArrowLeft, Calendar, CheckCircle, CheckCircle2, Loader2, Sparkles } from 'lucide-react'
+import { ArrowLeft, Calendar, CheckCircle, CheckCircle2, ImagePlus, Loader2, Sparkles, X } from 'lucide-react'
+import Image from 'next/image'
 import { resolvePartnerContext } from '@/lib/auth/partner-context'
 import { Badge } from '@/components/ui/badge'
 import { SdgDisplay, CrcDisplay } from '@/components/framework-selector'
 import {
   AGE_RANGE_VALUES,
   AGE_RANGE_LABELS,
-  STATUS_VALUES,
   COLLABORATION_TYPE_VALUES,
   PROGRAM_LANGUAGE_OPTIONS,
   friendlyLabel,
@@ -66,6 +59,7 @@ export default function CreateProgramPage() {
   const [selectedSDGs, setSelectedSDGs] = useState<number[]>([])
   const [selectedCRCs, setSelectedCRCs] = useState<string[]>([])
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['en'])
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   const { ready: dataReady, database, createRecord } = usePrototypeDb()
 
@@ -131,6 +125,24 @@ export default function CreateProgramPage() {
     form.setValue('crcFocus', articles)
   }
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const dataUrl = reader.result as string
+        setImagePreview(dataUrl)
+        form.setValue('heroImageUrl', dataUrl)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleImageRemove = () => {
+    setImagePreview(null)
+    form.setValue('heroImageUrl', '')
+  }
+
   const handleLanguageToggle = (code: string) => {
     const newSelection = selectedLanguages.includes(code)
       ? selectedLanguages.filter((lang) => lang !== code)
@@ -169,6 +181,7 @@ export default function CreateProgramPage() {
         startDate: values.startDate,
         endDate: values.endDate,
         programUrl: values.programUrl || undefined,
+        heroImageUrl: values.heroImageUrl || undefined,
         brandColor: partnerRecord?.brandColor ?? '#7F56D9',
         status: values.status,
         isPublic: values.isPublic,
@@ -287,6 +300,47 @@ export default function CreateProgramPage() {
           <CardContent className="space-y-6">
             <Form {...form}>
               <form className="space-y-8" onSubmit={form.handleSubmit(handleSubmit)}>
+                <FormField
+                  control={form.control}
+                  name="heroImageUrl"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>{t('coverImage')}</FormLabel>
+                      <p className="text-sm text-gray-600 mb-3">{t('coverImageDesc')}</p>
+                      {imagePreview ? (
+                        <div className="relative w-full h-48 rounded-xl overflow-hidden border border-gray-200">
+                          <Image
+                            src={imagePreview}
+                            alt={t('coverImage')}
+                            fill
+                            className="object-cover"
+                          />
+                          <div className="absolute top-2 right-2 flex gap-2">
+                            <label className="cursor-pointer rounded-lg bg-white/90 px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-white transition-colors">
+                              {t('changeImage')}
+                              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={handleImageRemove}
+                              className="rounded-lg bg-white/90 p-1.5 text-gray-700 shadow-sm hover:bg-white transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center w-full h-48 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 cursor-pointer hover:border-purple-400 hover:bg-purple-50/50 transition-colors">
+                          <ImagePlus className="h-8 w-8 text-gray-400 mb-2" />
+                          <span className="text-sm text-gray-500">{t('uploadImage')}</span>
+                          <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                        </label>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="name"
@@ -416,49 +470,19 @@ export default function CreateProgramPage() {
                   />
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{tc('status')}</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('selectStatus')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {STATUS_VALUES.map((status) => (
-                              <SelectItem key={status} value={status}>
-                                {friendlyLabel(status)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="programUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('programWebsite')}</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://example.org/program/climate-changemakers" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="programUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('programWebsite')}</FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://example.org/program/climate-changemakers" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <FormField
                   control={form.control}

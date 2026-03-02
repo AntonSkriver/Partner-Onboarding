@@ -10,10 +10,14 @@ import {
   ArrowLeft,
   CheckCircle,
   CheckCircle2,
+  ImagePlus,
   Loader2,
   Sparkles,
+  X,
 } from 'lucide-react'
+import Image from 'next/image'
 
+import { useTranslations } from 'next-intl'
 import { getCurrentSession } from '@/lib/auth/session'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
 import type { Program } from '@/lib/types/program'
@@ -30,25 +34,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 
 import { resolvePartnerContext } from '@/lib/auth/partner-context'
+import { SdgDisplay, CrcDisplay } from '@/components/framework-selector'
 import {
   AGE_RANGE_VALUES,
   AGE_RANGE_LABELS,
-  CRC_ARTICLE_OPTIONS,
-  SDG_OPTIONS,
-  STATUS_VALUES,
   COLLABORATION_TYPE_VALUES,
   PROGRAM_LANGUAGE_OPTIONS,
-  friendlyLabel,
   programSchema,
 } from '../../shared'
 import type { ProgramFormValues } from '../../shared'
@@ -77,15 +71,22 @@ const toFormValues = (program: Program): ProgramFormValues => ({
   status: program.status,
   isPublic: program.isPublic,
   programUrl: program.programUrl ?? '',
+  heroImageUrl: program.heroImageUrl ?? '',
 })
 
 export default function EditProgramPage() {
   const router = useRouter()
   const params = useParams<{ programId: string }>()
+  const t = useTranslations('programs')
+  const tSdg = useTranslations('sdg')
+  const tCrc = useTranslations('crc')
   const [session, setSession] = useState(() => getCurrentSession())
   const [updatedProgram, setUpdatedProgram] = useState<Program | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [selectedSDGs, setSelectedSDGs] = useState<number[]>([])
+  const [selectedCRCs, setSelectedCRCs] = useState<string[]>([])
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   const { ready: dataReady, database, updateRecord } = usePrototypeDb()
 
@@ -138,8 +139,39 @@ export default function EditProgramPage() {
   useEffect(() => {
     if (program) {
       form.reset(toFormValues(program))
+      setSelectedSDGs(program.sdgFocus ?? [])
+      setSelectedCRCs(program.crcFocus ?? [])
+      if (program.heroImageUrl) setImagePreview(program.heroImageUrl)
     }
   }, [program, form])
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const dataUrl = reader.result as string
+        setImagePreview(dataUrl)
+        form.setValue('heroImageUrl', dataUrl)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleImageRemove = () => {
+    setImagePreview(null)
+    form.setValue('heroImageUrl', '')
+  }
+
+  const handleSdgChange = (sdgs: number[]) => {
+    setSelectedSDGs(sdgs)
+    form.setValue('sdgFocus', sdgs)
+  }
+
+  const handleCrcChange = (articles: string[]) => {
+    setSelectedCRCs(articles)
+    form.setValue('crcFocus', articles)
+  }
 
   const toggleValue = <T,>(value: T, current: T[], onChange: (next: T[]) => void) => {
     const next = current.includes(value)
@@ -172,6 +204,7 @@ export default function EditProgramPage() {
         status: values.status,
         isPublic: values.isPublic,
         programUrl: values.programUrl || undefined,
+        heroImageUrl: values.heroImageUrl || undefined,
         projectTypes: [values.collaborationType],
         languages: values.languages,
       })
@@ -300,6 +333,47 @@ export default function EditProgramPage() {
               <form className="space-y-8" onSubmit={form.handleSubmit(handleSubmit)}>
                 <FormField
                   control={form.control}
+                  name="heroImageUrl"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>{t('coverImage')}</FormLabel>
+                      <p className="text-sm text-gray-600 mb-3">{t('coverImageDesc')}</p>
+                      {imagePreview ? (
+                        <div className="relative w-full h-48 rounded-xl overflow-hidden border border-gray-200">
+                          <Image
+                            src={imagePreview}
+                            alt={t('coverImage')}
+                            fill
+                            className="object-cover"
+                          />
+                          <div className="absolute top-2 right-2 flex gap-2">
+                            <label className="cursor-pointer rounded-lg bg-white/90 px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-white transition-colors">
+                              {t('changeImage')}
+                              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={handleImageRemove}
+                              className="rounded-lg bg-white/90 p-1.5 text-gray-700 shadow-sm hover:bg-white transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center w-full h-48 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 cursor-pointer hover:border-purple-400 hover:bg-purple-50/50 transition-colors">
+                          <ImagePlus className="h-8 w-8 text-gray-400 mb-2" />
+                          <span className="text-sm text-gray-500">{t('uploadImage')}</span>
+                          <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                        </label>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
@@ -421,46 +495,19 @@ export default function EditProgramPage() {
                   />
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {STATUS_VALUES.map((status) => (
-                              <SelectItem key={status} value={status}>
-                                {friendlyLabel(status)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="programUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Program website (optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://example.org/program/climate-changemakers" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="programUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('programWebsite')}</FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://example.org/program/climate-changemakers" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <FormField
                   control={form.control}
@@ -536,63 +583,38 @@ export default function EditProgramPage() {
                   )}
                 />
 
-                <div className="grid gap-6 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="sdgFocus"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>SDG focus areas</FormLabel>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                          {SDG_OPTIONS.map((sdg) => {
-                            const isActive = field.value?.includes(sdg.value)
-                            return (
-                              <Badge
-                                key={sdg.value}
-                                variant={isActive ? 'default' : 'outline'}
-                                className="cursor-pointer"
-                                onClick={() =>
-                                  toggleValue(sdg.value, field.value ?? [], field.onChange)
-                                }
-                              >
-                                {sdg.label}
-                              </Badge>
-                            )
-                          })}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <FormField
+                  control={form.control}
+                  name="sdgFocus"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>{tSdg('alignment')}</FormLabel>
+                      <p className="text-sm text-gray-600 mb-3">{tSdg('alignmentDesc')}</p>
+                      <SdgDisplay
+                        selected={selectedSDGs}
+                        onChange={handleSdgChange}
+                        max={5}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name="crcFocus"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>CRC focus (UN Convention on the Rights of the Child)</FormLabel>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {CRC_ARTICLE_OPTIONS.map((article) => {
-                            const isActive = field.value?.includes(article.value)
-                            return (
-                              <Badge
-                                key={article.value}
-                                variant={isActive ? 'default' : 'outline'}
-                                className="cursor-pointer"
-                                onClick={() =>
-                                  toggleValue(article.value, field.value ?? [], field.onChange)
-                                }
-                              >
-                                {article.label}
-                              </Badge>
-                            )
-                          })}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="crcFocus"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>{tCrc('alignment')}</FormLabel>
+                      <p className="text-sm text-gray-600 mb-3">{tCrc('alignmentDesc')}</p>
+                      <CrcDisplay
+                        selected={selectedCRCs}
+                        onChange={handleCrcChange}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <FormField
                   control={form.control}
@@ -600,9 +622,9 @@ export default function EditProgramPage() {
                   render={({ field }) => (
                     <FormItem className="flex items-start justify-between rounded-lg border border-gray-200 bg-gray-50 p-4">
                       <div className="space-y-1">
-                        <FormLabel>Visibility</FormLabel>
+                        <FormLabel>{t('visibility')}</FormLabel>
                         <p className="text-sm text-gray-600">
-                          Public programs are discoverable by other partners in the prototype.
+                          {t('visibilityDesc')}
                         </p>
                       </div>
                       <FormControl>

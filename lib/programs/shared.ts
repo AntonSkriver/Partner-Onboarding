@@ -93,6 +93,7 @@ export const programSchema = z
     status: z.enum(STATUS_VALUES),
     isPublic: z.boolean(),
     programUrl: z.string().url('Enter a valid URL (including https://)').optional().or(z.literal('')),
+    heroImageUrl: z.string().optional().default(''),
   })
   .refine(
     (data) => {

@@ -25,9 +25,11 @@ export default function PartnerProgramsPage() {
   const [loading, setLoading] = useState(true)
   const { ready: prototypeReady, database } = usePrototypeDb()
 
+  const isFreshUser = useMemo(() => isOnboardedUser(session), [session?.source])
+
   const partnerRecord = useMemo(() => {
     if (!database) return null
-    if (isOnboardedUser(session)) return null
+    if (isFreshUser) return null
     const normalizedName = organization?.name?.trim().toLowerCase()
     if (normalizedName) {
       const match = database.partners.find(
@@ -36,7 +38,7 @@ export default function PartnerProgramsPage() {
       if (match) return match
     }
     return null
-  }, [database, organization?.name, session?.source])
+  }, [database, organization?.name, isFreshUser])
 
   const programCatalog = useMemo(() => {
     if (!database) return []
@@ -48,6 +50,17 @@ export default function PartnerProgramsPage() {
       return catalog
     }
 
+    // Fresh onboarded users: show programs they created (partnerId = 'partner-onboarded-user')
+    if (isFreshUser) {
+      const freshPartnerId = 'partner-onboarded-user'
+      const ownProgramIds = new Set(
+        database.programs
+          .filter((p) => p.partnerId === freshPartnerId)
+          .map((p) => p.id)
+      )
+      return catalog.filter((item) => ownProgramIds.has(item.programId))
+    }
+
     if (!partnerRecord) return []
 
     const relatedPrograms = getProgramsForPartner(database, partnerRecord.id, {
@@ -57,7 +70,7 @@ export default function PartnerProgramsPage() {
 
     return catalog
       .filter((item) => allowedProgramIds.has(item.programId))
-  }, [database, partnerRecord, sessionRole])
+  }, [database, partnerRecord, sessionRole, isFreshUser])
 
   // Once the prototype DB is ready, we can determine programs.
   // For fresh users without a seed partner match, show empty state (not perpetual loading).

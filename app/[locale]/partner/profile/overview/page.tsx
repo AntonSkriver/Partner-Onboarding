@@ -192,31 +192,19 @@ export default function PartnerOverviewPage() {
           ? matchedPartner.sdgFocus.map((s) => s.replace('SDG ', ''))
           : ['4']
 
+        // Only show thematic areas and CRC if user has explicitly set them via profile editing
+        const storedThematicAreas = typeof window !== 'undefined' ? localStorage.getItem('onboarding_thematicAreas') : null
+        const storedCrcFocus = typeof window !== 'undefined' ? localStorage.getItem('onboarding_crcFocus') : null
+
         const thematicSet = new Set<string>()
-        linkedPrograms.forEach((p) => {
-          p.pedagogicalFramework?.forEach((f: string) => {
-            const labels: Record<string, string> = {
-              pbl: 'Project-Based Learning',
-              design_thinking: 'Design Thinking',
-              global_citizenship: 'Global Citizenship',
-              steam: 'STEAM Education',
-            }
-            thematicSet.add(labels[f] ?? f)
-          })
-          p.projectTypes?.forEach((pt: string) => {
-            const labels: Record<string, string> = {
-              cultural_exchange: 'Cultural Exchange',
-              explore_global_challenges: 'Global Challenges',
-              create_solutions: 'Solution Design',
-            }
-            if (labels[pt]) thematicSet.add(labels[pt])
-          })
-        })
+        if (storedThematicAreas) {
+          JSON.parse(storedThematicAreas).forEach((t: string) => thematicSet.add(t))
+        }
 
         const crcSet = new Set<string>()
-        linkedPrograms.forEach((p) => {
-          p.crcFocus?.forEach((c: string) => crcSet.add(c))
-        })
+        if (storedCrcFocus) {
+          JSON.parse(storedCrcFocus).forEach((c: string) => crcSet.add(c))
+        }
 
         setOrganization({
           id: matchedPartner.id,

@@ -223,7 +223,17 @@ export default function PartnerProgramDetailPage() {
           ) : null}
         </div>
 
-        <Card className="mb-8 border border-gray-200 shadow-sm">
+        <Card className="mb-8 border border-gray-200 shadow-sm overflow-hidden">
+          {summary.program.heroImageUrl && (
+            <div className="relative w-full h-48">
+              <Image
+                src={summary.program.heroImageUrl}
+                alt={summary.program.name}
+                fill
+                className="object-cover"
+              />
+            </div>
+          )}
           <CardContent className="space-y-4 p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div className="space-y-2">
