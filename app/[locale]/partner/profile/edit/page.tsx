@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link } from '@/i18n/navigation'
 import { usePrototypeDb } from '@/hooks/use-prototype-db'
-import { getCurrentSession } from '@/lib/auth/session'
+import { getCurrentSession, isOnboardedUser } from '@/lib/auth/session'
 import { resolvePartnerContext } from '@/lib/auth/partner-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,7 +21,8 @@ import {
   CheckCircle,
   Save,
   Plus,
-  Trash2
+  Trash2,
+  X,
 } from 'lucide-react'
 
 const THEMATIC_TAGS = [
@@ -94,14 +95,18 @@ export default function EditProfilePage() {
   const [selectedSDGs, setSelectedSDGs] = useState<string[]>([])
   const [selectedCRCs, setSelectedCRCs] = useState<string[]>([])
   const [selectedThematicAreas, setSelectedThematicAreas] = useState<string[]>([])
+  const [customThematicInput, setCustomThematicInput] = useState('')
   const [otherContacts, setOtherContacts] = useState<ContactEntry[]>(DEFAULT_OTHER_CONTACTS)
 
   const { ready: prototypeReady, database, updateRecord } = usePrototypeDb()
   const [session, setSession] = useState(() => getCurrentSession())
+  const [dataLoaded, setDataLoaded] = useState(false)
 
   useEffect(() => {
     setSession(getCurrentSession())
   }, [])
+
+  const isFreshUser = useMemo(() => isOnboardedUser(session), [session])
 
   const partnerContext = useMemo(() => {
     if (!prototypeReady || !database) return null
@@ -112,20 +117,54 @@ export default function EditProfilePage() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       organizationName: '',
-      mission: DEFAULT_MISSION,
+      mission: '',
       thematicAreas: [],
       sdgFocus: [],
       crcFocus: [],
-      primaryContactName: DEFAULT_PRIMARY_CONTACT.name,
-      primaryContactEmail: DEFAULT_PRIMARY_CONTACT.email,
-      primaryContactRole: DEFAULT_PRIMARY_CONTACT.role,
-      primaryContactPhone: DEFAULT_PRIMARY_CONTACT.phone ?? '',
+      primaryContactName: '',
+      primaryContactEmail: '',
+      primaryContactRole: '',
+      primaryContactPhone: '',
     },
   })
 
-  // Load existing data
+  // Load existing data — from partnerRecord (demo) or localStorage (fresh)
   useEffect(() => {
-    if (partnerContext?.partnerRecord) {
+    if (dataLoaded) return
+
+    if (isFreshUser) {
+      // Fresh onboarded user: load from localStorage
+      const orgName = session?.organization ?? ''
+      const storedContactName = typeof window !== 'undefined' ? localStorage.getItem('onboarding_contactName') : null
+      const storedContactEmail = typeof window !== 'undefined' ? localStorage.getItem('onboarding_contactEmail') : null
+      const storedContactRole = typeof window !== 'undefined' ? localStorage.getItem('onboarding_contactRole') : null
+      const storedContactPhone = typeof window !== 'undefined' ? localStorage.getItem('onboarding_contactPhone') : null
+      const storedSdgFocus = typeof window !== 'undefined' ? localStorage.getItem('onboarding_sdgFocus') : null
+      const storedMission = typeof window !== 'undefined' ? localStorage.getItem('onboarding_missionStatement') : null
+      const storedThematicAreas = typeof window !== 'undefined' ? localStorage.getItem('onboarding_thematicAreas') : null
+      const storedCrcFocus = typeof window !== 'undefined' ? localStorage.getItem('onboarding_crcFocus') : null
+
+      const sdgFocusArray: number[] = storedSdgFocus ? JSON.parse(storedSdgFocus) : []
+      const sdgTags = sdgFocusArray.map(String)
+      const thematicAreas: string[] = storedThematicAreas ? JSON.parse(storedThematicAreas) : []
+      const crcFocus: string[] = storedCrcFocus ? JSON.parse(storedCrcFocus) : []
+
+      form.setValue('organizationName', orgName)
+      form.setValue('mission', storedMission || '')
+      form.setValue('sdgFocus', sdgTags)
+      form.setValue('thematicAreas', thematicAreas)
+      form.setValue('crcFocus', crcFocus)
+      form.setValue('primaryContactName', storedContactName || '')
+      form.setValue('primaryContactEmail', storedContactEmail || '')
+      form.setValue('primaryContactRole', storedContactRole || '')
+      form.setValue('primaryContactPhone', storedContactPhone || '')
+
+      setSelectedSDGs(sdgTags)
+      setSelectedThematicAreas(thematicAreas)
+      setSelectedCRCs(crcFocus)
+      setOtherContacts([])
+      setDataLoaded(true)
+    } else if (partnerContext?.partnerRecord) {
       const partner = partnerContext.partnerRecord
 
       const mission = partner.mission?.trim() || DEFAULT_MISSION
@@ -165,8 +204,9 @@ export default function EditProfilePage() {
       form.setValue('primaryContactRole', normalizedPrimary.role)
       form.setValue('primaryContactPhone', normalizedPrimary.phone || '')
       setOtherContacts(normalizedOthers)
+      setDataLoaded(true)
     }
-  }, [partnerContext, form])
+  }, [partnerContext, form, isFreshUser, session, dataLoaded])
 
   const handleSdgChange = (sdgs: number[]) => {
     const asStrings = sdgs.map(String)
@@ -186,6 +226,19 @@ export default function EditProfilePage() {
 
     setSelectedThematicAreas(newSelection)
     form.setValue('thematicAreas', newSelection)
+  }
+
+  const handleAddCustomThematic = () => {
+    const trimmed = customThematicInput.trim()
+    if (!trimmed) return
+    if (selectedThematicAreas.some(a => a.toLowerCase() === trimmed.toLowerCase())) {
+      setCustomThematicInput('')
+      return
+    }
+    const newSelection = [...selectedThematicAreas, trimmed]
+    setSelectedThematicAreas(newSelection)
+    form.setValue('thematicAreas', newSelection)
+    setCustomThematicInput('')
   }
 
   const handleOtherContactChange = (
@@ -217,11 +270,6 @@ export default function EditProfilePage() {
   }
 
   const handleSubmit = async (data: ProfileData) => {
-    if (!partnerContext?.partnerId || !updateRecord) {
-      console.error('Missing partner context or update function')
-      return
-    }
-
     const normalizedOtherContacts = otherContacts
       .map((contact) => ({
         name: contact.name?.trim() ?? '',
@@ -234,21 +282,34 @@ export default function EditProfilePage() {
 
     setIsLoading(true)
     try {
-      // Update partner record
-      updateRecord('partners', partnerContext.partnerId, {
-        organizationName: data.organizationName,
-        mission: data.mission,
-        thematicTags: data.thematicAreas,
-        sdgTags: data.sdgFocus.map(Number),
-        childRightsFocus: data.crcFocus || [],
-        primaryContact: {
-          name: data.primaryContactName,
-          email: data.primaryContactEmail,
-          role: data.primaryContactRole,
-          phone: data.primaryContactPhone || '',
-        },
-        otherContacts: normalizedOtherContacts,
-      } as Record<string, unknown>)
+      if (isFreshUser) {
+        // Save to localStorage for fresh onboarded users
+        localStorage.setItem('organizationName', data.organizationName)
+        localStorage.setItem('onboarding_missionStatement', data.mission)
+        localStorage.setItem('onboarding_contactName', data.primaryContactName)
+        localStorage.setItem('onboarding_contactEmail', data.primaryContactEmail)
+        localStorage.setItem('onboarding_contactRole', data.primaryContactRole)
+        localStorage.setItem('onboarding_contactPhone', data.primaryContactPhone || '')
+        localStorage.setItem('onboarding_sdgFocus', JSON.stringify(data.sdgFocus.map(Number)))
+        localStorage.setItem('onboarding_thematicAreas', JSON.stringify(data.thematicAreas))
+        localStorage.setItem('onboarding_crcFocus', JSON.stringify(data.crcFocus || []))
+      } else if (partnerContext?.partnerId && updateRecord) {
+        // Update partner record for demo users
+        updateRecord('partners', partnerContext.partnerId, {
+          organizationName: data.organizationName,
+          mission: data.mission,
+          thematicTags: data.thematicAreas,
+          sdgTags: data.sdgFocus.map(Number),
+          childRightsFocus: data.crcFocus || [],
+          primaryContact: {
+            name: data.primaryContactName,
+            email: data.primaryContactEmail,
+            role: data.primaryContactRole,
+            phone: data.primaryContactPhone || '',
+          },
+          otherContacts: normalizedOtherContacts,
+        } as Record<string, unknown>)
+      }
 
       // Simulate save delay
       await new Promise(resolve => setTimeout(resolve, 1000))
@@ -283,7 +344,7 @@ export default function EditProfilePage() {
     )
   }
 
-  if (!prototypeReady || !partnerContext?.partnerRecord) {
+  if (!dataLoaded) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-pulse text-gray-500">{tc('loading')}</div>
@@ -531,7 +592,7 @@ export default function EditProfilePage() {
                 <CardTitle>{t('thematicAreas')} *</CardTitle>
                 <CardDescription>{t('thematicAreasDesc')}</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <div className="flex flex-wrap gap-2">
                   {THEMATIC_TAGS.map((area) => (
                     <Badge
@@ -548,8 +609,48 @@ export default function EditProfilePage() {
                     </Badge>
                   ))}
                 </div>
+                {selectedThematicAreas.filter(a => !THEMATIC_TAGS.includes(a)).length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+                    {selectedThematicAreas.filter(a => !THEMATIC_TAGS.includes(a)).map(area => (
+                      <Badge
+                        key={area}
+                        variant="default"
+                        className="bg-purple-600 hover:bg-purple-700 cursor-pointer flex items-center gap-1"
+                        onClick={() => handleThematicToggle(area)}
+                      >
+                        {area}
+                        <X className="w-3 h-3 ml-0.5" />
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Input
+                    value={customThematicInput}
+                    onChange={(e) => setCustomThematicInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleAddCustomThematic()
+                      }
+                    }}
+                    placeholder={t('customThematicPlaceholder')}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddCustomThematic}
+                    disabled={!customThematicInput.trim()}
+                    className="px-4"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    {t('addCustomThematic')}
+                  </Button>
+                </div>
                 {selectedThematicAreas.length > 0 && (
-                  <p className="text-sm text-gray-600 mt-3">
+                  <p className="text-sm text-gray-600">
                     {tc('areasSelected', { count: selectedThematicAreas.length })}
                   </p>
                 )}
@@ -581,6 +682,7 @@ export default function EditProfilePage() {
                 <CrcDisplay
                   selected={selectedCRCs}
                   onChange={handleCrcChange}
+                  max={10}
                 />
               </CardContent>
             </Card>

@@ -587,7 +587,8 @@
     "keepEditing": "Keep Editing",
     "noCrcsSelected": "No CRC articles selected yet",
     "confirmSelection": "Confirm Selection",
-    "articlesSelected": "{count} articles selected"
+    "articlesSelected": "{count} articles selected",
+    "maxReached": "Maximum of {max} CRC articles can be selected"
   },
   "schools": {
     "inviteTitle": "Invite Schools",
@@ -906,6 +907,8 @@
       "noAdditionalContacts": "No additional contacts added yet.",
       "thematicAreas": "Thematic Areas",
       "thematicAreasDesc": "Select the areas your organization focuses on",
+      "customThematicPlaceholder": "Type a custom thematic area...",
+      "addCustomThematic": "Add",
       "sdgFocus": "UN SDG Focus",
       "sdgFocusDesc": "Select the Sustainable Development Goals you support",
       "selectedSDGs": "Selected SDGs ({count}):",

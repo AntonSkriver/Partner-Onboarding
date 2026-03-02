@@ -25,7 +25,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Check, HelpCircle, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { CRC_CATEGORIES, CRC_ARTICLES, getCrcArticle, getCrcIconPath } from '@/lib/data/crc-data'
+
+const DEFAULT_MAX_CRC = 10
 
 interface CrcSelectorSheetProps {
   open: boolean
@@ -34,6 +37,8 @@ interface CrcSelectorSheetProps {
   selected: string[]
   /** Called when user confirms their selections */
   onConfirm: (articles: string[]) => void
+  /** Maximum CRC articles that can be selected. Defaults to 10. 0 = unlimited. */
+  max?: number
 }
 
 export function CrcSelectorSheet({
@@ -41,6 +46,7 @@ export function CrcSelectorSheet({
   onOpenChange,
   selected,
   onConfirm,
+  max = DEFAULT_MAX_CRC,
 }: CrcSelectorSheetProps) {
   const t = useTranslations('crc')
   const tc = useTranslations('common')
@@ -64,12 +70,22 @@ export function CrcSelectorSheet({
     return sortedPending.some((v, i) => v !== sortedSelected[i])
   }, [pending, selected])
 
+  const atMax = max > 0 && pending.length >= max
+
   const handleToggle = (articleId: string) => {
-    setPending((prev) =>
-      prev.includes(articleId)
-        ? prev.filter((id) => id !== articleId)
-        : [...prev, articleId]
-    )
+    if (pending.includes(articleId)) {
+      setPending((prev) => prev.filter((id) => id !== articleId))
+    } else if (max > 0 && pending.length >= max) {
+      toast.error(t('maxReached', { max }), {
+        style: {
+          backgroundColor: '#fff7ed',
+          borderColor: '#ffedd5',
+          color: '#c2410c',
+        },
+      })
+    } else {
+      setPending((prev) => [...prev, articleId])
+    }
   }
 
   const handleConfirm = () => {
@@ -109,8 +125,8 @@ export function CrcSelectorSheet({
             <SheetTitle className="text-xl">{t('selectorTitle')}</SheetTitle>
             <SheetDescription>{t('selectorDesc')}</SheetDescription>
             <div className="flex items-center justify-between mt-2">
-              <p className="text-sm font-medium text-gray-500">
-                {t('articlesSelected', { count: pending.length })}
+              <p className={`text-sm font-medium ${atMax ? 'text-orange-500' : 'text-gray-500'}`}>
+                {max > 0 ? `${pending.length}/${max} ${t('articlesSelected', { count: pending.length }).replace(/^\d+\s*/, '')}` : t('articlesSelected', { count: pending.length })}
               </p>
               <button
                 type="button"
@@ -156,16 +172,20 @@ export function CrcSelectorSheet({
                       const article = getCrcArticle(articleId)
                       const isSelected = pending.includes(articleId)
                       const iconPath = getCrcIconPath(articleId)
+                      const isDisabled = !isSelected && atMax
 
                       return (
                         <button
                           key={articleId}
                           type="button"
                           onClick={() => handleToggle(articleId)}
+                          disabled={isDisabled}
                           className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
                             isSelected
                               ? 'border-[#8157D9] bg-purple-50 shadow-sm'
-                              : 'border-gray-200 hover:border-[#8157D9]/50 hover:bg-gray-50'
+                              : isDisabled
+                                ? 'border-gray-100 bg-gray-50 opacity-40 cursor-not-allowed'
+                                : 'border-gray-200 hover:border-[#8157D9]/50 hover:bg-gray-50'
                           }`}
                         >
                           <div className="relative w-16 h-16 shrink-0">

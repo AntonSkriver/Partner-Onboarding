@@ -587,7 +587,8 @@
     "keepEditing": "Fortsæt redigering",
     "noCrcsSelected": "Ingen børnekonventionsartikler valgt endnu",
     "confirmSelection": "Bekræft valg",
-    "articlesSelected": "{count} artikler valgt"
+    "articlesSelected": "{count} artikler valgt",
+    "maxReached": "Der kan maksimalt vælges {max} CRC-artikler"
   },
   "schools": {
     "inviteTitle": "Inviter skoler",
@@ -906,6 +907,8 @@
       "noAdditionalContacts": "Ingen yderligere kontakter tilføjet endnu.",
       "thematicAreas": "Tematiske områder",
       "thematicAreasDesc": "Vælg de områder jeres organisation fokuserer på",
+      "customThematicPlaceholder": "Skriv et brugerdefineret tematisk område...",
+      "addCustomThematic": "Tilføj",
       "sdgFocus": "FN's verdensmålsfokus",
       "sdgFocusDesc": "Vælg de verdensmål I understøtter",
       "selectedSDGs": "Valgte verdensmål ({count}):",

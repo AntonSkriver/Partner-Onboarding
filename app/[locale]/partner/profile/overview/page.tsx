@@ -21,6 +21,7 @@ import {
   Lightbulb,
 } from 'lucide-react'
 import { getCurrentSession, isOnboardedUser as checkIsOnboarded } from '@/lib/auth/session'
+import { getCrcArticle, getCrcIconPath } from '@/lib/data/crc-data'
 import { Database } from '@/lib/types/database'
 import { SDGIcon } from '@/components/sdg-icons'
 import { SDG_OPTIONS } from '@/contexts/partner-onboarding-context'
@@ -31,27 +32,6 @@ import {
 } from '@/lib/programs/selectors'
 
 type Organization = Database['public']['Tables']['organizations']['Row']
-
-const CRC_ARTICLE_DETAILS: Record<
-  string,
-  { title: string }
-> = {
-  '12': {
-    title: 'Respect for the views of the child',
-  },
-  '13': {
-    title: 'Freedom of expression',
-  },
-  '24': {
-    title: 'Health and health services',
-  },
-  '28': {
-    title: 'Right to education',
-  },
-  '31': {
-    title: 'Leisure, play, and culture',
-  },
-}
 
 type PartnerResource = {
   id: string
@@ -275,6 +255,8 @@ export default function PartnerOverviewPage() {
         const storedSdgFocus = typeof window !== 'undefined' ? localStorage.getItem('onboarding_sdgFocus') : null
         const storedMission = typeof window !== 'undefined' ? localStorage.getItem('onboarding_missionStatement') : null
         const storedWebsite = typeof window !== 'undefined' ? localStorage.getItem('organizationWebsite') : null
+        const storedThematicAreas = typeof window !== 'undefined' ? localStorage.getItem('onboarding_thematicAreas') : null
+        const storedCrcFocus = typeof window !== 'undefined' ? localStorage.getItem('onboarding_crcFocus') : null
 
         const sdgFocusArray: number[] = storedSdgFocus ? JSON.parse(storedSdgFocus) : []
         const sdgTags = sdgFocusArray.map(String)
@@ -295,7 +277,7 @@ export default function PartnerOverviewPage() {
           countries_of_operation: [],
           languages: [],
           sdg_tags: sdgTags,
-          thematic_tags: [],
+          thematic_tags: storedThematicAreas ? JSON.parse(storedThematicAreas) : [],
           verification_status: 'pending',
           brand_settings: null,
           created_at: new Date().toISOString(),
@@ -304,7 +286,7 @@ export default function PartnerOverviewPage() {
         })
 
         setResources([])
-        setChildRightsFocus([])
+        setChildRightsFocus(storedCrcFocus ? JSON.parse(storedCrcFocus) : [])
       }
     } catch (err) {
       console.error('Error loading organization profile:', err)
@@ -349,16 +331,11 @@ export default function PartnerOverviewPage() {
       return []
     }
     return normalizedChildRights.map((article) => {
-      const fallback = {
-        title: `Article ${article}`,
-      }
-      const details = CRC_ARTICLE_DETAILS[article] ?? fallback
-      const padded = article.padStart(2, '0')
-
+      const crcArticle = getCrcArticle(article)
       return {
         article,
-        title: details.title,
-        iconSrc: `/crc/icons/article-${padded}.png`,
+        title: crcArticle?.title ?? `Article ${article}`,
+        iconSrc: getCrcIconPath(article),
       }
     })
   }, [normalizedChildRights])

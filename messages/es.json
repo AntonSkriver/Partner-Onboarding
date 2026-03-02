@@ -587,7 +587,8 @@
     "keepEditing": "Seguir editando",
     "noCrcsSelected": "Ningún artículo CDN seleccionado aún",
     "confirmSelection": "Confirmar selección",
-    "articlesSelected": "{count} artículos seleccionados"
+    "articlesSelected": "{count} artículos seleccionados",
+    "maxReached": "Se pueden seleccionar un máximo de {max} artículos CRC"
   },
   "schools": {
     "inviteTitle": "Invitar escuelas",
@@ -906,6 +907,8 @@
       "noAdditionalContacts": "Aún no se han agregado contactos adicionales.",
       "thematicAreas": "Áreas temáticas",
       "thematicAreasDesc": "Seleccione las áreas en las que se enfoca su organización",
+      "customThematicPlaceholder": "Escriba un área temática personalizada...",
+      "addCustomThematic": "Agregar",
       "sdgFocus": "Enfoque en los ODS de la ONU",
       "sdgFocusDesc": "Seleccione los Objetivos de Desarrollo Sostenible que apoya",
       "selectedSDGs": "ODS seleccionados ({count}):",

@@ -18,6 +18,8 @@ interface CrcDisplayProps {
   readOnly?: boolean
   /** Optional label override. */
   label?: string
+  /** Maximum CRC articles that can be selected. Defaults to 10. */
+  max?: number
 }
 
 export function CrcDisplay({
@@ -26,6 +28,7 @@ export function CrcDisplay({
   showAddButton = true,
   readOnly = false,
   label,
+  max,
 }: CrcDisplayProps) {
   const t = useTranslations('crc')
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -86,6 +89,7 @@ export function CrcDisplay({
           onOpenChange={setSheetOpen}
           selected={selected}
           onConfirm={onChange}
+          max={max}
         />
       )}
     </div>
